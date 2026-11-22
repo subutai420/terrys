@@ -3,6 +3,7 @@
  * collections are listed in `payload.config.ts`.
  */
 export const ADMIN_GROUPS = {
+  orders: 'Objednávky',
   catalog: 'Katalog',
   codeLists: 'Číselníky',
   content: 'Obsah',

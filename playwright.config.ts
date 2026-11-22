@@ -35,5 +35,10 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
+    // Stage 4: e-mails are saved to EMAIL_OUTBOX_DIR (no RESEND_API_KEY in tests); the shop copy
+    // needs a recipient – a reserved test domain, never a real address.
+    env: {
+      ORDER_NOTIFICATION_EMAIL: process.env.ORDER_NOTIFICATION_EMAIL || 'objednavky@example.test',
+    },
   },
 })

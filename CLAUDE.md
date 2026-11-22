@@ -40,6 +40,8 @@ read it: the bundled Next.js docs in `node_modules/next/dist/docs/` match the in
   do not edit them (except `custom.scss` for admin styling).
 - `src/collections` – one file per Payload collection. `src/payload.config.ts` – Payload config.
 - `src/lib` – plain helper functions; unit tests sit next to them as `*.test.ts`.
+- `src/orders` – stage 4 order glue (placement, cart check, endpoints, e-mails, withdrawal); pure
+  logic in `src/lib/orders`; e-mail adapter + templates in `src/email`. See "Orders (stage 4)".
 - `src/delivery` – Payload glue of the delivery module (loading rules, endpoints, CSV import);
   the pure logic is in `src/lib/delivery`. `src/components/admin` – custom admin components.
 - `tests/e2e` – Playwright tests (`*.e2e.spec.ts`).
@@ -58,7 +60,7 @@ read it: the bundled Next.js docs in `node_modules/next/dist/docs/` match the in
 
 ## Data model (stage 1)
 
-Collections (slug → purpose). Admin groups: Katalog, Číselníky, Obsah, Doručování (stage 2, see
+Collections (slug → purpose). Admin groups: Objednávky (stage 4, see "Orders"), Katalog, Číselníky, Obsah, Doručování (stage 2, see
 below), Nastavení
 (`src/collections/adminGroups.ts`; sidebar order = order in `payload.config.ts`).
 
@@ -79,7 +81,7 @@ Global `homepage` (stage 3, editors write, public read): editable homepage block
 homepage country tile leads); migration `20261122_174401_storefront`.
 
 Global `settings` (admin-only writes, public read): `deliveryPrice` (default 229, min 1),
-`deliveryHorizonDays` (default 21, stage 2), `priceNotice`
+`deliveryHorizonDays` (default 21, stage 2), `orders.notificationEmail` (stage 4), `priceNotice`
 (text shown next to every estimated price), `contact` {email, phone, whatsapp}, `company` {name,
 ico, dic, address, registration}, `social` {facebook, instagram, youtube, tiktok}.
 
@@ -95,6 +97,8 @@ in kg. Do not add them (business rule 1).
   `publicProductsOrLoggedIn`, `adminOrSelf`, `adminOnlyField`) instead of ad-hoc checks.
 - Anonymous (storefront) reads: drafts never; products additionally never with
   `availability: 'hidden'`. Code lists, categories, locations, settings, media are public.
+- Orders and withdrawals (stage 4): read `orderReaders` (admin/staff/butcher), update `editors`,
+  delete `adminOnly`, create `nobody` (server only). Anonymous visitors get 403.
 - First user ever created is forced to `admin` (hook in `Users.ts`); only admins change roles.
 - Storefront code that uses the local API with `overrideAccess: true` (the default!) bypasses all
   of this – pass `overrideAccess: false` or filter `_status`/`availability` yourself.
@@ -305,18 +309,147 @@ Code in `src/migration`, outputs in `migration/` (committed: `url-inventory.csv`
 - Stage 3 (storefront) is done, see "Storefront (stage 3)". Stage 8 redirect map: the storefront
   serves `legacyUrl` paths directly, so only aliases need redirects; use `getPublicPath()` for the
   targets. Add them in `src/proxy.ts` (extend its matcher) or as `next.config` redirects.
-- Stage 4 (cart/orders): store the variant snapshot (label, weightGrams, unit price, VAT rate)
-  on the order line, not a reference only – products change.
-  Delivery in the cart: step 1 asks for the postcode and calls `GET /api/delivery/options?psc=`
-  (or `getDeliveryOptionsForPostcode()` in a server component/action). Show unavailable methods
-  with their `message`, pickup always free. On submit, **re-run `getDeliveryOptionsForPostcode()`
-  on the server and reject a date/method that is no longer in `dates`** (cut-off may have passed,
-  responses are cached up to ~60 s). Store on the order a snapshot: method id + slug + name +
-  type, price, chosen date (`IsoDate`), postcode, pickup location – not just references.
-  Orders containing only an electronic gift voucher (stage 7) skip this step: no shipping
-  method, no date, price 0 – nothing in the delivery model requires a method on an order.
+- Stage 4 (cart/orders) is done, see "Orders (stage 4)" below (notes for stages 5–7 there).
 - Stage 5 (orders, Balíkobot): courier methods carry `balikobot.carrierCode` / `serviceCode`
   (empty service code today). Use `toShopDate()` / `toShopDateTime()` for any date shown to staff.
+
+## Orders (stage 4)
+
+### Flow
+
+`/kosik` (browser cart, re-validated by `POST /api/checkout/validate-cart`; step 1 postcode →
+`GET /api/delivery/options` → method → only selectable dates) → `/objednavka` (ONE page with
+numbered sections: delivery summary/change, contact, address or pickup place, company, note,
+gift voucher, pre-contract summary, consents, button "Objednávka zavazující k platbě") →
+`POST /api/checkout/place-order` → `/objednavka/dekujeme/<accessToken>`. Why one checkout page:
+mostly mobile customers, the cart already settled delivery and date, so the rest fits one scroll
+with the summary visible; back button and reload keep everything (delivery choice in
+localStorage, form draft in sessionStorage, consents never restored).
+
+Endpoints (`src/orders/endpoints.ts`, Payload root endpoints, POST, JSON, no-store, same-origin
+check, per-IP in-memory rate limit): `/api/checkout/validate-cart`, `/place-order`,
+`/address-check` (Foxentry), `/withdrawal`. Endpoints rather than Server Actions: action ids
+change with every deploy ("Failed to find Server Action" for an open checkout), endpoints are
+directly testable and mirror `/api/delivery/options`.
+
+### Model (`src/collections/Orders.ts`, `Withdrawals.ts`; migration `20261122_184945_orders`)
+
+Group **Objednávky**. Access: read admin/staff/butcher (`orderReaders`), update editors, delete
+admin, create **nobody** (only `placeOrder()` with `overrideAccess`). Never public.
+
+- `orderNumber` (text, unique) from the PostgreSQL sequence `order_number_seq` (start 100001,
+  hand-added to the migration; created on first use in dev-push databases) – race-safe, may
+  skip numbers. Invoices (stage 5) need their own gap-free series.
+- `status`: `received` (Přijato, stage 4) → `weighed` → `shipped` / `ready-for-pickup` →
+  `delivered` / `picked-up`; `cancelled`. `kind`: `goods` | `voucher` (stage 7).
+- Flat list columns: `customerName`, `contactEmail`, `contactPhone`, `scheduledDate`,
+  `shippingLabel`, `totalEstimate`. Never name a top-level field like a group field: Payload
+  column names would collide (`customerEmail` vs `customer.email` → both `customer_email`).
+- `lines[]` snapshot: `product` (ref) + `productTitle`, `variantId`, `variantLabel`, `sku`,
+  `quantity`, `unitPrice`, `priceUnit`, `vatRate`, `estimatedWeightGrams` (one piece),
+  `estimatedPrice` (whole line); stage 5: `actualWeightGrams`, `finalPrice`. The array is
+  read-only in the admin (no hand-added lines); stage 5 builds the weighing UI.
+- `totals` {`goodsEstimate`, `deliveryPrice`, `totalEstimate`, `vat[]` {rate, base, vat, gross},
+  stage 5: `goodsFinal`, `totalFinal`}; `voucherCode` (as typed, NOT validated).
+- `customer` {firstName, lastName, email, phone, companyName, ico, dic}; `shippingAddress`
+  {street, city, postcode, checkStatus, checkNote (Foxentry)}; `delivery` {method (ref),
+  methodSlug, methodName, methodType, price, date (IsoDate text), postcode, pickupLocation
+  {name, street, city, zip, openingHoursNote}} – all optional at model level (stage 7 voucher
+  orders have no delivery).
+- `customerNote`, `internalNote`, `invoiceNumber`, `trackingNumber`, `trackingUrl` (stage 5).
+- `emails` {customerStatus/SentAt/Error, shopStatus/SentAt/Error}: `pending`/`sent`/`outbox`
+  (no provider, saved to folder)/`failed`/`skipped`.
+- `consents` {termsAcceptedAt, termsPageUpdatedAt (version evidence), privacyNoticeAt,
+  newsletter + newsletterAt (unchecked by default), heurekaOptOut}.
+- `attribution` {utm*, gclid, fbclid, referrer (origin + path), landingPage, firstSeenAt} –
+  first touch captured by `AttributionCapture` (localStorage `terrys-attribution-v1`, 90 days).
+- `eventId` (UUID, Meta CAPI dedup), `accessToken` (thank-you URL), `idempotencyKey` (browser
+  `checkoutId`) – the last two have field access read/update false (only overrideAccess sees them).
+- `withdrawals` join → collection `withdrawals` (submittedAt, order ref or empty when not matched,
+  name, email, phone, orderNumberEntered, items, message, confirmation status, status, note).
+
+No `customers` collection: the e-mail on the order is enough now. Stage 6 (Ecomail) probably
+wants a light `customers` collection keyed by e-mail (first/last order, order count, newsletter
+consent with timestamp and source) to sync segments without scanning orders – NOT accounts.
+
+### Money (`src/lib/orders/money.ts`, tested)
+
+Catalog prices are VAT-inclusive CZK per unit (may have haléře). Line estimate = unit price ×
+weight × quantity rounded ONCE per line to whole CZK (`estimateVariantPrice`); fixed-price items
+= price × quantity rounded. Totals = sum of whole-CZK lines + delivery (whole CZK), no further
+rounding. VAT back-calculated per rate in integer haléře: base = round(gross·100/(100+rate)),
+VAT = gross − base; stored in CZK with 2 decimals. Delivery VAT follows the goods (ancillary
+supply), split between rates in proportion to goods value (largest remainder) – accountant to
+confirm. Unit prices with haléře display via `formatUnitPrice` ("27,90 Kč"). The cart computes
+with the same functions, so the browser shows exactly what the server stores.
+
+### Server-side validation contract (`src/orders/placeOrder.ts`)
+
+1. zod schema `checkoutInputSchema` (shared with the browser) – the input carries ids,
+   quantities, method id, date, customer data, consents, attribution, `checkoutId`,
+   `expectedTotal`; NO prices (unknown keys are dropped). 422 + Czech `fieldErrors`.
+2. Bot checks: honeypot `website`; signed timing token (`formToken.ts`, ≥ 3 s, ≤ 24 h);
+   Turnstile when both keys are set. 400 `bot`. Endpoint level: same-origin check, rate limit.
+3. Idempotency: an existing order with the same `checkoutId` is returned (unique index also
+   catches parallel requests). The browser keeps the id until the order succeeds.
+4. Products re-read with PUBLIC rules (published, not hidden), variant must exist and be
+   purchasable → else 409 `cart-changed` with the corrected cart.
+5. Delivery engine re-run at submit time; method available and date in `dates` → else 409
+   `delivery-unavailable` with fresh options (cut-off passed while typing).
+6. Totals; different from `expectedTotal` → 409 `prices-changed` (customer confirms again).
+7. Address required for delivery methods, its postcode must equal the delivery postcode;
+   Foxentry check (optional) never blocks.
+8. Save, then e-mails; e-mail failures only mark `emails.*Status = failed` + error.
+
+### E-mails (`src/email`)
+
+`createEmailAdapter()`: `RESEND_API_KEY` → `@payloadcms/email-resend`; otherwise
+`outboxEmailAdapter` writes `.html/.txt/.json` to `EMAIL_OUTBOX_DIR` (default `.emails/`) and
+the order shows "outbox". Templates are plain functions (`templates/*.ts`: table layout, inline
+styles, text alternative, every value escaped) – chosen over React Email to avoid
+`react-dom/server` in the Next server bundle and an extra renderer. Customer confirmation (signed
+"Těší se na vás řezníci z Terrysu"), internal copy (everything to fulfil without the admin),
+withdrawal confirmation + internal notice. Recipient of internal copies: settings
+`orders.notificationEmail` → env `ORDER_NOTIFICATION_EMAIL` → contact e-mail. Integration tests
+spy on `payload.sendEmail`; e2e reads the outbox folder (Playwright passes
+`ORDER_NOTIFICATION_EMAIL=objednavky@example.test`).
+
+### Analytics hook payloads (`src/lib/analytics.ts`; local record `window.terrysAnalyticsLog`)
+
+- `add_shipping_info` (cart, "Pokračovat k objednávce"): {currency, value = goods estimate,
+  value_is_estimate, shipping_tier, delivery_date, items}.
+- `begin_checkout` (checkout page, once per `checkoutId`): {currency, value, value_is_estimate,
+  items}.
+- `purchase` (thank-you page, once per order number – localStorage
+  `terrys-purchase-tracked-v1`): {transaction_id, value = estimated TOTAL incl. delivery,
+  shipping, shipping_tier, event_id (= `orders.eventId`), currency, value_is_estimate, items}.
+- items: {item_id (product id), item_name, item_variant, price (estimate per piece), quantity,
+  estimated_weight_grams}. Stage 6 decides whether GA4 `value` should exclude shipping.
+
+### Withdrawal ("odstoupení od smlouvy")
+
+Footer link → `/odstoupeni-od-smlouvy`: button "Odstoupit od smlouvy zde" → form (name, e-mail,
+order number required; phone, items, message optional; never a reason) → "Potvrdit odstoupení
+od smlouvy" → record in `withdrawals` (+ link to the order when number + e-mail match; also
+stored when not matched) and a confirmation e-mail repeating the content with date and time.
+Basis: Directive (EU) 2023/2673 (Art. 11a of 2011/83/EU); Czech § 1830a OZ in the "button"
+amendment, expected in force 1. 1. 2027 (was in the Senate in autumn 2026 – verify the final
+text). Wording is neutral; the legal text of the terms is the owner's (the terms on the site are
+from 2018 and cite repealed laws – owner/lawyer must update them).
+
+### Notes for the next stages
+
+- Stage 5: weighing UI fills `lines[].actualWeightGrams/finalPrice`, `totals.goodsFinal/
+totalFinal` (round final line prices to whole CZK like the estimate, reuse `money.ts`), sets
+  `status`, deducts verified vouchers (`voucherCode`), issues invoice numbers (own gap-free
+  series), Balíkobot for `delivery.methodType = courier` (address snapshot is on the order).
+  Send "zváženo" e-mails with the same template helpers.
+- Stage 6: fill the analytics hooks (dataLayer), Meta CAPI with `orders.eventId`, Ecomail
+  (`consents.newsletter` + `newsletterAt`; consider the `customers` collection above), Heureka
+  "Ověřeno zákazníky" – skip orders with `consents.heurekaOptOut`. Decide with the lawyer whether
+  `AttributionCapture` needs cookie consent; if so gate it there.
+- Stage 7: voucher-only orders = `kind: 'voucher'`, no `delivery`, bank transfer; add their own
+  flow (the cart must not ask for a postcode when it holds only electronic vouchers).
 
 ## Storefront (stage 3)
 
@@ -346,7 +479,9 @@ document URL by hand.
 | `produkty/page.tsx`                                  | `/produkty`, all products with filters                                                                                                                                                         |
 | `magazin`, `academy`, `pojmy`, `recepty`, `prodejny` | listings (the old listing URLs)                                                                                                                                                                |
 | `vyhledavani/page.tsx`                               | search with the old parameter `?ProductsSearch=` (also `?q=`), noindex                                                                                                                         |
-| `kosik/page.tsx`                                     | placeholder cart overview from localStorage (stage 4 replaces it), noindex                                                                                                                     |
+| `kosik/page.tsx`                                     | cart (stage 4): lines re-validated against the server, postcode → method → date, summary; noindex                                                                                              |
+| `objednavka/page.tsx`, `objednavka/dekujeme/[token]` | checkout (one page) and thank-you page (stage 4), per request, noindex                                                                                                                         |
+| `odstoupeni-od-smlouvy/page.tsx`                     | online withdrawal function (stage 4), linked in the footer                                                                                                                                     |
 | `next/preview`, `next/exit-preview`                  | editor draft preview (route handlers)                                                                                                                                                          |
 | `src/app/sitemap.ts`, `src/app/robots.ts`            | `/sitemap.xml` (per request, public documents only), `/robots.txt` (blocks admin, API except media files, search, cart, filter/sort params; AI crawlers explicitly allowed)                    |
 
@@ -411,13 +546,14 @@ synced across tabs); hooks `useCartLines()` / `useCartCount()` in `useCart.ts`. 
 SNAPSHOTS (`productId`, `variantId` = Payload variant row id or null for fixed-price items, label,
 unit price, weight, estimated price, url). Stage 4 must re-read products on the server and
 recompute prices; it can keep the interface and swap the implementation. `AddToCartButton` is the
-only writer; `/kosik` is a placeholder without checkout.
+only writer of new lines; stage 4 added `replace()` (used after the server re-validation).
 
 ### Analytics hooks (for stage 6)
 
 `src/lib/analytics.ts`: `trackViewItemList`, `trackViewItem`, `trackAddToCart` – no-ops today,
 called from `AnalyticsEvents.tsx` (categories, `/produkty`, search; product detail) and from
-`AddToCartButton.tsx`. Stage 6 fills them with dataLayer pushes; GTM is not loaded.
+`AddToCartButton.tsx`. Stage 6 fills them with dataLayer pushes; GTM is not loaded. Stage 4 added
+`trackAddShippingInfo`, `trackBeginCheckout`, `trackPurchase` (payloads in "Orders (stage 4)").
 Newsletter: `src/app/(frontend)/actions/newsletter.ts` validates and logs (without the address);
 stage 6 sends it to Ecomail.
 

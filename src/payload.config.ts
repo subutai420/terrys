@@ -14,16 +14,20 @@ import { DeliveryExceptions } from './collections/DeliveryExceptions'
 import { DeliveryZones } from './collections/DeliveryZones'
 import { Locations } from './collections/Locations'
 import { Media } from './collections/Media'
+import { Orders } from './collections/Orders'
 import { Pages } from './collections/Pages'
 import { Postcodes } from './collections/Postcodes'
 import { Products } from './collections/Products'
 import { Recipes } from './collections/Recipes'
 import { ShippingMethods } from './collections/ShippingMethods'
 import { Users } from './collections/Users'
+import { Withdrawals } from './collections/Withdrawals'
 import { deliveryOptionsEndpoint } from './delivery/optionsEndpoint'
+import { createEmailAdapter } from './email/adapter'
 import { Homepage } from './globals/Homepage'
 import { Settings } from './globals/Settings'
 import { migrations } from './migrations'
+import { checkoutEndpoints } from './orders/endpoints'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -59,6 +63,9 @@ export default buildConfig({
   // The order here is also the order in the admin sidebar (groups: Katalog, Číselníky, Obsah,
   // Doručování, Nastavení).
   collections: [
+    // Objednávky (stage 4)
+    Orders,
+    Withdrawals,
     // Katalog
     Products,
     Categories,
@@ -85,7 +92,10 @@ export default buildConfig({
   // Homepage = editable blocks of the storefront homepage (stage 3).
   globals: [Homepage, Settings],
   // Public endpoint for the cart: GET /api/delivery/options?psc=12000 (src/delivery/).
-  endpoints: [deliveryOptionsEndpoint],
+  // Stage 4: checkout endpoints POST /api/checkout/* (src/orders/endpoints.ts).
+  endpoints: [deliveryOptionsEndpoint, ...checkoutEndpoints],
+  // Stage 4: Resend when RESEND_API_KEY is set, otherwise e-mails are only saved to .emails/.
+  email: createEmailAdapter(),
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

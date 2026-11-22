@@ -37,6 +37,9 @@ jobs:
       # Throwaway value used only inside CI, not a real secret.
       PAYLOAD_SECRET: ci-only-not-a-real-secret-0123456789abcdef
       NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+      # Stage 4: no e-mail provider in CI – e-mails are written to .emails/ (EMAIL_OUTBOX_DIR) and the
+      # e2e test checks them. Reserved test domain only, never a real address.
+      ORDER_NOTIFICATION_EMAIL: objednavky@example.test
 
     steps:
       - name: Checkout

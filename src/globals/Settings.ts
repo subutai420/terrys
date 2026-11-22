@@ -87,6 +87,30 @@ export const Settings: GlobalConfig = {
           ],
         },
         {
+          label: 'Objednávky',
+          fields: [
+            {
+              name: 'orders',
+              type: 'group',
+              label: 'Objednávky',
+              fields: [
+                {
+                  // Stage 4: the internal copy of every order goes here (safety net when the
+                  // admin is down). Empty → env ORDER_NOTIFICATION_EMAIL → contact e-mail.
+                  name: 'notificationEmail',
+                  type: 'email',
+                  label: 'Kam posílat kopii každé objednávky',
+                  admin: {
+                    description:
+                      'Interní e-mail s kompletními údaji objednávky (např. objednavky@…). Když je ' +
+                      'prázdné, použije se proměnná ORDER_NOTIFICATION_EMAIL, jinak kontaktní e-mail.',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
           label: 'Kontakty',
           fields: [
             {

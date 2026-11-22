@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import { publicText, weeklyRows } from '@/lib/openingHours'
+import { WITHDRAWAL_PATH } from '@/lib/orders/constants'
 import { SITE_NAME } from '@/lib/site'
 import { getPublicPath, LISTING_PATHS } from '@/lib/urls'
 import { getAllPages, getLocations, getSettings } from '@/storefront/data'
@@ -126,6 +127,16 @@ export async function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                {/* Stage 4: online withdrawal function, reachable from every page. */}
+                <Link
+                  href={WITHDRAWAL_PATH}
+                  className="hover:text-white hover:underline"
+                  data-testid="footer-withdrawal"
+                >
+                  Odstoupení od smlouvy
+                </Link>
+              </li>
               <li>
                 <Link href={LISTING_PATHS.products} className="hover:text-white hover:underline">
                   Všechny produkty

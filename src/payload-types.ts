@@ -67,6 +67,8 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    orders: Order;
+    withdrawals: Withdrawal;
     products: Product;
     categories: Category;
     cuts: Cut;
@@ -90,11 +92,16 @@ export interface Config {
     'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {
+    orders: {
+      withdrawals: 'withdrawals';
+    };
     categories: {
       products: 'products';
     };
   };
   collectionsSelect: {
+    orders: OrdersSelect<false> | OrdersSelect<true>;
+    withdrawals: WithdrawalsSelect<false> | WithdrawalsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     cuts: CutsSelect<false> | CutsSelect<true>;
@@ -156,6 +163,191 @@ export interface UserAuthOperations {
     email: string;
     password: string;
   };
+}
+/**
+ * Objednávky z e-shopu. Ceny jsou ODHADY – výsledná cena se řídí skutečnou hmotností po zvážení. Zákazník platí při převzetí. Objednávky vznikají jen v obchodě, ručně se nezakládají.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: number;
+  orderNumber: string;
+  /**
+   * Etapa 4 zakládá „Přijato“. Vážení a další stavy přijdou v etapě 5.
+   */
+  status: 'received' | 'weighed' | 'shipped' | 'ready-for-pickup' | 'delivered' | 'picked-up' | 'cancelled';
+  kind: 'goods' | 'voucher';
+  customerName?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  /**
+   * RRRR-MM-DD (pražský čas).
+   */
+  scheduledDate?: string | null;
+  shippingLabel?: string | null;
+  totalEstimate?: number | null;
+  /**
+   * Stav v okamžiku objednávky. Skutečnou hmotnost a výslednou cenu doplní vážení (etapa 5).
+   */
+  lines?:
+    | {
+        productTitle: string;
+        variantLabel?: string | null;
+        quantity: number;
+        product?: (number | null) | Product;
+        unitPrice: number;
+        priceUnit: 'kg' | '100g' | 'piece';
+        vatRate: '12' | '21' | '0';
+        sku?: string | null;
+        variantId?: string | null;
+        estimatedWeightGrams?: number | null;
+        estimatedPrice: number;
+        /**
+         * Vyplní řezník při vážení (etapa 5).
+         */
+        actualWeightGrams?: number | null;
+        /**
+         * Etapa 5.
+         */
+        finalPrice?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  totals: {
+    goodsEstimate: number;
+    deliveryPrice: number;
+    totalEstimate: number;
+    /**
+     * Doprava je rozdělena mezi sazby v poměru hodnoty zboží (vedlejší plnění).
+     */
+    vat?:
+      | {
+          rate?: number | null;
+          base?: number | null;
+          vat?: number | null;
+          gross?: number | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Etapa 5.
+     */
+    goodsFinal?: number | null;
+    /**
+     * Etapa 5.
+     */
+    totalFinal?: number | null;
+  };
+  /**
+   * NEOVĚŘENO. Poukaz zkontrolujte ručně a jeho hodnotu odečtěte při vážení.
+   */
+  voucherCode?: string | null;
+  customer: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    companyName?: string | null;
+    ico?: string | null;
+    dic?: string | null;
+  };
+  /**
+   * Jen u rozvozu a kurýra.
+   */
+  shippingAddress?: {
+    street?: string | null;
+    city?: string | null;
+    postcode?: string | null;
+    checkStatus?: ('valid' | 'corrected' | 'invalid' | 'skipped') | null;
+    checkNote?: string | null;
+  };
+  /**
+   * Stav v okamžiku objednávky. U elektronického poukazu (etapa 7) zůstane prázdné.
+   */
+  delivery?: {
+    methodName?: string | null;
+    methodType?: ('own-delivery' | 'courier' | 'pickup') | null;
+    price?: number | null;
+    date?: string | null;
+    postcode?: string | null;
+    method?: (number | null) | ShippingMethod;
+    methodSlug?: string | null;
+    pickupLocation?: {
+      name?: string | null;
+      street?: string | null;
+      city?: string | null;
+      zip?: string | null;
+      openingHoursNote?: string | null;
+    };
+  };
+  customerNote?: string | null;
+  /**
+   * Vidí jen obsluha. Zákazníkovi se nikdy neposílá.
+   */
+  internalNote?: string | null;
+  /**
+   * Etapa 5.
+   */
+  invoiceNumber?: string | null;
+  /**
+   * Etapa 5 (Balíkobot).
+   */
+  trackingNumber?: string | null;
+  /**
+   * Etapa 5.
+   */
+  trackingUrl?: string | null;
+  /**
+   * Pokud se potvrzení zákazníkovi nepodařilo odeslat, objednávka je přesto platná – kontaktujte zákazníka telefonem.
+   */
+  emails?: {
+    customerStatus?: ('pending' | 'sent' | 'outbox' | 'failed' | 'skipped') | null;
+    customerSentAt?: string | null;
+    customerError?: string | null;
+    shopStatus?: ('pending' | 'sent' | 'outbox' | 'failed' | 'skipped') | null;
+    shopSentAt?: string | null;
+    shopError?: string | null;
+  };
+  consents?: {
+    termsAcceptedAt?: string | null;
+    termsPageUpdatedAt?: string | null;
+    privacyNoticeAt?: string | null;
+    newsletter?: boolean | null;
+    newsletterAt?: string | null;
+    /**
+     * Etapa 6 podle toho dotazník neodešle.
+     */
+    heurekaOptOut?: boolean | null;
+  };
+  /**
+   * Zaznamenává prohlížeč zákazníka, bez skriptů třetích stran.
+   */
+  attribution?: {
+    utmSource?: string | null;
+    utmMedium?: string | null;
+    utmCampaign?: string | null;
+    utmTerm?: string | null;
+    utmContent?: string | null;
+    firstSeenAt?: string | null;
+    gclid?: string | null;
+    fbclid?: string | null;
+    referrer?: string | null;
+    landingPage?: string | null;
+  };
+  /**
+   * Stejné ID posílá prohlížeč i server (deduplikace Meta CAPI, etapa 6).
+   */
+  eventId?: string | null;
+  withdrawals?: {
+    docs?: (number | Withdrawal)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  accessToken: string;
+  idempotencyKey: string;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Nabídka e-shopu. Nový produkt se v obchodě ukáže až po kliknutí na „Publikovat“. Slevy ani akční ceny se nezadávají – Terrys slevy nedělá.
@@ -732,152 +924,6 @@ export interface Recipe {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * Články do Magazínu a Terrys Academy. Na webu se ukážou až po publikování.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "articles".
- */
-export interface Article {
-  id: number;
-  title: string;
-  /**
-   * Úvodní odstavec, zobrazí se i ve výpisu článků (2–3 věty).
-   */
-  perex?: string | null;
-  coverImage?: (number | null) | Media;
-  content?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * Produkty, které se zobrazí u článku.
-   */
-  relatedProducts?: (number | Product)[] | null;
-  /**
-   * Nepovinné. Když pole necháte prázdná, použije se název a úvodní text stránky.
-   */
-  seo?: {
-    /**
-     * Titulek ve výsledcích vyhledávání, ideálně 50–60 znaků.
-     */
-    title?: string | null;
-    /**
-     * Krátký popis ve výsledcích vyhledávání, ideálně 120–160 znaků.
-     */
-    description?: string | null;
-    /**
-     * Obrázek při sdílení na Facebooku apod. Když chybí, použije se hlavní obrázek.
-     */
-    image?: (number | null) | Media;
-  };
-  /**
-   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
-   */
-  slug?: string | null;
-  section: 'magazine' | 'academy';
-  /**
-   * Např. „Řezníci z Terrysu“.
-   */
-  authorName?: string | null;
-  /**
-   * Datum zobrazené u článku. Prázdné = vyplní se při prvním publikování.
-   */
-  publishedAt?: string | null;
-  /**
-   * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
-   */
-  legacyUrl?: string | null;
-  /**
-   * Vyplňuje import ze starého terrys.cz. Položku, kterou jste po importu upravili, import sám nepřepíše; zaškrtnutím „Nepřepisovat importem“ ji ochráníte natrvalo.
-   */
-  migration?: {
-    locked?: boolean | null;
-    importedAt?: string | null;
-    /**
-     * Technický údaj: podle něj import pozná, že se na starém webu nic nezměnilo.
-     */
-    sourceHash?: string | null;
-  };
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * Stálé stránky webu (Doprava a platba, Obchodní podmínky, O nás…). Změny se na webu projeví po publikování.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages".
- */
-export interface Page {
-  id: number;
-  title: string;
-  content?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * Nepovinné. Když pole necháte prázdná, použije se název a úvodní text stránky.
-   */
-  seo?: {
-    /**
-     * Titulek ve výsledcích vyhledávání, ideálně 50–60 znaků.
-     */
-    title?: string | null;
-    /**
-     * Krátký popis ve výsledcích vyhledávání, ideálně 120–160 znaků.
-     */
-    description?: string | null;
-    /**
-     * Obrázek při sdílení na Facebooku apod. Když chybí, použije se hlavní obrázek.
-     */
-    image?: (number | null) | Media;
-  };
-  /**
-   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
-   */
-  slug?: string | null;
-  /**
-   * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
-   */
-  legacyUrl?: string | null;
-  /**
-   * Vyplňuje import ze starého terrys.cz. Položku, kterou jste po importu upravili, import sám nepřepíše; zaškrtnutím „Nepřepisovat importem“ ji ochráníte natrvalo.
-   */
-  migration?: {
-    locked?: boolean | null;
-    importedAt?: string | null;
-    /**
-     * Technický údaj: podle něj import pozná, že se na starém webu nic nezměnilo.
-     */
-    sourceHash?: string | null;
-  };
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
  * Rozvoz, kurýr a osobní odběry. Cena rozvozu i kurýra je jednotná a nastavuje se v Nastavení obchodu (doprava zdarma neexistuje); osobní odběr je vždy zdarma. Upravuje administrátor.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -994,6 +1040,185 @@ export interface Location {
   sortOrder?: number | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * Stálé stránky webu (Doprava a platba, Obchodní podmínky, O nás…). Změny se na webu projeví po publikování.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  title: string;
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Nepovinné. Když pole necháte prázdná, použije se název a úvodní text stránky.
+   */
+  seo?: {
+    /**
+     * Titulek ve výsledcích vyhledávání, ideálně 50–60 znaků.
+     */
+    title?: string | null;
+    /**
+     * Krátký popis ve výsledcích vyhledávání, ideálně 120–160 znaků.
+     */
+    description?: string | null;
+    /**
+     * Obrázek při sdílení na Facebooku apod. Když chybí, použije se hlavní obrázek.
+     */
+    image?: (number | null) | Media;
+  };
+  /**
+   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
+   */
+  slug?: string | null;
+  /**
+   * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
+   */
+  legacyUrl?: string | null;
+  /**
+   * Vyplňuje import ze starého terrys.cz. Položku, kterou jste po importu upravili, import sám nepřepíše; zaškrtnutím „Nepřepisovat importem“ ji ochráníte natrvalo.
+   */
+  migration?: {
+    locked?: boolean | null;
+    importedAt?: string | null;
+    /**
+     * Technický údaj: podle něj import pozná, že se na starém webu nic nezměnilo.
+     */
+    sourceHash?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Odstoupení odeslaná zákazníky přes formulář na webu. Zákazník dostal potvrzení e-mailem. U potravin podléhajících rychlé zkáze odstoupení obvykle nelze – posuďte každý případ.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "withdrawals".
+ */
+export interface Withdrawal {
+  id: number;
+  status: 'new' | 'processing' | 'resolved';
+  submittedAt: string;
+  /**
+   * Dohledáno podle čísla objednávky a e-mailu. Prázdné = nedohledáno, ověřte ručně.
+   */
+  order?: (number | null) | Order;
+  name: string;
+  email: string;
+  orderNumberEntered: string;
+  phone?: string | null;
+  /**
+   * Prázdné = celé objednávky.
+   */
+  items?: string | null;
+  message?: string | null;
+  confirmationStatus?: ('pending' | 'sent' | 'outbox' | 'failed' | 'skipped') | null;
+  confirmationSentAt?: string | null;
+  /**
+   * Odstoupení platí i bez potvrzení. Pošlete ho zákazníkovi ručně.
+   */
+  confirmationError?: string | null;
+  internalNote?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Články do Magazínu a Terrys Academy. Na webu se ukážou až po publikování.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "articles".
+ */
+export interface Article {
+  id: number;
+  title: string;
+  /**
+   * Úvodní odstavec, zobrazí se i ve výpisu článků (2–3 věty).
+   */
+  perex?: string | null;
+  coverImage?: (number | null) | Media;
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Produkty, které se zobrazí u článku.
+   */
+  relatedProducts?: (number | Product)[] | null;
+  /**
+   * Nepovinné. Když pole necháte prázdná, použije se název a úvodní text stránky.
+   */
+  seo?: {
+    /**
+     * Titulek ve výsledcích vyhledávání, ideálně 50–60 znaků.
+     */
+    title?: string | null;
+    /**
+     * Krátký popis ve výsledcích vyhledávání, ideálně 120–160 znaků.
+     */
+    description?: string | null;
+    /**
+     * Obrázek při sdílení na Facebooku apod. Když chybí, použije se hlavní obrázek.
+     */
+    image?: (number | null) | Media;
+  };
+  /**
+   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
+   */
+  slug?: string | null;
+  section: 'magazine' | 'academy';
+  /**
+   * Např. „Řezníci z Terrysu“.
+   */
+  authorName?: string | null;
+  /**
+   * Datum zobrazené u článku. Prázdné = vyplní se při prvním publikování.
+   */
+  publishedAt?: string | null;
+  /**
+   * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
+   */
+  legacyUrl?: string | null;
+  /**
+   * Vyplňuje import ze starého terrys.cz. Položku, kterou jste po importu upravili, import sám nepřepíše; zaškrtnutím „Nepřepisovat importem“ ji ochráníte natrvalo.
+   */
+  migration?: {
+    locked?: boolean | null;
+    importedAt?: string | null;
+    /**
+     * Technický údaj: podle něj import pozná, že se na starém webu nic nezměnilo.
+     */
+    sourceHash?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * Která PSČ obsluhuje daný způsob dopravy a ve které dny. Zadávají se celá PSČ nebo začátky PSČ s hvězdičkou (1* = celá Praha). Upravuje administrátor.
@@ -1121,6 +1346,14 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
+        relationTo: 'orders';
+        value: number | Order;
+      } | null)
+    | ({
+        relationTo: 'withdrawals';
+        value: number | Withdrawal;
+      } | null)
+    | ({
         relationTo: 'products';
         value: number | Product;
       } | null)
@@ -1229,6 +1462,164 @@ export interface PayloadMigration {
   batch?: number | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders_select".
+ */
+export interface OrdersSelect<T extends boolean = true> {
+  orderNumber?: T;
+  status?: T;
+  kind?: T;
+  customerName?: T;
+  contactEmail?: T;
+  contactPhone?: T;
+  scheduledDate?: T;
+  shippingLabel?: T;
+  totalEstimate?: T;
+  lines?:
+    | T
+    | {
+        productTitle?: T;
+        variantLabel?: T;
+        quantity?: T;
+        product?: T;
+        unitPrice?: T;
+        priceUnit?: T;
+        vatRate?: T;
+        sku?: T;
+        variantId?: T;
+        estimatedWeightGrams?: T;
+        estimatedPrice?: T;
+        actualWeightGrams?: T;
+        finalPrice?: T;
+        id?: T;
+      };
+  totals?:
+    | T
+    | {
+        goodsEstimate?: T;
+        deliveryPrice?: T;
+        totalEstimate?: T;
+        vat?:
+          | T
+          | {
+              rate?: T;
+              base?: T;
+              vat?: T;
+              gross?: T;
+              id?: T;
+            };
+        goodsFinal?: T;
+        totalFinal?: T;
+      };
+  voucherCode?: T;
+  customer?:
+    | T
+    | {
+        firstName?: T;
+        lastName?: T;
+        email?: T;
+        phone?: T;
+        companyName?: T;
+        ico?: T;
+        dic?: T;
+      };
+  shippingAddress?:
+    | T
+    | {
+        street?: T;
+        city?: T;
+        postcode?: T;
+        checkStatus?: T;
+        checkNote?: T;
+      };
+  delivery?:
+    | T
+    | {
+        methodName?: T;
+        methodType?: T;
+        price?: T;
+        date?: T;
+        postcode?: T;
+        method?: T;
+        methodSlug?: T;
+        pickupLocation?:
+          | T
+          | {
+              name?: T;
+              street?: T;
+              city?: T;
+              zip?: T;
+              openingHoursNote?: T;
+            };
+      };
+  customerNote?: T;
+  internalNote?: T;
+  invoiceNumber?: T;
+  trackingNumber?: T;
+  trackingUrl?: T;
+  emails?:
+    | T
+    | {
+        customerStatus?: T;
+        customerSentAt?: T;
+        customerError?: T;
+        shopStatus?: T;
+        shopSentAt?: T;
+        shopError?: T;
+      };
+  consents?:
+    | T
+    | {
+        termsAcceptedAt?: T;
+        termsPageUpdatedAt?: T;
+        privacyNoticeAt?: T;
+        newsletter?: T;
+        newsletterAt?: T;
+        heurekaOptOut?: T;
+      };
+  attribution?:
+    | T
+    | {
+        utmSource?: T;
+        utmMedium?: T;
+        utmCampaign?: T;
+        utmTerm?: T;
+        utmContent?: T;
+        firstSeenAt?: T;
+        gclid?: T;
+        fbclid?: T;
+        referrer?: T;
+        landingPage?: T;
+      };
+  eventId?: T;
+  withdrawals?: T;
+  accessToken?: T;
+  idempotencyKey?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "withdrawals_select".
+ */
+export interface WithdrawalsSelect<T extends boolean = true> {
+  status?: T;
+  submittedAt?: T;
+  order?: T;
+  name?: T;
+  email?: T;
+  orderNumberEntered?: T;
+  phone?: T;
+  items?: T;
+  message?: T;
+  confirmationStatus?: T;
+  confirmationSentAt?: T;
+  confirmationError?: T;
+  internalNote?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1836,6 +2227,12 @@ export interface Setting {
    * Text, který obchod zobrazí u každé odhadované ceny. Musí vysvětlit, že výsledná cena závisí na skutečné hmotnosti.
    */
   priceNotice: string;
+  orders?: {
+    /**
+     * Interní e-mail s kompletními údaji objednávky (např. objednavky@…). Když je prázdné, použije se proměnná ORDER_NOTIFICATION_EMAIL, jinak kontaktní e-mail.
+     */
+    notificationEmail?: string | null;
+  };
   contact?: {
     email?: string | null;
     phone?: string | null;
@@ -1942,6 +2339,11 @@ export interface SettingsSelect<T extends boolean = true> {
   deliveryPrice?: T;
   deliveryHorizonDays?: T;
   priceNotice?: T;
+  orders?:
+    | T
+    | {
+        notificationEmail?: T;
+      };
   contact?:
     | T
     | {

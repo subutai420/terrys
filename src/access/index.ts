@@ -54,6 +54,15 @@ export const adminOnly: Access = ({ req }) => isAdminUser(req.user)
 /** Administrators and staff (obsluha) – the people who edit catalog and content. */
 export const editors: Access = ({ req }) => isEditorUser(req.user)
 
+/** Nobody through the API (the server itself writes with `overrideAccess: true`). */
+export const nobody: Access = () => false
+
+/**
+ * Orders and withdrawals (stage 4): admin, staff and butcher read them; never anonymous visitors.
+ * Explicit role check (not just "logged in") so a future customer-account role cannot read them.
+ */
+export const orderReaders: Access = ({ req }) => hasRole(req.user, 'admin', 'staff', 'butcher')
+
 /** Query constraint for documents the public may see: published (drafts are never public). */
 export const PUBLISHED_ONLY: Where = { _status: { equals: 'published' } }
 

@@ -1,13 +1,12 @@
 /**
- * Client-side cart store (stage 3 placeholder for stage 4).
+ * Client-side cart store (stage 3, used by the stage 4 cart and checkout).
  *
- * Stage 3 only needs "Do košíku" buttons and a counter in the header, so the cart lives in the
- * browser's localStorage behind this small interface. Stage 4 (cart and checkout) can keep the
- * interface and swap the implementation (e.g. a server cart), or read these lines on the cart
- * page. Everything stored here is a SNAPSHOT for display only: prices are estimates and the
- * server must re-read products and recompute prices when the order is placed.
+ * The cart lives in the browser's localStorage behind this small interface (no accounts, most
+ * customers buy without registration). Everything stored here is a SNAPSHOT for display only:
+ * the cart page re-validates it against the server (`POST /api/checkout/validate-cart`, then
+ * `replace()`), and the order placement re-reads products and recomputes every price.
  *
- * React components use `useCart()` from `useCart.ts` (useSyncExternalStore).
+ * React components use `useCartLines()` / `useCartCount()` from `useCart.ts`.
  */
 
 import type { PriceUnit } from '../catalog'
@@ -40,6 +39,8 @@ export interface CartStore {
   add(input: AddToCartInput): CartLine[]
   setQuantity(productId: number, variantId: string | null, quantity: number): CartLine[]
   remove(productId: number, variantId: string | null): CartLine[]
+  /** Replaces all lines (stage 4: after the server re-validated the cart). */
+  replace(lines: CartLine[]): CartLine[]
   clear(): void
   /** Re-reads the storage (another tab changed the cart) and notifies listeners. */
   refresh(): void
@@ -132,6 +133,9 @@ export function createCartStore(storage: KeyValueStorage | null): CartStore {
     },
     remove(productId, variantId) {
       return write(read().filter((line) => !sameLine(line, productId, variantId)))
+    },
+    replace(lines) {
+      return write(lines.filter(isCartLine))
     },
     clear() {
       write([])

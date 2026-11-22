@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Quicksand, Roboto_Slab } from 'next/font/google'
 import React from 'react'
 
+import { AttributionCapture } from '@/components/storefront/AttributionCapture'
 import { DraftBanner } from '@/components/storefront/DraftBanner'
 import { Footer } from '@/components/storefront/Footer'
 import { Header } from '@/components/storefront/Header'
@@ -66,6 +67,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
           {children}
         </main>
         <Footer />
+        <AttributionCapture />
         <JsonLd
           data={[
             organizationJsonLd({

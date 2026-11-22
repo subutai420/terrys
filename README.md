@@ -9,7 +9,7 @@ Nový e-shop řeznictví **Terrys.cz** (prémiové maso a steaky). Jedna aplikac
 Projekt vzniká po etapách (0–9). Hotové jsou **etapa 0 – základ projektu**, **etapa 1 – katalog
 a obsah v administraci** (produkty, kategorie, číselníky, články, recepty, stránky, nastavení)
 **etapa 2 – doručování** (způsoby dopravy, PSČ, rozvozové oblasti, kalendář výjimek a svátků,
-výpočet termínů doručení) a **etapa 3 – obchod pro zákazníky** (viz níže). Z etapy 8 (migrace) je hotová první část: **přenos katalogu a obsahu
+výpočet termínů doručení) **etapa 3 – obchod pro zákazníky** a **etapa 4 – košík a objednávky** (viz níže). Z etapy 8 (migrace) je hotová první část: **přenos katalogu a obsahu
 ze starého webu** (viz níže). Navazují další etapy (košík a objednávky, vážení
 objednávek, napojení na další služby). Pravidla pro vývoj a obchodní pravidla jsou v souboru [`CLAUDE.md`](./CLAUDE.md).
 
@@ -132,6 +132,7 @@ nad prázdnou databází, do které jste pustili `pnpm payload migrate` a `pnpm 
 
 | Skupina v menu | Co obsahuje                                                                      |
 | -------------- | -------------------------------------------------------------------------------- |
+| **Objednávky** | Objednávky z e-shopu a odstoupení od smlouvy (etapa 4)                           |
 | **Katalog**    | Produkty (cena, varianty, fotky, vlastnosti) a Kategorie (strom kategorií, menu) |
 | **Číselníky**  | Řezy, Země původu, Druhy masa, Hodí se na, Trvanlivost a skladování              |
 | **Obsah**      | Články (Magazín, Terrys Academy), Recepty, Stránky, Obrázky                      |
@@ -155,7 +156,7 @@ nad prázdnou databází, do které jste pustili `pnpm payload migrate` a `pnpm 
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Administrátor** | Vše: produkty, obsah, číselníky, uživatelé, provozovny, nastavení obchodu.                                                                  |
 | **Obsluha**       | Produkty, kategorie, číselníky, obsah, obrázky a výjimky v kalendáři doručování. Ne uživatele, nastavení, způsoby dopravy, oblasti ani PSČ. |
-| **Řezník**        | Zatím jen prohlíží (později bude vážit objednávky).                                                                                         |
+| **Řezník**        | Prohlíží (i objednávky); vážit objednávky bude v etapě 5.                                                                                   |
 
 První uživatel vytvořený v prázdné databázi je vždy administrátor. Nové uživatele zakládá a role
 mění jen administrátor (Nastavení → Uživatelé). Každý si může změnit své jméno a heslo.
@@ -258,8 +259,73 @@ pnpm seed --only=settings,locations,delivery   # jen nastavení, provozovny a do
 pnpm build; pnpm start                          # nebo: $env:PAYLOAD_MIGRATING='true'; pnpm dev
 ```
 
-Košík je zatím jen náhled (ukládá se v prohlížeči); objednávky přijdou v etapě 4. Přihlášení
-k newsletteru se zatím jen kontroluje a nikam neodesílá (Ecomail v etapě 6).
+Přihlášení k newsletteru v patičce se zatím jen kontroluje a nikam neodesílá (Ecomail v etapě 6).
+
+## Košík a objednávky (etapa 4)
+
+### Jak objednávka probíhá
+
+1. **Košík** (`/kosik`) – zákazník vidí zboží s fotkou, variantou, odhadem hmotnosti a odhadem
+   ceny. Při otevření košíku obchod ověří u serveru aktuální ceny a dostupnost; když se něco
+   vyprodalo, zmizelo nebo zdražilo, košík se upraví a zákazník uvidí proč.
+2. **Doprava a termín** (v košíku) – zákazník zadá **PSČ**, vybere způsob dopravy (u nedostupných
+   je vysvětlení) a den (nabízí se jen dny, kdy se opravdu vozí / vydává). Rozvoz i kurýr stojí
+   cenu z Nastavení obchodu, osobní odběr je zdarma. PSČ, kam nevozíme, dostane jen osobní odběr.
+3. **Dokončení objednávky** (`/objednavka`, jedna stránka) – kontakt, adresa (nebo místo
+   odběru), nepovinně firma (IČO/DIČ), poznámka pro řezníka, číslo dárkového poukazu (neověřuje
+   se – zkontroluje ho kolega a odečte při vážení), souhlas s obchodními podmínkami, nepovinně
+   newsletter (nezaškrtnutý), možnost odmítnout dotazník Heureka. Tlačítko „Objednávka zavazující
+   k platbě“. Vše je odhad, zákazník platí až při převzetí podle skutečné hmotnosti.
+4. **Server vše přepočítá** – ceny ze zákazníkova prohlížeče se nikdy nepoužijí. Pokud mezitím
+   uplynula uzávěrka a zvolený den už nejde, zákazník dostane hlášku a vybere jiný.
+5. **Děkovná stránka** (`/objednavka/dekujeme/…`) a **e-maily**: potvrzení zákazníkovi a kopie
+   obchodu se všemi údaji (pojistka, kdyby nešla administrace).
+6. Objednávka je v administraci v **Objednávky → Objednávky** se stavem „Přijato“. Vážení,
+   další stavy, faktury a Balíkobot přijdou v etapě 5.
+
+Čísla objednávek jdou po sobě od **100001** (číslo se může výjimečně přeskočit, to nevadí).
+
+### Odstoupení od smlouvy
+
+V patičce je odkaz **Odstoupení od smlouvy** (`/odstoupeni-od-smlouvy`): zákazník vyplní jméno,
+e-mail a číslo objednávky a potvrdí. Dostane e-mail s potvrzením (obsah + datum a čas), obchod
+dostane upozornění a záznam je v **Objednávky → Odstoupení od smlouvy** (u dohledané objednávky
+i na její kartě v záložce „Interní“). Zda se odstoupení na zboží vztahuje (maso podléhající rychlé
+zkáze obvykle ne), posuzuje obchod – formulář je záměrně neutrální.
+
+### Co je potřeba nastavit (proměnné v `.env`, vše je nepovinné)
+
+| Proměnná                                                 | K čemu                                                                                                                |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `RESEND_API_KEY`                                         | Odesílání e-mailů přes [Resend](https://resend.com). **Bez klíče se nic neodesílá** – e-maily se jen uloží do složky. |
+| `EMAIL_FROM_ADDRESS`, `EMAIL_FROM_NAME`                  | Odesílatel (doména musí být v Resend ověřená – záznamy SPF/DKIM v DNS).                                               |
+| `EMAIL_REPLY_TO`                                         | Kam zákazník odpoví (jinak kontaktní e-mail z Nastavení obchodu).                                                     |
+| `EMAIL_OVERRIDE_TO`                                      | Jen pro testovací server: všechny e-maily půjdou na tuto jednu adresu.                                                |
+| `EMAIL_OUTBOX_DIR`                                       | Složka pro neodeslané e-maily (výchozí `.emails/`).                                                                   |
+| `ORDER_NOTIFICATION_EMAIL`                               | Kam posílat kopii objednávky, pokud není vyplněno v **Nastavení obchodu → Objednávky**.                               |
+| `FOXENTRY_API_KEY`, `FOXENTRY_API_VERSION`               | Kontrola adres přes Foxentry (viz níže).                                                                              |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Ochrana formulářů Cloudflare Turnstile (obě hodnoty, nebo žádná).                                                     |
+
+Bez těchto proměnných obchod funguje celý: e-maily se uloží do `.emails/` (otevřete `.html`
+v prohlížeči) a u objednávky bude „Neodesláno – jen uloženo do složky“.
+
+**Foxentry – co musí majitel dodat:** v administraci Foxentry projekt se službou pro adresy
+(„location“), z něj **API klíč** (`FOXENTRY_API_KEY`) a potvrzení, kterou verzi API projekt
+používá (výchozí `2.0`). Klíč se používá jen na serveru (do prohlížeče se nedostane). Obchod
+pak po vyplnění adresy nabídne opravu („Nemysleli jste…?“) a výsledek kontroly uloží
+k objednávce. Špatná adresa objednávku nikdy nezablokuje.
+
+**Před spuštěním vyplňte v Nastavení obchodu:** firmu (název, IČO, sídlo – zobrazují se před
+odesláním objednávky jako údaje o prodávajícím), kontaktní e-mail a telefon a e-mail pro kopie
+objednávek.
+
+### Vyzkoušení na vlastním počítači
+
+- `pnpm dev` a nakupte jako zákazník. E-maily najdete ve složce `.emails/`.
+- Testy: `pnpm test` (výpočty cen, validace, objednávky proti dočasné databázi) a
+  `pnpm test:e2e` (celý nákup v prohlížeči na velikosti mobilu – viz „Příkazy“).
+- Testovací objednávky v cizí databázi smažte: v administraci (jen administrátor) nebo SQL
+  `DELETE FROM withdrawals; DELETE FROM orders;`.
 
 ## Doručování (etapa 2)
 

@@ -13,6 +13,8 @@ const DISALLOW = [
   '/next/',
   '/vyhledavani',
   '/kosik',
+  // Stage 4: checkout and thank-you pages (noindex anyway).
+  '/objednavka',
   '/*?*druh=',
   '/*?*rez=',
   '/*?*puvod=',

@@ -1,12 +1,15 @@
 import type { Metadata } from 'next'
 
 import { Breadcrumbs } from '@/components/storefront/Breadcrumbs'
-import { CartPreview } from '@/components/storefront/CartPreview'
+import { CartView } from '@/components/storefront/checkout/CartView'
+import { findPageLink } from '@/components/storefront/Header'
+import { DELIVERY_INFO_PATH } from '@/lib/orders/constants'
 import { getSettings } from '@/storefront/data'
 
 /**
- * Cart overview – STAGE 3 PLACEHOLDER. Shows what is in the browser cart; stage 4 replaces this
- * page with the real cart and checkout (postcode, delivery date, order).
+ * Cart (stage 4). The cart itself lives in the browser (`src/lib/cart/store.ts`); this page
+ * re-validates it against the server, asks for the postcode, delivery method and date, and leads
+ * to the checkout (`/objednavka`).
  */
 
 export const metadata: Metadata = {
@@ -15,15 +18,15 @@ export const metadata: Metadata = {
 }
 
 export default async function CartPage() {
-  const settings = await getSettings()
+  const [settings, deliveryPage] = await Promise.all([
+    getSettings(),
+    findPageLink(DELIVERY_INFO_PATH),
+  ])
   return (
     <div className="wrap pb-16">
       <Breadcrumbs items={[{ name: 'Košík', href: '/kosik' }]} />
       <h1 className="pb-6 text-[2rem] sm:text-[2.5rem]">Košík</h1>
-      <CartPreview
-        priceNotice={settings.priceNotice}
-        deliveryPrice={settings.deliveryPrice ?? 229}
-      />
+      <CartView priceNotice={settings.priceNotice} deliveryInfoHref={deliveryPage?.href ?? null} />
     </div>
   )
 }
