@@ -1490,6 +1490,52 @@ export const Orders: CollectionConfig = {
               },
             },
             {
+              // Stage 9: set by the anonymisation tool (src/privacy/service.ts) – never by hand.
+              name: 'privacy',
+              type: 'group',
+              label: 'Osobní údaje (GDPR)',
+              admin: {
+                description:
+                  'Vyplní se při anonymizaci (Nastavení → Osobní údaje). Údaje zákazníka jsou pak ' +
+                  'nahrazené, účetní údaje (částky, DPH, číslo faktury) zůstávají.',
+              },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'anonymisedAt',
+                      type: 'date',
+                      label: 'Anonymizováno',
+                      index: true,
+                      admin: {
+                        ...readOnly,
+                        width: '35%',
+                        date: { pickerAppearance: 'dayAndTime' },
+                      },
+                    },
+                    {
+                      name: 'anonymisedReason',
+                      type: 'select',
+                      label: 'Důvod',
+                      options: [
+                        { value: 'request', label: 'Žádost zákazníka' },
+                        { value: 'retention', label: 'Uplynutí doby uchování' },
+                      ],
+                      admin: { ...readOnly, width: '30%' },
+                    },
+                    {
+                      name: 'anonymisedBy',
+                      type: 'relationship',
+                      relationTo: 'users',
+                      label: 'Kdo',
+                      admin: { ...readOnly, width: '35%' },
+                    },
+                  ],
+                },
+              ],
+            },
+            {
               name: 'withdrawals',
               type: 'join',
               collection: 'withdrawals',

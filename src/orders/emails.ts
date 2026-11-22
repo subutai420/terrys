@@ -70,6 +70,7 @@ export function orderEmailData(order: Order, settings: Setting): OrderEmailData 
     lines: (order.lines ?? []).map((line) => ({
       title: line.productTitle,
       variantLabel: line.variantLabel,
+      variantId: line.variantId,
       quantity: line.quantity,
       unitPrice: line.unitPrice,
       priceUnit: line.priceUnit as PriceUnit,

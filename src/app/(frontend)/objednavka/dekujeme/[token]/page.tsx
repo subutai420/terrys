@@ -18,6 +18,7 @@ import {
   UNIT_LABEL,
   weightText,
 } from '@/lib/orders/format'
+import { isEstimate, orderContents, preparationStep } from '@/lib/orders/contents'
 import { WEIGHT_TOLERANCE } from '@/lib/productView'
 import type { Order } from '@/payload-types'
 import { categoryNodes } from '@/storefront/analytics'
@@ -180,7 +181,11 @@ export default async function ThankYouPage({ params }: { params: Promise<{ token
 
         <section className="card mt-6" aria-labelledby="pay-heading" data-testid="voucher-payment">
           <h2 id="pay-heading" className="mb-3 text-xl">
-            {paid ? (many ? 'Zaplaceno – poukazy platí' : 'Zaplaceno – poukaz platí') : 'Platba převodem'}
+            {paid
+              ? many
+                ? 'Zaplaceno – poukazy platí'
+                : 'Zaplaceno – poukaz platí'
+              : 'Platba převodem'}
           </h2>
           {paid ? (
             <p>Platbu jsme přijali, děkujeme. Poukazy můžete uplatnit.</p>
@@ -260,6 +265,10 @@ export default async function ThankYouPage({ params }: { params: Promise<{ token
     )
   }
 
+  // Stage 9: wording by what the order contains (meat / printed voucher / both).
+  const contents = orderContents(lines)
+  const estimate = isEstimate(contents)
+
   return (
     <div className="wrap max-w-3xl pb-16 pt-8">
       <PurchaseEvent message={message} userData={userData} token={token} />
@@ -285,7 +294,7 @@ export default async function ThankYouPage({ params }: { params: Promise<{ token
           Co bude dál
         </h2>
         <ol className="list-decimal space-y-2 pl-5">
-          <li>Řezník maso naporcuje a každou položku zváží.</li>
+          <li data-testid="next-step-preparation">{preparationStep(contents)}</li>
           <li>
             {isPickup ? 'Objednávku si vyzvednete' : 'Objednávku vám dovezeme'}
             {delivery?.date ? (
@@ -300,9 +309,19 @@ export default async function ThankYouPage({ params }: { params: Promise<{ token
             .
           </li>
           <li>
-            Zaplatíte až při převzetí, hotově nebo kartou – částku podle skutečné hmotnosti
-            {order.totals.deliveryPrice > 0 ? ' včetně dopravy' : ''}. Obvykle se od odhadu liší do
-            ±{percent} %.
+            {estimate ? (
+              <>
+                Zaplatíte až při převzetí, hotově nebo kartou – částku podle skutečné hmotnosti
+                {order.totals.deliveryPrice > 0 ? ' včetně dopravy' : ''}. Obvykle se od odhadu liší
+                do ±{percent} %.
+              </>
+            ) : (
+              <>
+                Zaplatíte až při převzetí, hotově nebo kartou –{' '}
+                {formatCzk(order.totals.totalEstimate)}
+                {order.totals.deliveryPrice > 0 ? ' včetně dopravy' : ''}.
+              </>
+            )}
           </li>
         </ol>
         {phone || email ? (
@@ -347,9 +366,10 @@ export default async function ThankYouPage({ params }: { params: Promise<{ token
             </dd>
           </div>
           <div className="flex justify-between text-lg font-bold">
-            <dt>Odhad celkem vč. DPH</dt>
+            <dt>{estimate ? 'Odhad celkem vč. DPH' : 'Celkem vč. DPH'}</dt>
             <dd className="text-brand-red" data-testid="thank-you-total">
-              ≈ {formatCzk(order.totals.totalEstimate)}
+              {estimate ? '≈ ' : ''}
+              {formatCzk(order.totals.totalEstimate)}
             </dd>
           </div>
         </dl>

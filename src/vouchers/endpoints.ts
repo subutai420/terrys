@@ -2,7 +2,7 @@ import type { Endpoint, PayloadRequest } from 'payload'
 
 import { hasRole } from '@/access'
 import { cronSecret } from '@/integrations/config'
-import { isAllowedOrigin, json, NO_STORE, readJson } from '@/orders/http'
+import { isAllowedOrigin, json, NO_STORE, rateLimited, readJson, TOO_MANY } from '@/orders/http'
 import type { Voucher } from '@/payload-types'
 
 import { orderVouchers, vouchersPdf } from './emails'
@@ -86,6 +86,7 @@ export const voucherEndpoints: Endpoint[] = [
     path: '/gift-vouchers/pdf/:token',
     method: 'get',
     handler: async (req) => {
+      if (rateLimited('voucherPdf', req)) return TOO_MANY()
       const token = String(req.routeParams?.token ?? '')
       if (!/^[A-Za-z0-9_-]{20,80}$/.test(token)) return notFound()
       const found = await req.payload.find({

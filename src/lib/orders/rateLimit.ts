@@ -1,9 +1,16 @@
 /**
  * Small in-memory rate limiter (fixed window per key, e.g. per IP address).
  *
- * Good enough for one Node.js server (the planned hosting). With several server instances each
- * keeps its own counters – then move it to Postgres or Redis. Pure apart from the Map it owns;
- * the clock is injectable for tests.
+ * Honest limits (stage 9): on Vercel each warm function instance keeps its own counters and a
+ * cold start begins at zero, so the real limit is "limit × running instances". That still stops
+ * a single bot hammering the checkout, but it is not an exact quota. A shared store (Upstash
+ * Redis via the Vercel marketplace, or a Postgres table) would make it exact; it was NOT built in
+ * stage 9 because the forms have further protection (honeypot, timing token, optional Turnstile,
+ * Payload's per-account login lock) and a shared store adds a paid service and a network call
+ * to every request. Revisit if the logs show abuse (docs/provoz.md). Behind a proxy that hides
+ * the visitor's address (Cloudflare "orange cloud") every visitor would share one key – keep
+ * Cloudflare DNS-only, as Vercel recommends. Pure apart from the Map it owns; the clock is
+ * injectable for tests.
  */
 export type RateLimiter = {
   /** True when the request may continue (and counts it). */
@@ -42,7 +49,12 @@ export function createRateLimiter({
   }
 }
 
-/** Client IP from proxy headers (first entry of X-Forwarded-For), or 'unknown'. */
+/**
+ * Client IP from proxy headers (first entry of X-Forwarded-For), or 'unknown'. On Vercel this is
+ * trustworthy: Vercel overwrites X-Forwarded-For and does not forward external values
+ * (https://vercel.com/docs/headers/request-headers, read 2026-11-22). On a self-hosted server put
+ * a proxy in front that sets the header.
+ */
 export function clientIp(headers: Headers): string {
   const forwarded = headers.get('x-forwarded-for')
   if (forwarded) return forwarded.split(',')[0].trim().slice(0, 64)

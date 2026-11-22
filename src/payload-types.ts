@@ -466,6 +466,14 @@ export interface Order {
    * Stejné ID posílá prohlížeč i server (deduplikace Meta CAPI, etapa 6).
    */
   eventId?: string | null;
+  /**
+   * Vyplní se při anonymizaci (Nastavení → Osobní údaje). Údaje zákazníka jsou pak nahrazené, účetní údaje (částky, DPH, číslo faktury) zůstávají.
+   */
+  privacy?: {
+    anonymisedAt?: string | null;
+    anonymisedReason?: ('request' | 'retention') | null;
+    anonymisedBy?: (number | null) | User;
+  };
   withdrawals?: {
     docs?: (number | Withdrawal)[];
     hasNextPage?: boolean;
@@ -1451,6 +1459,7 @@ export interface Withdrawal {
    */
   confirmationError?: string | null;
   internalNote?: string | null;
+  anonymisedAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2096,6 +2105,13 @@ export interface OrdersSelect<T extends boolean = true> {
         ecomailNote?: T;
       };
   eventId?: T;
+  privacy?:
+    | T
+    | {
+        anonymisedAt?: T;
+        anonymisedReason?: T;
+        anonymisedBy?: T;
+      };
   withdrawals?: T;
   accessToken?: T;
   idempotencyKey?: T;
@@ -2120,6 +2136,7 @@ export interface WithdrawalsSelect<T extends boolean = true> {
   confirmationSentAt?: T;
   confirmationError?: T;
   internalNote?: T;
+  anonymisedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

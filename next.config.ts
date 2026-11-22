@@ -3,6 +3,8 @@ import type { NextConfig } from 'next'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+import { securityHeaderRules } from './src/lib/security/headers'
+
 const __filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(__filename)
 
@@ -27,6 +29,13 @@ const nextConfig: NextConfig = {
   // src/proxy.ts in ONE hop to the final page; Next's own trailing-slash redirect would run first
   // and make it two hops. The proxy strips trailing slashes of every page it handles.
   skipTrailingSlashRedirect: true,
+  // Stage 9: security headers (HSTS, nosniff, Referrer-Policy, X-Frame-Options,
+  // Permissions-Policy) on every route and a Content Security Policy on storefront pages –
+  // report-only unless CSP_MODE=enforce. Rules and reasons: src/lib/security/headers.ts.
+  // Evaluated at BUILD time: changing CSP_MODE needs a new deploy.
+  async headers() {
+    return securityHeaderRules(process.env, process.env.NODE_ENV === 'development')
+  },
   images: {
     localPatterns: [
       {

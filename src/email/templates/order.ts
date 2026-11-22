@@ -12,6 +12,7 @@ import {
   weightText,
 } from '@/lib/orders/format'
 import { ADDRESS_CHECK_LABELS, type AddressCheckStatus } from '@/lib/orders/constants'
+import { isEstimate, orderContents, paymentStep, preparationStep } from '@/lib/orders/contents'
 import type { VatRow } from '@/lib/orders/money'
 
 import {
@@ -48,6 +49,8 @@ export type OrderEmailData = {
   lines: {
     title: string
     variantLabel?: string | null
+    /** Stage 9: 'printed' = printed gift voucher (decides the wording, see lib/orders/contents). */
+    variantId?: string | null
     quantity: number
     unitPrice: number
     priceUnit: PriceUnit
@@ -103,6 +106,7 @@ function lineName(line: OrderEmailData['lines'][number]): string {
 }
 
 function linesTableHtml(data: OrderEmailData, internal: boolean): string {
+  const estimate = isEstimate(orderContents(data.lines))
   const cell = `padding:10px 6px;border-bottom:1px solid ${BRAND.line};font-size:14px;vertical-align:top;`
   const rows = data.lines
     .map((line) => {
@@ -127,26 +131,29 @@ function linesTableHtml(data: OrderEmailData, internal: boolean): string {
     `<tr><td colspan="2" style="padding:6px;font-size:14px;text-align:right;${strong ? 'font-weight:bold;' : `color:${BRAND.muted};`}">${esc(label)}</td><td style="padding:6px;font-size:${strong ? '16px' : '14px'};text-align:right;white-space:nowrap;${strong ? `font-weight:bold;color:${BRAND.red};` : ''}">${value}</td></tr>`
   const delivery = data.delivery
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-<tr><th align="left" style="padding:6px;font-size:12px;color:${BRAND.muted};text-transform:uppercase;border-bottom:2px solid ${BRAND.brown};">Položka</th><th style="padding:6px;font-size:12px;color:${BRAND.muted};text-transform:uppercase;border-bottom:2px solid ${BRAND.brown};">Počet</th><th align="right" style="padding:6px;font-size:12px;color:${BRAND.muted};text-transform:uppercase;border-bottom:2px solid ${BRAND.brown};">Odhad ceny</th></tr>
+<tr><th align="left" style="padding:6px;font-size:12px;color:${BRAND.muted};text-transform:uppercase;border-bottom:2px solid ${BRAND.brown};">Položka</th><th style="padding:6px;font-size:12px;color:${BRAND.muted};text-transform:uppercase;border-bottom:2px solid ${BRAND.brown};">Počet</th><th align="right" style="padding:6px;font-size:12px;color:${BRAND.muted};text-transform:uppercase;border-bottom:2px solid ${BRAND.brown};">${estimate ? 'Odhad ceny' : 'Cena'}</th></tr>
 ${rows}
-${total('Odhad za zboží', `≈&nbsp;${esc(czk(data.totals.goodsEstimate))}`)}
+${total(estimate ? 'Odhad za zboží' : 'Zboží', `${estimate ? '≈&nbsp;' : ''}${esc(czk(data.totals.goodsEstimate))}`)}
 ${delivery ? total(delivery.methodName, data.totals.deliveryPrice > 0 ? esc(czk(data.totals.deliveryPrice)) : 'zdarma') : ''}
-${total('Odhad celkem vč. DPH', `≈&nbsp;${esc(czk(data.totals.totalEstimate))}`, true)}
+${total(estimate ? 'Odhad celkem vč. DPH' : 'Celkem vč. DPH', `${estimate ? '≈&nbsp;' : ''}${esc(czk(data.totals.totalEstimate))}`, true)}
 </table>`
 }
 
 function linesText(data: OrderEmailData, internal: boolean): string {
+  const estimate = isEstimate(orderContents(data.lines))
   const lines = data.lines.map((line) => {
     const weight = weightText(line.estimatedWeightGrams, line.quantity)
     return `- ${lineName(line)}: ${line.quantity}× (${formatUnitPrice(line.unitPrice)} / ${UNIT_LABEL[line.priceUnit]}${weight ? `, odhad ${weight}` : ''}${internal ? `, DPH ${line.vatRate} %${line.sku ? `, kód ${line.sku}` : ''}` : ''}) ≈ ${czk(line.estimatedPrice)}`
   })
-  lines.push(`Odhad za zboží: ≈ ${czk(data.totals.goodsEstimate)}`)
+  lines.push(`${estimate ? 'Odhad za zboží: ≈' : 'Zboží:'} ${czk(data.totals.goodsEstimate)}`)
   if (data.delivery) {
     lines.push(
       `${data.delivery.methodName}: ${data.totals.deliveryPrice > 0 ? czk(data.totals.deliveryPrice) : 'zdarma'}`,
     )
   }
-  lines.push(`ODHAD CELKEM vč. DPH: ≈ ${czk(data.totals.totalEstimate)}`)
+  lines.push(
+    `${estimate ? 'ODHAD CELKEM vč. DPH: ≈' : 'CELKEM vč. DPH:'} ${czk(data.totals.totalEstimate)}`,
+  )
   return lines.join('\n')
 }
 
@@ -194,8 +201,12 @@ function estimateSentence(data: OrderEmailData): string {
 }
 
 function estimateNoticeHtml(data: OrderEmailData): string {
+  // Stage 9: an order without weighed goods (e.g. only a printed voucher) has a fixed price.
+  const priceText = isEstimate(orderContents(data.lines))
+    ? `<strong>Ceny jsou odhad.</strong> ${esc(estimateSentence(data))}`
+    : '<strong>Cena je pevná</strong> – nic se neváží.'
   return notice(
-    `<strong>Ceny jsou odhad.</strong> ${esc(estimateSentence(data))}<br><br><strong>Platíte až při převzetí</strong> – ${data.delivery?.methodType === 'pickup' ? 'na výdejním místě' : 'řidiči'}, hotově nebo kartou${data.delivery?.methodType === 'pickup' ? ' (pokud u výdejního místa není uvedeno jinak)' : ''}. Nic jste zatím neplatili.`,
+    `${priceText}<br><br><strong>Platíte až při převzetí</strong> – ${data.delivery?.methodType === 'pickup' ? 'na výdejním místě' : 'řidiči'}, hotově nebo kartou${data.delivery?.methodType === 'pickup' ? ' (pokud u výdejního místa není uvedeno jinak)' : ''}. Nic jste zatím neplatili.`,
   )
 }
 
@@ -226,6 +237,15 @@ export function orderConfirmationEmail(data: OrderEmailData): RenderedEmail {
   const contactLine = [data.shop.contactPhone, data.shop.contactEmail]
     .filter(Boolean)
     .join(' nebo ')
+  // Stage 9: wording by what the order contains (meat / printed voucher / both).
+  const contents = orderContents(data.lines)
+  const estimate = isEstimate(contents)
+  const steps = [
+    preparationStep(contents),
+    `${isPickup ? 'Objednávku si vyzvednete' : 'Objednávku vám dovezeme'} v uvedený termín.`,
+    paymentStep(contents, { withDelivery: !isPickup && Boolean(delivery) }),
+  ]
+  const noteHeading = contents.weighed ? 'Poznámka pro řezníka' : 'Poznámka k objednávce'
 
   const body = [
     `<h1 style="margin:0 0 12px;font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.25;color:${BRAND.brown};">Děkujeme, objednávku č.&nbsp;${esc(data.orderNumber)} jsme přijali</h1>`,
@@ -244,11 +264,9 @@ export function orderConfirmationEmail(data: OrderEmailData): RenderedEmail {
     keyValueTable(deliveryRows(data)),
     heading('Vaše údaje'),
     keyValueTable(customerRows(data)),
-    data.note ? heading('Poznámka pro řezníka') + paragraph(escMultiline(data.note)) : '',
+    data.note ? heading(noteHeading) + paragraph(escMultiline(data.note)) : '',
     heading('Co bude dál'),
-    paragraph(
-      `1. Řezník maso naporcuje a zváží.<br>2. ${isPickup ? 'Objednávku si vyzvednete' : 'Objednávku vám dovezeme'} v uvedený termín.<br>3. Zaplatíte částku podle skutečné hmotnosti${isPickup ? '' : ' (včetně dopravy)'}.`,
-    ),
+    paragraph(steps.map((step, i) => `${i + 1}. ${esc(step)}`).join('<br>')),
     contactLine
       ? paragraph(`Potřebujete něco změnit? Napište nebo zavolejte: ${esc(contactLine)}.`)
       : '',
@@ -269,7 +287,7 @@ export function orderConfirmationEmail(data: OrderEmailData): RenderedEmail {
     `Dobrý den, ${data.customer.firstName},`,
     `děkujeme za objednávku. ${what}`,
     '',
-    `CENY JSOU ODHAD. ${estimateSentence(data)}`,
+    estimate ? `CENY JSOU ODHAD. ${estimateSentence(data)}` : 'CENA JE PEVNÁ – nic se neváží.',
     `PLATÍTE AŽ PŘI PŘEVZETÍ – ${isPickup ? 'na výdejním místě' : 'řidiči'}, hotově nebo kartou. Nic jste zatím neplatili.`,
     '',
     'CO JSTE SI OBJEDNALI',
@@ -289,10 +307,10 @@ export function orderConfirmationEmail(data: OrderEmailData): RenderedEmail {
     data.customer.companyName
       ? `${data.customer.companyName}${data.customer.ico ? `, IČO ${data.customer.ico}` : ''}${data.customer.dic ? `, DIČ ${data.customer.dic}` : ''}`
       : '',
-    data.note ? `\nPOZNÁMKA PRO ŘEZNÍKA\n${data.note}` : '',
+    data.note ? `\n${noteHeading.toUpperCase()}\n${data.note}` : '',
     '',
     'CO BUDE DÁL',
-    `1. Řezník maso naporcuje a zváží. 2. ${isPickup ? 'Objednávku si vyzvednete' : 'Objednávku vám dovezeme'} v uvedený termín. 3. Zaplatíte částku podle skutečné hmotnosti.`,
+    steps.map((step, i) => `${i + 1}. ${step}`).join(' '),
     contactLine ? `Potřebujete něco změnit? ${contactLine}` : '',
     data.orderUrl ? `Shrnutí objednávky: ${data.orderUrl}` : '',
     `Odstoupení od smlouvy: ${data.withdrawalUrl}`,
@@ -307,7 +325,7 @@ export function orderConfirmationEmail(data: OrderEmailData): RenderedEmail {
     subject,
     html: emailLayout({
       title: subject,
-      preheader: `Objednávka č. ${data.orderNumber}: odhad ≈ ${czk(data.totals.totalEstimate)}, platíte až při převzetí.`,
+      preheader: `Objednávka č. ${data.orderNumber}: ${estimate ? 'odhad ≈ ' : 'celkem '}${czk(data.totals.totalEstimate)}, platíte až při převzetí.`,
       body,
       footer: footerHtml(data),
     }),

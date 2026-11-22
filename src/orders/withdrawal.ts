@@ -104,11 +104,14 @@ export async function submitWithdrawal(
   let confirmationError: string | null = null
   try {
     const email = withdrawalConfirmationEmail(data)
+    // Stage 9: replies go to the shop's contact address (like every other customer e-mail).
+    const replyTo = process.env.EMAIL_REPLY_TO || settings.contact?.email || undefined
     await payload.sendEmail({
       to: input.email,
       subject: email.subject,
       html: email.html,
       text: email.text,
+      ...(replyTo ? { replyTo } : {}),
     })
     if (payload.email?.name === OUTBOX_ADAPTER_NAME) confirmationStatus = 'outbox'
   } catch (error) {

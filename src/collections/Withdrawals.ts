@@ -146,5 +146,17 @@ export const Withdrawals: CollectionConfig = {
       type: 'textarea',
       label: 'Interní poznámka',
     },
+    {
+      // Stage 9: set by the anonymisation tool (src/privacy/service.ts).
+      name: 'anonymisedAt',
+      type: 'date',
+      label: 'Anonymizováno',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        condition: (data) => Boolean(data?.anonymisedAt),
+        date: { pickerAppearance: 'dayAndTime' },
+      },
+    },
   ],
 }

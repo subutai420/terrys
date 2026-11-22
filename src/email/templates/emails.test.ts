@@ -58,6 +58,54 @@ const base: OrderEmailData = {
   withdrawalUrl: 'https://www.terrys.cz/odstoupeni-od-smlouvy',
 }
 
+describe('order e-mail wording by contents (stage 9)', () => {
+  const printedOnly: OrderEmailData = {
+    ...base,
+    note: null,
+    voucherCode: null,
+    lines: [
+      {
+        title: 'Dárkový poukaz 1 000 Kč',
+        variantLabel: 'Tištěný poukaz',
+        variantId: 'printed',
+        quantity: 1,
+        unitPrice: 1000,
+        priceUnit: 'piece',
+        vatRate: '0',
+        estimatedPrice: 1000,
+      },
+    ],
+    totals: { goodsEstimate: 1000, deliveryPrice: 229, totalEstimate: 1229, vat: [] },
+  }
+
+  it('printed voucher only: no butcher / weighing / estimate wording', () => {
+    const email = orderConfirmationEmail(printedOnly)
+    for (const part of [email.html, email.text]) {
+      expect(part).not.toMatch(/naporcuje|zváží|skutečné hmotnosti|Odhad celkem|ODHAD CELKEM/)
+      expect(part).toContain('Připravíme tištěný dárkový poukaz.')
+      expect(part).toContain('částku uvedenou v objednávce')
+    }
+    expect(email.html).toContain('Cena je pevná')
+    expect(email.text).toContain('CELKEM vč. DPH: 1')
+  })
+
+  it('meat + printed voucher: butcher wording and the voucher packed with it', () => {
+    const email = orderConfirmationEmail({
+      ...printedOnly,
+      lines: [...base.lines.slice(0, 1), ...printedOnly.lines],
+    })
+    expect(email.text).toContain(
+      'Řezník maso naporcuje a zváží, dárkový poukaz přibalíme k zásilce.',
+    )
+    expect(email.text).toContain('podle skutečné hmotnosti')
+  })
+
+  it('meat order keeps the original wording', () => {
+    const email = orderConfirmationEmail(base)
+    expect(email.text).toContain('1. Řezník maso naporcuje a zváží.')
+    expect(email.html).toContain('Odhad celkem vč. DPH')
+  })
+})
 describe('order e-mails', () => {
   it('customer confirmation: items, estimate notice, delivery, signature, escaped input', () => {
     const email = orderConfirmationEmail({

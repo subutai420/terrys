@@ -5,6 +5,8 @@ import { cartLineInputSchema } from '@/lib/orders/checkoutSchema'
 import { MAX_ORDER_LINES } from '@/lib/orders/constants'
 import { clientIp } from '@/lib/orders/rateLimit'
 
+import { logEvent } from '@/lib/monitoring/log'
+import { reportServerError } from '@/monitoring/capture'
 import { electronicVoucherAvailability } from '@/vouchers/availability'
 
 import { checkCart } from './catalog'
@@ -85,9 +87,23 @@ export const checkoutEndpoints: Endpoint[] = [
           cookieHeader: req.headers.get('cookie'),
           userAgent: req.headers.get('user-agent'),
         })
+        // Stage 9: structured log of every refused order (code only, never customer data), so
+        // "why do orders fail?" can be answered from the logs (Vercel → Logs, search event).
+        if (result.ok) {
+          logEvent('info', 'order.placed', { orderNumber: result.orderNumber })
+        } else {
+          logEvent(result.status >= 500 ? 'error' : 'warn', 'order.rejected', {
+            error: result.error,
+            status: result.status,
+            fields:
+              'fieldErrors' in result && result.fieldErrors
+                ? Object.keys(result.fieldErrors)
+                : undefined,
+          })
+        }
         return json(result, result.ok ? 200 : result.status)
       } catch (error) {
-        req.payload.logger.error(`[orders] place-order failed: ${String(error)}`)
+        await reportServerError('order.place_failed', error)
         return json(
           {
             ok: false,

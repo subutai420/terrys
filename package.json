@@ -24,15 +24,23 @@
     "migrate:crawl": "cross-env NODE_OPTIONS=--no-deprecation payload run src/migration/crawl.ts --",
     "migrate:import": "cross-env NODE_OPTIONS=--no-deprecation payload run src/migration/import.ts --",
     "migrate:redirects": "cross-env NODE_OPTIONS=--no-deprecation payload run src/migration/redirects.ts --",
-    "migrate:check-redirects": "cross-env NODE_OPTIONS=--no-deprecation payload run src/migration/checkRedirects.ts --"
+    "migrate:check-redirects": "cross-env NODE_OPTIONS=--no-deprecation payload run src/migration/checkRedirects.ts --",
+    "build:vercel": "node scripts/vercel-build.mjs",
+    "db:backup": "node scripts/db-backup.mjs",
+    "db:restore-test": "node scripts/db-restore-test.mjs",
+    "media:upload-blob": "node scripts/media-upload-blob.mjs",
+    "ops:test-emails": "cross-env NODE_OPTIONS=--no-deprecation payload run src/ops/testEmails.ts --"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.94.1",
     "@payloadcms/email-resend": "3.94.1",
     "@payloadcms/next": "3.94.1",
     "@payloadcms/richtext-lexical": "3.94.1",
+    "@payloadcms/storage-vercel-blob": "3.94.1",
     "@payloadcms/translations": "3.94.1",
     "@payloadcms/ui": "3.94.1",
+    "@sentry/nextjs": "11.16.0",
+    "@vercel/blob": "2.3.1",
     "cross-env": "^7.0.3",
     "graphql": "^16.8.1",
     "next": "16.4.6",
@@ -41,10 +49,11 @@
     "qrcode": "1.5.4",
     "react": "19.2.9",
     "react-dom": "19.2.9",
-    "sharp": "0.35.4",
+    "sharp": "0.35.5",
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@napi-rs/canvas": "1.2.0",
     "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "4.3.5",
@@ -68,7 +77,7 @@
     "typescript": "5.7.3",
     "unpdf": "2.2.1",
     "vite-tsconfig-paths": "6.0.5",
-    "vitest": "4.0.18"
+    "vitest": "4.1.12"
   },
   "engines": {
     "node": "^22.23.5 || ^24.22.3 || >=26.13.1"
@@ -78,6 +87,9 @@
       "esbuild",
       "sharp",
       "unrs-resolver"
-    ]
+    ],
+    "overrides": {
+      "dompurify@<3.4.17": "3.4.18"
+    }
   }
 }

@@ -27,6 +27,7 @@ import { HolidayPrefill as HolidayPrefill_6d37d723970541255dcccea22608455c } fro
 import { PostcodeImport as PostcodeImport_f4d99a57f51a82c01110fd83997c275b } from '../../../components/admin/PostcodeImport'
 import { MarketingStatus as MarketingStatus_595c27ce6320bc74f532e0d0e2b3f12a } from '../../../components/admin/MarketingStatus'
 import { DeliveryCalendarNavLink as DeliveryCalendarNavLink_04760a1349c828d07719fd0aa1dcfaf3 } from '../../../components/admin/DeliveryCalendarNavLink'
+import { PrivacyNavLink as PrivacyNavLink_0fc8c0d711b6efe48645d514cea5f87b } from '../../../components/admin/privacy/PrivacyNavLink'
 import { TodayPanel as TodayPanel_1cd8c464698bc037fd660dbeaf1e6b26 } from '../../../components/admin/fulfilment/TodayPanel'
 import { OrdersNavGroup as OrdersNavGroup_d06b0f700e9919ded5046c52887cb2d9 } from '../../../components/admin/fulfilment/OrdersNavGroup'
 import { VouchersNavGroup as VouchersNavGroup_4be680ec18060fe8fa11cac6eb55e9b6 } from '../../../components/admin/vouchers/VouchersNavGroup'
@@ -35,7 +36,9 @@ import { ExpediceView as ExpediceView_4b02343d3dbafc169e7f682ad4494972 } from '.
 import { WeighView as WeighView_014d778e68abe9e164c90b80e48de296 } from '../../../components/admin/fulfilment/WeighView'
 import { OrderFulfilmentView as OrderFulfilmentView_6ea8b08e1fa939f0b9334d370c220e85 } from '../../../components/admin/fulfilment/OrderFulfilmentView'
 import { VoucherPaymentsView as VoucherPaymentsView_e38b8beaef84a418c3cfff3b35bd71e9 } from '../../../components/admin/vouchers/VoucherPaymentsView'
+import { PrivacyView as PrivacyView_f0035b0d10bdccf1067c64983a944228 } from '../../../components/admin/privacy/PrivacyView'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
+import { VercelBlobClientUploadHandler as VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e } from '@payloadcms/storage-vercel-blob/client'
 
 /** @type import('payload').ImportMap */
 export const importMap = {
@@ -68,6 +71,7 @@ export const importMap = {
   "/components/admin/PostcodeImport#PostcodeImport": PostcodeImport_f4d99a57f51a82c01110fd83997c275b,
   "/components/admin/MarketingStatus#MarketingStatus": MarketingStatus_595c27ce6320bc74f532e0d0e2b3f12a,
   "/components/admin/DeliveryCalendarNavLink#DeliveryCalendarNavLink": DeliveryCalendarNavLink_04760a1349c828d07719fd0aa1dcfaf3,
+  "/components/admin/privacy/PrivacyNavLink#PrivacyNavLink": PrivacyNavLink_0fc8c0d711b6efe48645d514cea5f87b,
   "/components/admin/fulfilment/TodayPanel#TodayPanel": TodayPanel_1cd8c464698bc037fd660dbeaf1e6b26,
   "/components/admin/fulfilment/OrdersNavGroup#OrdersNavGroup": OrdersNavGroup_d06b0f700e9919ded5046c52887cb2d9,
   "/components/admin/vouchers/VouchersNavGroup#VouchersNavGroup": VouchersNavGroup_4be680ec18060fe8fa11cac6eb55e9b6,
@@ -76,5 +80,7 @@ export const importMap = {
   "/components/admin/fulfilment/WeighView#WeighView": WeighView_014d778e68abe9e164c90b80e48de296,
   "/components/admin/fulfilment/OrderFulfilmentView#OrderFulfilmentView": OrderFulfilmentView_6ea8b08e1fa939f0b9334d370c220e85,
   "/components/admin/vouchers/VoucherPaymentsView#VoucherPaymentsView": VoucherPaymentsView_e38b8beaef84a418c3cfff3b35bd71e9,
-  "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
+  "/components/admin/privacy/PrivacyView#PrivacyView": PrivacyView_f0035b0d10bdccf1067c64983a944228,
+  "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1,
+  "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler": VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e
 }

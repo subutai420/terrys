@@ -49,12 +49,22 @@ export async function readJson(req: PayloadRequest): Promise<unknown> {
   }
 }
 
-/** Per-IP limits (in memory, per server instance – see `rateLimit.ts`). */
-export const limiters: Record<'placeOrder' | 'cart' | 'address' | 'withdrawal', RateLimiter> = {
+/**
+ * Per-IP limits (in memory, per server instance – see `rateLimit.ts`). On Vercel every warm
+ * function instance keeps its own counters, so the effective limit is a multiple of these numbers:
+ * a brake on bots and scripted abuse, not an exact quota (stage 9, docs/provoz.md).
+ */
+export const limiters: Record<
+  'placeOrder' | 'cart' | 'address' | 'withdrawal' | 'delivery' | 'voucherPdf',
+  RateLimiter
+> = {
   placeOrder: createRateLimiter({ limit: 10, windowMs: 10 * 60_000 }),
   cart: createRateLimiter({ limit: 60, windowMs: 60_000 }),
   address: createRateLimiter({ limit: 60, windowMs: 60_000 }),
   withdrawal: createRateLimiter({ limit: 5, windowMs: 10 * 60_000 }),
+  // Stage 9: the other public endpoints (GET; generous – a CDN caches delivery options anyway).
+  delivery: createRateLimiter({ limit: 120, windowMs: 60_000 }),
+  voucherPdf: createRateLimiter({ limit: 30, windowMs: 60_000 }),
 }
 
 export function rateLimited(name: keyof typeof limiters, req: PayloadRequest): boolean {
