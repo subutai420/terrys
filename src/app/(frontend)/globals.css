@@ -1,0 +1,21 @@
+/*
+ * Storefront styles (Tailwind CSS v4).
+ * This file is imported only by the (frontend) layout, so it never affects the Payload admin.
+ */
+@import 'tailwindcss';
+
+/*
+ * Brand colours as Tailwind theme tokens.
+ * Usage examples: `bg-brand-red`, `text-brand-brown`, `border-brand-gold`.
+ * Final design is not chosen yet; only these colours are fixed.
+ */
+@theme {
+  --color-brand-red: #b00004;
+  --color-brand-brown: #3a2317;
+  --color-brand-beige: #e4dfd8;
+  --color-brand-gold: #d6cc89;
+  --color-brand-gold-dark: #d19723;
+
+  /* System font stack only: no unlicensed web fonts. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+}

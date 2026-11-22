@@ -1,0 +1,82 @@
+# Continuous integration: checks every push and pull request.
+# Steps: install -> lint -> typecheck -> unit tests -> build -> Playwright smoke test.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: terrys
+          POSTGRES_PASSWORD: terrys
+          POSTGRES_DB: terrys
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U terrys -d terrys"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      CI: true
+      DATABASE_URL: postgres://terrys:terrys@localhost:5432/terrys
+      # Throwaway value used only inside CI, not a real secret.
+      PAYLOAD_SECRET: ci-only-not-a-real-secret-0123456789abcdef
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm (version from package.json "packageManager")
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Starts the production server (`pnpm start`); Payload applies migrations
+      # from src/migrations to the empty CI database on startup.
+      - name: Playwright smoke test
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

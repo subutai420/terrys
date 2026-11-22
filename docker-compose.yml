@@ -1,0 +1,27 @@
+# Local development database (PostgreSQL 16).
+# Start:  docker compose up -d
+# Stop:   docker compose down        (data is kept in the "pgdata" volume)
+# Reset:  docker compose down -v     (WARNING: deletes all local data)
+name: terrys
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: terrys
+      POSTGRES_PASSWORD: terrys
+      POSTGRES_DB: terrys
+    ports:
+      # Host port can be changed with POSTGRES_PORT in .env (e.g. when 5432 is taken).
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U terrys -d terrys']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
