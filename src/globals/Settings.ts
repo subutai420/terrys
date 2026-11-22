@@ -2,6 +2,7 @@ import type { GlobalConfig } from 'payload'
 
 import { adminOnly, anyone } from '@/access'
 import { ADMIN_GROUPS } from '@/collections/adminGroups'
+import { DEFAULT_HORIZON_DAYS } from '@/lib/delivery/constants'
 
 /** Default storefront notice next to estimated prices (business rule: final price by weight). */
 export const DEFAULT_PRICE_NOTICE =
@@ -31,17 +32,40 @@ export const Settings: GlobalConfig = {
           label: 'Doprava a ceny',
           fields: [
             {
-              name: 'deliveryPrice',
-              type: 'number',
-              label: 'Výchozí cena dopravy (Kč)',
-              required: true,
-              defaultValue: 229,
-              min: 0,
-              admin: {
-                description:
-                  'Jednotná cena rozvozu bez ohledu na hodnotu objednávky. Doprava zdarma ' +
-                  'neexistuje. Osobní odběr je vždy zdarma.',
-              },
+              type: 'row',
+              fields: [
+                {
+                  // The single source of truth for the delivery price: every shipping method of
+                  // type own-delivery or courier costs this; pickup is always 0 (stage 2).
+                  name: 'deliveryPrice',
+                  type: 'number',
+                  label: 'Cena dopravy (Kč)',
+                  required: true,
+                  defaultValue: 229,
+                  // At least 1 Kč: free shipping must never exist (business rule 2).
+                  min: 1,
+                  admin: {
+                    width: '50%',
+                    description:
+                      'Jednotná cena pro rozvoz vlastním vozem i kurýra, bez ohledu na hodnotu ' +
+                      'objednávky. Doprava zdarma neexistuje. Osobní odběr je vždy zdarma.',
+                  },
+                },
+                {
+                  name: 'deliveryHorizonDays',
+                  type: 'number',
+                  label: 'Kolik dní dopředu nabízet termíny',
+                  required: true,
+                  defaultValue: DEFAULT_HORIZON_DAYS,
+                  min: 1,
+                  max: 90,
+                  admin: {
+                    width: '50%',
+                    step: 1,
+                    description: `Košík nabídne termíny doručení na tolik dní dopředu (výchozí ${DEFAULT_HORIZON_DAYS}).`,
+                  },
+                },
+              ],
             },
             {
               name: 'priceNotice',

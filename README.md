@@ -6,10 +6,11 @@ Nový e-shop řeznictví **Terrys.cz** (prémiové maso a steaky). Jedna aplikac
 - **administraci** pro obsluhu e-shopu – [Payload CMS 3](https://payloadcms.com/) na adrese `/admin`,
 - **databázi** [PostgreSQL](https://www.postgresql.org/) (lokálně běží v Dockeru).
 
-Projekt vzniká po etapách (0–9). Hotové jsou **etapa 0 – základ projektu** a **etapa 1 – katalog
-a obsah v administraci** (produkty, kategorie, číselníky, články, recepty, stránky, nastavení).
-Navazují další etapy (doprava, obchod pro zákazníky, košík a objednávky, vážení objednávek,
-napojení na další služby). Pravidla pro vývoj a obchodní pravidla jsou v souboru [`CLAUDE.md`](./CLAUDE.md).
+Projekt vzniká po etapách (0–9). Hotové jsou **etapa 0 – základ projektu**, **etapa 1 – katalog
+a obsah v administraci** (produkty, kategorie, číselníky, články, recepty, stránky, nastavení)
+a **etapa 2 – doručování** (způsoby dopravy, PSČ, rozvozové oblasti, kalendář výjimek a svátků,
+výpočet termínů doručení). Navazují další etapy (obchod pro zákazníky, košík a objednávky, vážení
+objednávek, napojení na další služby). Pravidla pro vývoj a obchodní pravidla jsou v souboru [`CLAUDE.md`](./CLAUDE.md).
 
 ## Co je potřeba nainstalovat
 
@@ -99,9 +100,12 @@ Před prvním spuštěním `pnpm test:e2e` je potřeba jednou stáhnout prohlí�
 │   │   └── (payload)/         # administrace Payload a API (generované soubory, neupravovat)
 │   ├── access/                # kdo co smí (role a přístupová práva) + testy
 │   ├── collections/           # datové kolekce Payloadu (produkty, kategorie, číselníky, obsah…)
+│   ├── components/admin/      # vlastní části administrace (import PSČ, svátky, kalendář)
+│   ├── delivery/              # doručování: načtení pravidel z databáze, API, import PSČ
 │   ├── fields/                # společná pole (slug, SEO, původní URL, pořadí)
 │   ├── globals/               # nastavení obchodu (Settings)
 │   ├── lib/                   # pomocné funkce (ceny, odhad ceny, slug) + jejich testy
+│   │   └── delivery/          # výpočet termínů doručení, svátky, CSV (bez databáze) + testy
 │   ├── seed/                  # ukázková data pro pnpm seed (+ obrázky v seed/assets)
 │   ├── migrations/            # migrace databáze (generuje Payload)
 │   ├── payload.config.ts      # hlavní nastavení Payloadu
@@ -122,6 +126,8 @@ Před prvním spuštěním `pnpm test:e2e` je potřeba jednou stáhnout prohlí�
 | **Katalog**    | Produkty (cena, varianty, fotky, vlastnosti) a Kategorie (strom kategorií, menu) |
 | **Číselníky**  | Řezy, Země původu, Druhy masa, Hodí se na, Trvanlivost a skladování              |
 | **Obsah**      | Články (Magazín, Terrys Academy), Recepty, Stránky, Obrázky                      |
+| **Doručování** | Způsoby dopravy, Rozvozové oblasti, Výjimky v kalendáři, PSČ                     |
+| **Přehledy**   | Kalendář doručování (které dny se pro dané PSČ doručuje)                         |
 | **Nastavení**  | Provozovny a odběrná místa, Uživatelé, Nastavení obchodu                         |
 
 - **Koncepty a publikování:** produkty, články, recepty a stránky se na webu ukážou až po kliknutí
@@ -136,11 +142,11 @@ Před prvním spuštěním `pnpm test:e2e` je potřeba jednou stáhnout prohlí�
 
 ## Role uživatelů
 
-| Role              | Co smí                                                                                          |
-| ----------------- | ----------------------------------------------------------------------------------------------- |
-| **Administrátor** | Vše: produkty, obsah, číselníky, uživatelé, provozovny, nastavení obchodu.                      |
-| **Obsluha**       | Produkty, kategorie, číselníky, články, recepty, stránky a obrázky. Ne uživatele ani nastavení. |
-| **Řezník**        | Zatím jen prohlíží (později bude vážit objednávky).                                             |
+| Role              | Co smí                                                                                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Administrátor** | Vše: produkty, obsah, číselníky, uživatelé, provozovny, nastavení obchodu.                                                                  |
+| **Obsluha**       | Produkty, kategorie, číselníky, obsah, obrázky a výjimky v kalendáři doručování. Ne uživatele, nastavení, způsoby dopravy, oblasti ani PSČ. |
+| **Řezník**        | Zatím jen prohlíží (později bude vážit objednávky).                                                                                         |
 
 První uživatel vytvořený v prázdné databázi je vždy administrátor. Nové uživatele zakládá a role
 mění jen administrátor (Nastavení → Uživatelé). Každý si může změnit své jméno a heslo.
@@ -154,6 +160,10 @@ Příkaz `pnpm seed` naplní databázi tím, co je potřeba pro start:
 - 12 produktů Rib Eye z návrhu e-shopu (s fotkami a variantami 250 g – 1 kg),
 - prodejnu Praha 2 – Vinohrady (Italská 17) a sklad Slivínko,
 - nastavení obchodu (doprava 229 Kč),
+- doručování: 4 způsoby dopravy (rozvoz vlastním vozem, kurýr PPL, osobní odběr v prodejně
+  a ve Slivínku) s **provizorním** nastavením (út–pá, uzávěrka 12:00 – označeno „PROVIZORNÍ“
+  v interní poznámce), rozvozovou oblast „Praha (PROVIZORNÍ)“, **ukázkový vzorek** 20 PSČ
+  (ne úplný seznam!) a státní svátky letošního (jen budoucí) a příštího roku,
 - prázdné koncepty stálých stránek, jeden **ukázkový** článek a jeden **ukázkový** recept
   (jako koncepty, s textem „UKÁZKA“ – před zveřejněním je nahraďte skutečným obsahem).
 
@@ -166,6 +176,88 @@ nepřepíše). V produkci (`NODE_ENV=production`) se odmítne spustit, pokud nen
 Na úplně prázdné databázi můžete seedem rovnou vytvořit administrátora: v `.env` vyplňte
 `SEED_ADMIN_EMAIL` a `SEED_ADMIN_PASSWORD`. Jinak prvního uživatele vytvoříte v prohlížeči na
 <http://localhost:3000/admin>.
+
+## Doručování (etapa 2)
+
+### Jak to funguje
+
+Zákazník v košíku nejdřív zadá **PSČ**. Obchod mu podle něj nabídne způsoby dopravy a ke každému
+dny, kdy může objednávku dostat (nebo vyzvednout). Vše se nastavuje v administraci ve skupině
+**Doručování**:
+
+1. **Způsoby dopravy** – rozvoz vlastním chladicím vozem, kurýr (přes Balíkobot, dnes PPL)
+   a osobní odběry (prodejna Italská 17, sklad Slivínko). U každého je:
+   - **dny doručení** (výchozí út–pá; sobotu lze kdykoli zaškrtnout),
+   - **uzávěrka** – kdo objedná před tímto časem, může dostat nejbližší možný den; kdo objedná
+     přesně v tento čas nebo později, dostane o den později. Vždy podle pražského času,
+   - **příprava (dní)** – 1 = nejdříve zítra,
+   - **kam se doručuje** – jen v rozvozových oblastech / všude v ČR / „záložní“ = všude, kam
+     nejezdí vlastní vůz (typicky kurýr),
+   - **cena** se tu nezadává: rozvoz i kurýr stojí vždy jednotnou cenu z **Nastavení obchodu →
+     Cena dopravy** (229 Kč, doprava zdarma neexistuje). Osobní odběr je vždy zdarma.
+2. **Rozvozové oblasti** – která PSČ obsluhuje daný způsob dopravy, případně s vlastními dny.
+   PSČ se nezadávají po jednom: stačí začátek s hvězdičkou. `1*` = celá Praha, `252*` = všechna
+   PSČ začínající 252, `250 01` = jen toto PSČ. Když na jedno PSČ pasuje víc oblastí stejného
+   způsobu dopravy, platí ta přesnější (celé PSČ > delší začátek > kratší začátek).
+   Příklad: oblast „Mladoboleslavsko“, PSČ `293*, 294*`, dny jen středa.
+3. **PSČ** – seznam všech PSČ v ČR (plní se importem, viz níže). Doručujeme jen na PSČ, která
+   v seznamu jsou; jinak zákazník uvidí jen osobní odběr. U PSČ lze zaškrtnout **„Nedoručujeme“**
+   (pak jen osobní odběr).
+4. **Výjimky v kalendáři** – svátky, dovolená, porucha vozu… (viz níže).
+5. **Kalendář doručování** (v menu „Přehledy“) – zadáte PSČ a měsíc a uvidíte, ve které dny se
+   kterým způsobem doručuje a proč ne (svátek, dovolená, není to rozvozový den).
+
+V **Nastavení obchodu** je ještě „Kolik dní dopředu nabízet termíny“ (výchozí 21).
+
+### Jak vypnout den (svátek, dovolená, porucha)
+
+**Doručování → Výjimky v kalendáři → Vytvořit**: vyplňte datum, důvod a pro koho výjimka platí
+(vše / jeden způsob dopravy / osobní odběr na jednom místě) a uložte. Hotovo – jeden záznam.
+
+- **Období** (např. dovolená 6.–19. 7.): vyplňte i pole „Do (včetně)“.
+- **Mimořádně otevřeno** (např. předvánoční sobota): typ výjimky „Mimořádně otevřeno“. Pokud
+  na stejný den platí i „Zavřeno“, má přednost „Zavřeno“.
+- Výjimky smí upravovat administrátor i obsluha.
+
+### Státní svátky
+
+Svátky nejsou natvrdo v programu – jsou to obyčejné výjimky, které lze smazat (např. když se
+rozhodnete 1. 5. rozvážet). V seznamu **Výjimky v kalendáři** je tlačítko **„Předvyplnit svátky“**
+pro zvolený rok (včetně Velkého pátku a Velikonočního pondělí). Už zadané svátky nezdvojí.
+Pozor: když svátek smažete a tlačítko pro stejný rok použijete znovu, svátek se vrátí.
+`pnpm seed` předvyplní letošní (jen budoucí) a příští rok. Svátky na další rok předvyplňte
+každý rok (např. v listopadu).
+
+### Import a export PSČ
+
+V **Doručování → PSČ** je nad seznamem rámeček **Import a export PSČ (CSV)** (jen pro
+administrátora):
+
+1. Připravte soubor CSV (např. uložením z Excelu jako „CSV (oddělený středníkem)“). První řádek
+   jsou názvy sloupců: `psc;obec;okres;nedorucujeme`. Povinný je jen `psc`. Ve sloupci
+   `nedorucujeme` pište `ano`/`ne`.
+2. Klikněte na „Vybrat soubor“, zvolte soubor a „Importovat CSV“.
+3. Zobrazí se souhrn: kolik PSČ bylo vytvořeno, aktualizováno, beze změny, kolik řádků bylo
+   přeskočeno (duplicitní PSČ) a které řádky mají chybu (s číslem řádku).
+
+Pravidla importu: nic se nemaže; prázdné buňky nic nepřepíšou; když v souboru chybí sloupec
+`nedorucujeme`, zůstane u PSČ to, co je nastaveno v administraci. Funguje kódování UTF-8
+i Windows-1250 (české Excely). Odkaz **„Stáhnout všechna PSČ (CSV)“** stáhne aktuální seznam
+(lze ho upravit v Excelu a znovu naimportovat). Hromadně lze PSČ upravit i přímo v seznamu
+(zaškrtnout řádky → Upravit).
+
+**Úplný seznam PSČ:** `pnpm seed` vkládá jen **ukázkový vzorek 20 PSČ** (soubor
+`src/seed/postcodes-sample.csv`). Oficiální seznam zveřejňuje Česká pošta na
+<https://www.ceskaposta.cz/ke-stazeni/zakaznicke-vystupy> („Seznam adresních PSČ“, CSV v archivu
+ZIP). Stáhněte ho, rozbalte a naimportujte. Import rozpozná sloupec `PSC` a název pošty/obce ve
+sloupcích jako `NAZPOST`, `NAZEV_POSTY` nebo `NAZOBCE`; po prvním importu zkontrolujte souhrn
+a pár PSČ v seznamu. Před spuštěním e-shopu je to nutné – bez toho se rozvoz nabídne jen na PSČ
+ze vzorku.
+
+### Pro košík (programátorsky)
+
+`GET /api/delivery/options?psc=12000` vrátí pro PSČ seznam způsobů dopravy s cenou a volnými
+termíny (bez přihlášení, bez interních údajů). Podrobnosti v `CLAUDE.md`.
 
 ## Databáze a migrace (stručně)
 

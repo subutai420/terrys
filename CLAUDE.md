@@ -37,6 +37,8 @@ read it: the bundled Next.js docs in `node_modules/next/dist/docs/` match the in
   do not edit them (except `custom.scss` for admin styling).
 - `src/collections` – one file per Payload collection. `src/payload.config.ts` – Payload config.
 - `src/lib` – plain helper functions; unit tests sit next to them as `*.test.ts`.
+- `src/delivery` – Payload glue of the delivery module (loading rules, endpoints, CSV import);
+  the pure logic is in `src/lib/delivery`. `src/components/admin` – custom admin components.
 - `tests/e2e` – Playwright tests (`*.e2e.spec.ts`).
 - Code, identifiers and code comments in **English**. All customer-facing text and all admin labels
   (collection labels, field labels, descriptions) in **Czech**.
@@ -53,7 +55,8 @@ read it: the bundled Next.js docs in `node_modules/next/dist/docs/` match the in
 
 ## Data model (stage 1)
 
-Collections (slug → purpose). Admin groups: Katalog, Číselníky, Obsah, Nastavení
+Collections (slug → purpose). Admin groups: Katalog, Číselníky, Obsah, Doručování (stage 2, see
+below), Nastavení
 (`src/collections/adminGroups.ts`; sidebar order = order in `payload.config.ts`).
 
 | Slug                                                     | Group     | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
@@ -68,7 +71,8 @@ Collections (slug → purpose). Admin groups: Katalog, Číselníky, Obsah, Nast
 | `locations`                                              | Nastavení | Shop Italská 17 + warehouse Slivínko: `kind`, `isPickupPoint`, `address` group, `openingHours` group (one text per weekday + `note`), `phone`, `email`, `mapUrl`, `parkingNote`. Admin-only writes.                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `users`                                                  | Nastavení | Auth. `role` select (`admin`/`staff`/`butcher`, saved to JWT).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
-Global `settings` (admin-only writes, public read): `deliveryPrice` (default 229), `priceNotice`
+Global `settings` (admin-only writes, public read): `deliveryPrice` (default 229, min 1),
+`deliveryHorizonDays` (default 21, stage 2), `priceNotice`
 (text shown next to every estimated price), `contact` {email, phone, whatsapp}, `company` {name,
 ico, dic, address, registration}, `social` {facebook, instagram, youtube, tiktok}.
 
@@ -77,8 +81,9 @@ in kg. Do not add them (business rule 1).
 
 ### Access control (`src/access/index.ts`, tests in `access.test.ts`)
 
-- Roles: `admin` (everything), `staff` (catalog, code lists, content, media; not users, locations,
-  settings), `butcher` (read-only admin for now; will weigh orders later).
+- Roles: `admin` (everything), `staff` (catalog, code lists, content, media, delivery exceptions;
+  not users, locations, settings, shipping methods, zones, postcodes), `butcher` (read-only admin
+  for now; will weigh orders later).
 - Use the helpers (`anyone`, `loggedIn`, `adminOnly`, `editors`, `publishedOrLoggedIn`,
   `publicProductsOrLoggedIn`, `adminOrSelf`, `adminOnlyField`) instead of ad-hoc checks.
 - Anonymous (storefront) reads: drafts never; products additionally never with
@@ -111,16 +116,132 @@ in kg. Do not add them (business rule 1).
   admins. Local dev DBs that were schema-pushed before stage 1 get `role = staff` for existing
   users; fix in SQL (`UPDATE users SET role = 'admin'`) or recreate the DB.
 
-### Notes for the next stages
+## Delivery (stage 2)
 
-- Stage 2 (delivery): flat price is `settings.deliveryPrice` (229); pickup points are
-  `locations` with `isPickupPoint` (pickup is free). Postcode rules, cut-off times and holiday
-  calendar are not modelled yet.
+Admin group **Doručování** (+ custom view "Kalendář doručování" at `/admin/kalendar-doruceni`,
+linked in the sidebar group "Přehledy").
+
+### Model and why
+
+| Slug                  | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shipping-methods`    | `type` (`own-delivery` / `courier` / `pickup`), `name`, `customerNote`, `weekdays` (hasMany select `mon`…`sun`, default tue–fri), `cutoffTime` ("HH:MM" Prague), `leadDays` (default 1), `coverage` (`zones` / `everywhere` / `fallback`, not for pickup), `location` (pickup only, required, `isPickupPoint` locations), `balikobot` {`carrierCode`, `serviceCode`} (courier only, stage 5), `active`, `internalNote`, `slug`, `sortOrder`. **No price field.** |
+| `delivery-zones`      | `name`, `method` (non-pickup), `postcodes` (text of patterns: full postcode `25001` or prefix `252*`, normalised on save), `weekdays` (optional override; empty = method default), `note`, `active`.                                                                                                                                                                                                                                                             |
+| `postcodes`           | `code` (5-digit string, unique), `city`, `district`, `deliveryBlocked`. Flat on purpose: ~15 000 rows are bulk-upserted by the CSV import (`POST /api/postcodes/import`, raw CSV body; `GET /api/postcodes/export`), admin only.                                                                                                                                                                                                                                 |
+| `delivery-exceptions` | `dateFrom`, `dateTo` (optional, inclusive range), `reason`, `kind` (`closed` / `open` = extra day), `scope` (`all` / `method` / `location`) + `method` / `location`. `POST /api/delivery-exceptions/prefill-holidays` `{year}` pre-fills Czech public holidays.                                                                                                                                                                                                  |
+
+Settings: `deliveryPrice` (min 1) is the **single source of truth for the delivery price**: every
+`own-delivery`/`courier` method costs it, `pickup` is always 0 (the engine applies this; there is
+no per-method price, so no second place where 229 could diverge or become 0). New
+`deliveryHorizonDays` (default 21). Migration `20261122_164358_delivery`.
+
+Why this model: default weekdays live on the method (set once); a handful of zones with postcode
+prefixes cover areas without per-postcode rows (Czech postcodes are hierarchical: `1*` = Prague);
+the most specific matching zone of a method decides that method's days for a postcode, so one
+postcode can have several methods with different days. `coverage: fallback` expresses "courier
+wherever our van does not go" with zero rows. The `postcodes` list is only "does this postcode
+exist" + city + a per-postcode "no delivery" switch. Unknown postcodes (not in the list) and
+blocked ones get pickup only.
+
+Access: methods, zones, postcodes = read `loggedIn`, write `adminOnly` (not public: carrier
+codes, internal notes). Exceptions = write `editors` (admin + staff): they are the only routinely
+changing part (holidays, a broken van) and each change is a small reversible record. Butcher reads.
+
+Dates: `date` fields with `pickerAppearance: 'dayOnly'` (Payload stores noon UTC). Always convert
+stored timestamps with `toShopDate()` (Prague calendar date), never `.slice(0, 10)` blindly.
+
+### Engine contract (`src/lib/delivery`, pure, no Payload / Next / clock)
+
+```ts
+getDeliveryOptions({
+  postcode, // raw input, spaces allowed
+  postcodeRecord, // PostcodeRecord | null (null = not in the list)
+  now, // Date – explicit; never new Date() inside the core
+  methods, // ShippingMethodRule[] (inactive ones are left out of the result)
+  zones, // DeliveryZoneRule[]
+  exceptions, // DeliveryException[] with IsoDate 'YYYY-MM-DD' dates
+  horizonDays, // dates up to and including today + horizonDays
+  deliveryPrice, // settings.deliveryPrice
+}): { ok: false; error: 'invalid-postcode' }
+  | { ok: true; postcode; known; deliveryBlocked; today: IsoDate;
+      methods: { id, slug, name, type, price, available, reason, dates: IsoDate[], weekdays,
+                 cutoffTime, zoneName, locationId }[] }
+```
+
+Rules: postcode `/^[1-7]\d{4}$/` after removing spaces. Earliest date = Prague today + `leadDays`
+(+1 when ordering at or after `cutoffTime`; exactly at the cut-off counts as late). A date is
+selectable when no applicable `closed` exception covers it and (its weekday is allowed or an
+applicable `open` exception covers it). `location`-scoped exceptions affect only pickup at that
+place. Reasons: `unknown-postcode`, `postcode-blocked`, `outside-area`, `no-dates`,
+`misconfigured` (Czech texts in `UNAVAILABLE_REASON_MESSAGES`). All calendar days are `IsoDate`
+strings; the only instant→date conversion is `toShopDateTime()` (Intl, Europe/Prague), so server
+time zone and DST do not matter. `getDeliveryCalendar()` is the same without cut-off/horizon (admin
+view). `czechPublicHolidays(year)` lists the 13 holidays (Easter via the Gregorian algorithm).
+
+Payload glue: `src/delivery/rules.ts` (load + map documents), `options.ts`
+(`getDeliveryOptionsForPostcode(payload, psc, { now })` and the HTTP response),
+`postcodeImport.ts` (bulk upsert via `payload.db.drizzle`, batches of 1 000), `holidayPrefill.ts`.
+
+### Public endpoint `GET /api/delivery/options?psc=12000`
+
+Root Payload endpoint, no auth. 400 `{ error: 'invalid-postcode', message }` (no-store) for bad
+input; 200 with `Cache-Control: public, max-age=0, s-maxage=60, stale-while-revalidate=300`:
+
+```json
+{
+  "postcode": {
+    "code": "12000",
+    "formatted": "120 00",
+    "city": "Praha 2",
+    "known": true,
+    "deliveryBlocked": false
+  },
+  "today": "2026-11-23",
+  "horizonDays": 21,
+  "timeZone": "Europe/Prague",
+  "methods": [
+    {
+      "id": 1,
+      "slug": "rozvoz-terrys",
+      "name": "…",
+      "type": "own-delivery",
+      "customerNote": null,
+      "price": 229,
+      "currency": "CZK",
+      "available": true,
+      "unavailableReason": null,
+      "message": null,
+      "cutoffTime": "12:00",
+      "dates": ["2026-11-24", "…"],
+      "pickupLocation": null
+    }
+  ]
+}
+```
+
+Never add carrier codes, zones, internal notes or anything per-user to this response.
+
+## Notes for the next stages
+
+- Stage 2 (delivery) is done, see "Delivery (stage 2)" above. Still provisional (seed marks them
+  `PROVIZORNÍ` in `internalNote`): cut-off 12:00, lead 1 day, Tue–Fri for all four methods, own
+  van zone = Prague `1*` only, PPL = fallback. The seed inserts only a 20-postcode SAMPLE; the
+  official Česká pošta list must be imported before launch.
 - Stage 3 (storefront): menu = categories grouped by `menuColumn`, sorted by `menuOrder`;
   product cards use `mainImage.sizes.card`; variant order = `sortOrder` if set, else array order;
   show `estimateVariantPrice()` + `settings.priceNotice`; build 301s from `legacyUrl`.
 - Stage 4 (cart/orders): store the variant snapshot (label, weightGrams, unit price, VAT rate)
   on the order line, not a reference only – products change.
+  Delivery in the cart: step 1 asks for the postcode and calls `GET /api/delivery/options?psc=`
+  (or `getDeliveryOptionsForPostcode()` in a server component/action). Show unavailable methods
+  with their `message`, pickup always free. On submit, **re-run `getDeliveryOptionsForPostcode()`
+  on the server and reject a date/method that is no longer in `dates`** (cut-off may have passed,
+  responses are cached up to ~60 s). Store on the order a snapshot: method id + slug + name +
+  type, price, chosen date (`IsoDate`), postcode, pickup location – not just references.
+  Orders containing only an electronic gift voucher (stage 7) skip this step: no shipping
+  method, no date, price 0 – nothing in the delivery model requires a method on an order.
+- Stage 5 (orders, Balíkobot): courier methods carry `balikobot.carrierCode` / `serviceCode`
+  (empty service code today). Use `toShopDate()` / `toShopDateTime()` for any date shown to staff.
 
 ## Business rules – never violate these
 

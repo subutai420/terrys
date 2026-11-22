@@ -10,12 +10,17 @@ import { fileURLToPath } from 'url'
 import { Articles } from './collections/Articles'
 import { Categories } from './collections/Categories'
 import { Cuts, MeatTypes, Origins, ShelfLives, Usages } from './collections/codeLists'
+import { DeliveryExceptions } from './collections/DeliveryExceptions'
+import { DeliveryZones } from './collections/DeliveryZones'
 import { Locations } from './collections/Locations'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
+import { Postcodes } from './collections/Postcodes'
 import { Products } from './collections/Products'
 import { Recipes } from './collections/Recipes'
+import { ShippingMethods } from './collections/ShippingMethods'
 import { Users } from './collections/Users'
+import { deliveryOptionsEndpoint } from './delivery/optionsEndpoint'
 import { Settings } from './globals/Settings'
 import { migrations } from './migrations'
 
@@ -32,6 +37,16 @@ export default buildConfig({
     meta: {
       titleSuffix: '– Terrys.cz',
     },
+    components: {
+      // Stage 2: "Kalendář doručování" – month overview of delivery days for a postcode.
+      views: {
+        deliveryCalendar: {
+          Component: '/components/admin/DeliveryCalendarView#DeliveryCalendarView',
+          path: '/kalendar-doruceni',
+        },
+      },
+      afterNavLinks: ['/components/admin/DeliveryCalendarNavLink#DeliveryCalendarNavLink'],
+    },
   },
   // Admin UI language: Czech by default, English kept as a secondary option.
   // Payload picks the language from the user's saved preference or the browser,
@@ -41,7 +56,7 @@ export default buildConfig({
     fallbackLanguage: 'cs',
   },
   // The order here is also the order in the admin sidebar (groups: Katalog, Číselníky, Obsah,
-  // Nastavení).
+  // Doručování, Nastavení).
   collections: [
     // Katalog
     Products,
@@ -57,11 +72,18 @@ export default buildConfig({
     Recipes,
     Pages,
     Media,
+    // Doručování
+    ShippingMethods,
+    DeliveryZones,
+    DeliveryExceptions,
+    Postcodes,
     // Nastavení
     Locations,
     Users,
   ],
   globals: [Settings],
+  // Public endpoint for the cart: GET /api/delivery/options?psc=12000 (src/delivery/).
+  endpoints: [deliveryOptionsEndpoint],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

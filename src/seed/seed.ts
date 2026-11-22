@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url'
 import { DEFAULT_PRICE_NOTICE } from '@/globals/Settings'
 import { slugify } from '@/lib/slugify'
 
+import { seedDelivery } from './delivery'
+
 import {
   categories,
   cuts,
@@ -50,7 +52,8 @@ type Log = (message: string) => void
 
 /**
  * Fills the database with code lists, categories, locations, settings, the 12 Rib Eye products,
- * a sample article and a sample recipe.
+ * a sample article and a sample recipe, and the delivery setup (shipping methods, a provisional
+ * Prague zone, a SAMPLE of postcodes, public holidays of this and next year).
  *
  * Idempotent: every item is looked up by its slug (images by file name) and created only when it
  * does not exist yet. Existing items are NEVER overwritten, so running the seed again is safe
@@ -291,6 +294,9 @@ export async function seed(payload: Payload, log: Log = (m) => payload.logger.in
     })
   }
   log('Nastavení obchodu zkontrolováno')
+
+  // ---------------------------------------------------------------- delivery (stage 2)
+  await seedDelivery(payload, stats, log)
 
   log(`Hotovo: vytvořeno ${stats.created}, už existovalo ${stats.existing}.`)
   return stats

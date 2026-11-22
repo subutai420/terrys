@@ -78,6 +78,10 @@ export interface Config {
     recipes: Recipe;
     pages: Page;
     media: Media;
+    'shipping-methods': ShippingMethod;
+    'delivery-zones': DeliveryZone;
+    'delivery-exceptions': DeliveryException;
+    postcodes: Postcode;
     locations: Location;
     users: User;
     'payload-kv': PayloadKv;
@@ -102,6 +106,10 @@ export interface Config {
     recipes: RecipesSelect<false> | RecipesSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'shipping-methods': ShippingMethodsSelect<false> | ShippingMethodsSelect<true>;
+    'delivery-zones': DeliveryZonesSelect<false> | DeliveryZonesSelect<true>;
+    'delivery-exceptions': DeliveryExceptionsSelect<false> | DeliveryExceptionsSelect<true>;
+    postcodes: PostcodesSelect<false> | PostcodesSelect<true>;
     locations: LocationsSelect<false> | LocationsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -791,6 +799,66 @@ export interface Page {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Rozvoz, kurýr a osobní odběry. Cena rozvozu i kurýra je jednotná a nastavuje se v Nastavení obchodu (doprava zdarma neexistuje); osobní odběr je vždy zdarma. Upravuje administrátor.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shipping-methods".
+ */
+export interface ShippingMethod {
+  id: number;
+  /**
+   * Např. „Rozvoz chladicím vozem Terrys“.
+   */
+  name: string;
+  type: 'own-delivery' | 'courier' | 'pickup';
+  /**
+   * Nepovinné, např. „Doručujeme mezi 9 a 17 hodinou.“
+   */
+  customerNote?: string | null;
+  /**
+   * Ve které dny tímto způsobem doručujeme / vydáváme. Rozvozová oblast může mít vlastní dny. Svátky a dovolené se nevypínají tady, ale ve „Výjimkách v kalendáři“.
+   */
+  weekdays: ('mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun')[];
+  /**
+   * Kdo objedná před tímto časem (pražský čas), může dostat nejbližší možný den. Objednávka přesně v tento čas nebo později se posouvá o den.
+   */
+  cutoffTime: string;
+  /**
+   * Kolik dní po dni objednávky je nejdříve možné doručit (při objednání před uzávěrkou). 1 = nejdříve zítra, 0 = ještě dnes.
+   */
+  leadDays: number;
+  /**
+   * Rozvozové oblasti (Doručování → Rozvozové oblasti) určují PSČ a případně vlastní dny. „Záložní“ = všude, kam nejezdí jiný rozvoz (typicky kurýr mimo oblasti vlastního rozvozu).
+   */
+  coverage?: ('zones' | 'everywhere' | 'fallback') | null;
+  /**
+   * Provozovna, kde si zákazník objednávku vyzvedne.
+   */
+  location?: (number | null) | Location;
+  /**
+   * Kódy pro napojení na Balíkobot (etapa 5). Zatím jen pro evidenci, nepovinné.
+   */
+  balikobot?: {
+    carrierCode?: string | null;
+    serviceCode?: string | null;
+  };
+  active?: boolean | null;
+  /**
+   * Zákazník ji nevidí. Např. co je potřeba ověřit.
+   */
+  internalNote?: string | null;
+  /**
+   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
+   */
+  slug?: string | null;
+  /**
+   * Nižší číslo = zobrazí se dříve. Položky se stejným číslem se řadí podle názvu.
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Prodejna a odběrná místa: adresa, otevírací doba, mapa. Upravuje administrátor.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -841,6 +909,74 @@ export interface Location {
    * Nižší číslo = zobrazí se dříve. Položky se stejným číslem se řadí podle názvu.
    */
   sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Která PSČ obsluhuje daný způsob dopravy a ve které dny. Zadávají se celá PSČ nebo začátky PSČ s hvězdičkou (1* = celá Praha). Upravuje administrátor.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "delivery-zones".
+ */
+export interface DeliveryZone {
+  id: number;
+  /**
+   * Např. „Praha“ nebo „Mladoboleslavsko“.
+   */
+  name: string;
+  method: number | ShippingMethod;
+  /**
+   * Oddělte čárkou nebo novým řádkem. Celé PSČ (250 01) = jen toto PSČ; začátek s hvězdičkou (252*) = všechna PSČ začínající 252. Praha = 1*.
+   */
+  postcodes: string;
+  /**
+   * Nepovinné. Prázdné = dny podle způsobu dopravy. Vyplňte, pokud sem jezdíme jen v některé dny (např. jen ve středu).
+   */
+  weekdays?: ('mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun')[] | null;
+  note?: string | null;
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Svátky, dovolená, mimořádně zavřeno (nebo otevřeno navíc). Jeden záznam vypne den nebo celé období – pro vše, jeden způsob dopravy nebo jedno odběrné místo.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "delivery-exceptions".
+ */
+export interface DeliveryException {
+  id: number;
+  dateFrom: string;
+  /**
+   * Jen u období, např. dovolená 6.–19. 7. Pro jeden den nechte prázdné.
+   */
+  dateTo?: string | null;
+  /**
+   * Např. „Štědrý den“ nebo „Celozávodní dovolená“.
+   */
+  reason: string;
+  kind: 'closed' | 'open';
+  scope: 'all' | 'method' | 'location';
+  method?: (number | null) | ShippingMethod;
+  location?: (number | null) | Location;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Seznam PSČ v ČR. Doručujeme jen na PSČ z tohoto seznamu (ostatním nabídneme osobní odběr). Hromadně se plní importem CSV. Upravuje administrátor.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "postcodes".
+ */
+export interface Postcode {
+  id: number;
+  /**
+   * 5 číslic bez mezery.
+   */
+  code: string;
+  city?: string | null;
+  district?: string | null;
+  deliveryBlocked?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -944,6 +1080,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'shipping-methods';
+        value: number | ShippingMethod;
+      } | null)
+    | ({
+        relationTo: 'delivery-zones';
+        value: number | DeliveryZone;
+      } | null)
+    | ({
+        relationTo: 'delivery-exceptions';
+        value: number | DeliveryException;
+      } | null)
+    | ({
+        relationTo: 'postcodes';
+        value: number | Postcode;
       } | null)
     | ({
         relationTo: 'locations';
@@ -1287,6 +1439,73 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shipping-methods_select".
+ */
+export interface ShippingMethodsSelect<T extends boolean = true> {
+  name?: T;
+  type?: T;
+  customerNote?: T;
+  weekdays?: T;
+  cutoffTime?: T;
+  leadDays?: T;
+  coverage?: T;
+  location?: T;
+  balikobot?:
+    | T
+    | {
+        carrierCode?: T;
+        serviceCode?: T;
+      };
+  active?: T;
+  internalNote?: T;
+  slug?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "delivery-zones_select".
+ */
+export interface DeliveryZonesSelect<T extends boolean = true> {
+  name?: T;
+  method?: T;
+  postcodes?: T;
+  weekdays?: T;
+  note?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "delivery-exceptions_select".
+ */
+export interface DeliveryExceptionsSelect<T extends boolean = true> {
+  dateFrom?: T;
+  dateTo?: T;
+  reason?: T;
+  kind?: T;
+  scope?: T;
+  method?: T;
+  location?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "postcodes_select".
+ */
+export interface PostcodesSelect<T extends boolean = true> {
+  code?: T;
+  city?: T;
+  district?: T;
+  deliveryBlocked?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "locations_select".
  */
 export interface LocationsSelect<T extends boolean = true> {
@@ -1396,9 +1615,13 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface Setting {
   id: number;
   /**
-   * Jednotná cena rozvozu bez ohledu na hodnotu objednávky. Doprava zdarma neexistuje. Osobní odběr je vždy zdarma.
+   * Jednotná cena pro rozvoz vlastním vozem i kurýra, bez ohledu na hodnotu objednávky. Doprava zdarma neexistuje. Osobní odběr je vždy zdarma.
    */
   deliveryPrice: number;
+  /**
+   * Košík nabídne termíny doručení na tolik dní dopředu (výchozí 21).
+   */
+  deliveryHorizonDays: number;
   /**
    * Text, který obchod zobrazí u každé odhadované ceny. Musí vysvětlit, že výsledná cena závisí na skutečné hmotnosti.
    */
@@ -1439,6 +1662,7 @@ export interface Setting {
  */
 export interface SettingsSelect<T extends boolean = true> {
   deliveryPrice?: T;
+  deliveryHorizonDays?: T;
   priceNotice?: T;
   contact?:
     | T

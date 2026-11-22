@@ -6,5 +6,6 @@ export const ADMIN_GROUPS = {
   catalog: 'Katalog',
   codeLists: 'Číselníky',
   content: 'Obsah',
+  delivery: 'Doručování',
   settings: 'Nastavení',
 } as const
