@@ -1429,7 +1429,10 @@ reported a 600 ms "redirect" on the first load that a direct request does not sh
 Location). axe (WCAG 2.1 A/AA, `tests/e2e/a11y.e2e.spec.ts`): 0 violations on home, category,
 product, cart, checkout, withdrawal. `tests/e2e/ops.e2e.spec.ts`: every sitemap URL 200 +
 canonical + no noindex, noindex pages not in the sitemap, real 404 with layout, GTM not loaded
-without the env gate, security headers, health JSON.
+without the env gate, security headers, health JSON. The report-only CSP caught one real issue in the
+first e2e run: zod 4 probes `new Function()` in the browser (15 `script-src eval` reports on
+cart/checkout) – fixed with `z.config({ jitless: true })` in the shared schemas; the final run had 0
+CSP reports (37 e2e tests passed).
 
 ### Tests
 
