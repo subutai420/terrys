@@ -9,7 +9,8 @@ Nový e-shop řeznictví **Terrys.cz** (prémiové maso a steaky). Jedna aplikac
 Projekt vzniká po etapách (0–9). Hotové jsou **etapa 0 – základ projektu**, **etapa 1 – katalog
 a obsah v administraci** (produkty, kategorie, číselníky, články, recepty, stránky, nastavení)
 a **etapa 2 – doručování** (způsoby dopravy, PSČ, rozvozové oblasti, kalendář výjimek a svátků,
-výpočet termínů doručení). Navazují další etapy (obchod pro zákazníky, košík a objednávky, vážení
+výpočet termínů doručení). Z etapy 8 (migrace) je hotová první část: **přenos katalogu a obsahu
+ze starého webu** (viz níže). Navazují další etapy (obchod pro zákazníky, košík a objednávky, vážení
 objednávek, napojení na další služby). Pravidla pro vývoj a obchodní pravidla jsou v souboru [`CLAUDE.md`](./CLAUDE.md).
 
 ## Co je potřeba nainstalovat
@@ -80,6 +81,8 @@ angličtiny), anglicky pro anglický prohlížeč. Jazyk lze přepnout v adminis
 | `pnpm test:unit`          | Jen rychlé jednotkové testy (bez databáze).                                  |
 | `pnpm test:int`           | Jen integrační testy (Payload + dočasná testovací databáze).                 |
 | `pnpm seed`               | Naplní databázi výchozími a ukázkovými daty (lze spouštět opakovaně).        |
+| `pnpm migrate:crawl`      | Projde starý terrys.cz a uloží ho (viz Přenos dat ze starého webu).          |
+| `pnpm migrate:import`     | Nahraje uložený starý web do administrace (viz Přenos dat ze starého webu).  |
 | `pnpm test:e2e`           | Spustí testy v prohlížeči (Playwright). Databáze musí běžet.                 |
 | `pnpm format`             | Naformátuje kód nástrojem Prettier.                                          |
 | `pnpm generate:types`     | Přegeneruje TypeScript typy z nastavení Payloadu (`src/payload-types.ts`).   |
@@ -105,6 +108,7 @@ Před prvním spuštěním `pnpm test:e2e` je potřeba jednou stáhnout prohlí�
 │   ├── fields/                # společná pole (slug, SEO, původní URL, pořadí)
 │   ├── globals/               # nastavení obchodu (Settings)
 │   ├── lib/                   # pomocné funkce (ceny, odhad ceny, slug) + jejich testy
+│   ├── migration/             # přenos ze starého webu (crawler, převod stránek, import)
 │   │   └── delivery/          # výpočet termínů doručení, svátky, CSV (bez databáze) + testy
 │   ├── seed/                  # ukázková data pro pnpm seed (+ obrázky v seed/assets)
 │   ├── migrations/            # migrace databáze (generuje Payload)
@@ -112,6 +116,7 @@ Před prvním spuštěním `pnpm test:e2e` je potřeba jednou stáhnout prohlí�
 │   └── payload-types.ts       # generované typy (pnpm generate:types), neupravovat ručně
 ├── tests/e2e/                 # testy v prohlížeči (Playwright)
 ├── tests/int/                 # integrační testy (Payload + dočasná databáze)
+├── migration/                 # inventura starých URL, report importu, uložené vzorové stránky
 ├── media/                     # nahrané obrázky (lokálně, není v Gitu)
 ├── docker-compose.yml         # lokální databáze PostgreSQL 16
 ├── .env.example               # vzor nastavení – zkopírujte na .env
@@ -258,6 +263,56 @@ ze vzorku.
 
 `GET /api/delivery/options?psc=12000` vrátí pro PSČ seznam způsobů dopravy s cenou a volnými
 termíny (bez přihlášení, bez interních údajů). Podrobnosti v `CLAUDE.md`.
+
+## Přenos dat ze starého webu (etapa 8, první část)
+
+Dva příkazy přenesou katalog a obsah ze starého terrys.cz do nové administrace:
+
+| Příkaz                | Co dělá                                                                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm migrate:crawl`  | Projde starý web (jen čte), uloží stránky a obrázky do `migration/.cache` a zapíše `migration/url-inventory.csv`.               |
+| `pnpm migrate:import` | Z uložených stránek vytvoří/aktualizuje produkty, kategorie, články, recepty, stránky a obrázky a zapíše `migration/report.md`. |
+
+### Jak na to
+
+1. Vytvořte samostatnou databázi pro import a připravte v ní tabulky (jednou):
+   ```bash
+   docker exec terrys-postgres-1 psql -U terrys -d postgres -c "CREATE DATABASE terrys_migration"
+   ```
+   V PowerShellu pak: `$env:DATABASE_URL='postgres://terrys:terrys@127.0.0.1:5433/terrys_migration'; pnpm payload migrate`
+2. V `.env` nastavte `MIGRATION_DATABASE_URL` na tuto databázi (viz `.env.example`). Bez ní by import
+   zapisoval do vývojové databáze z `DATABASE_URL`.
+3. `pnpm migrate:crawl` – trvá asi 30 minut (stránky stahuje pomalu, jednu po druhé, aby starý web
+   nezatěžoval). Opakované spuštění stahuje jen to, co ještě v `migration/.cache` není; po smazání
+   této složky se stáhne vše znovu (např. těsně před spuštěním nového webu).
+4. `pnpm migrate:import --dry-run` – zkušební běh, nic nezapíše, jen ukáže v reportu, co by se stalo.
+5. `pnpm migrate:import` – skutečný import. Další volby: `--only=products` (nebo `categories`,
+   `articles`, `recipes`, `pages`, i více oddělených čárkou), `--limit=10` (jen prvních 10 od každého
+   typu), `--force` (přepíše i položky upravené v administraci, zamčené ne).
+6. Přečtěte si `migration/report.md`: chyby, produkty bez fotky nebo ceny, texty se slevami či
+   „dopravou zdarma“ k úpravě, údaje, pro které nový web nemá pole.
+
+### Co se přenáší a co ne
+
+- **Přenáší se:** produkty (název, popisy, cena a jednotka, varianty s hmotností, dostupnost,
+  kategorie, země původu, řez, druh masa, „hodí se na“, trvanlivost, dodavatel, všechny fotky,
+  SEO, staré ID jako „Kód zboží“), strom kategorií, články magazínu a Terrys Academy, slovník pojmů
+  (jako články Terrys Academy), recepty (suroviny a postup, kde je na starém webu strukturovaný,
+  jinak zůstává v „Textu receptu“), stálé stránky a stránky prodejen. U každé položky se uloží
+  původní adresa (pro pozdější přesměrování 301).
+- **Nepřenáší se:** zákazníci, objednávky ani jiné osobní údaje (GDPR, vyžaduje export od dodavatele
+  starého webu), původní/akční ceny (nový web slevy nemá), volba „porcovat / neporcovat“, štítky
+  „Bezlepkové“/„Novinka“, „Zrání masa“, rubriky článků (vše je vypsané v reportu), PDF jídelní
+  lístek (nahrát ručně), písma starého webu.
+- Produkty bez fotky nebo bez ceny se uloží jako **koncept**. Produkty, které starý web nikde
+  nenabízí, dostanou stav **Skryto**.
+
+### Když po importu něco upravíte v administraci
+
+Import upravenou položku **nepřepíše**: pozná, že byla po posledním importu změněna, přeskočí ji
+a vypíše ji v reportu. Natrvalo ji ochráníte zaškrtnutím **„Nepřepisovat importem“** v bočním
+panelu (rámeček „Import ze starého webu“). Položky beze změny import nechá být, položky, které se
+změnily na starém webu, aktualizuje. Adresa (slug) se při opakovaném importu nikdy nemění.
 
 ## Databáze a migrace (stručně)
 

@@ -1,0 +1,743 @@
+old_url,type,http_status,title,canonical,redirect_to,new_collection,new_slug,note
+/academy,academy,200,Terrys Academy | Terrys Steak,,,,,
+/academy-magazin,academy,302,,,/academy-magazin/kdo-je-nas-gastronomicky-guru-mirek-grusz-detail-145,articles,kdo-je-nas-gastronomicky-guru-mirek-grusz,
+/academy-magazin/kdo-je-nas-gastronomicky-guru-mirek-grusz-detail-145,academy-article,200,Kdo je náš gastronomický guru Mirek Grusz?,/academy-magazin/kdo-je-nas-gastronomicky-guru-mirek-grusz-detail-145,,articles,kdo-je-nas-gastronomicky-guru-mirek-grusz,
+/academy-magazin/kdo-je-nas-gastronomicky-guru-mirek-grusz-detail-145?list=hide,academy-article,,,,,articles,kdo-je-nas-gastronomicky-guru-mirek-grusz,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041,article,200,Angus - jedno z nejvíce oblíbených masných plemen pro chov na světě,/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041,,articles,angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete,
+/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041?catId=100,article,200,Angus - jedno z nejvíce oblíbených masných plemen pro chov na světě,/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041,,articles,angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete,"alias, kanonická /magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041"
+/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041?catId=100&list=hide,article,,,,,articles,angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041?Id=807,article,200,Angus - jedno z nejvíce oblíbených masných plemen pro chov na světě,/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041,,articles,angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete,"alias, kanonická /magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041; není v sitemap.xml"
+/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041?list=hide,article,,,,,articles,angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041?page=2,article,200,Angus - jedno z nejvíce oblíbených masných plemen pro chov na světě,/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041,,articles,angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete,"alias, kanonická /magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041; není v sitemap.xml"
+/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041?page=3,article,200,Angus - jedno z nejvíce oblíbených masných plemen pro chov na světě,/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041,,articles,angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete,"alias, kanonická /magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041; není v sitemap.xml"
+/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041?page=4,article,200,Angus - jedno z nejvíce oblíbených masných plemen pro chov na světě,/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041,,articles,angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete,"alias, kanonická /magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041; není v sitemap.xml"
+/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041?page=4&list=hide,article,,,,,articles,angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041?page=5,article,200,Angus - jedno z nejvíce oblíbených masných plemen pro chov na světě,/magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041,,articles,angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete,"alias, kanonická /magazin/angus-jedno-z-nejvice-oblibenych-masnych-plemen-pro-chov-na-svete-detail-1041; není v sitemap.xml"
+/magazin/chuck-roll-krk-detail-1060?page=2&catId=101&list=hide,article,,,,,,,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/chuck-roll-krk-detail-1060?page=4&list=hide,article,,,,,,,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/danci-maso-detail-1143,article,200,Dančí maso,/magazin/danci-maso-detail-1143,,articles,danci-maso,není v sitemap.xml
+/magazin/danci-maso-detail-1143?catId=120,article,200,Dančí maso,/magazin/danci-maso-detail-1143,,articles,danci-maso,"alias, kanonická /magazin/danci-maso-detail-1143"
+/magazin/danci-maso-detail-1143?catId=120&list=hide,article,,,,,articles,danci-maso,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/danci-maso-detail-1143?Id=807,article,200,Dančí maso,/magazin/danci-maso-detail-1143,,articles,danci-maso,"alias, kanonická /magazin/danci-maso-detail-1143; není v sitemap.xml"
+/magazin/danci-maso-detail-1143?page=2,article,200,Dančí maso,/magazin/danci-maso-detail-1143,,articles,danci-maso,"alias, kanonická /magazin/danci-maso-detail-1143; není v sitemap.xml"
+/magazin/danci-maso-detail-1143?page=3,article,200,Dančí maso,/magazin/danci-maso-detail-1143,,articles,danci-maso,"alias, kanonická /magazin/danci-maso-detail-1143; není v sitemap.xml"
+/magazin/danci-maso-detail-1143?page=3&list=hide,article,,,,,articles,danci-maso,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/danci-maso-detail-1143?page=4,article,200,Dančí maso,/magazin/danci-maso-detail-1143,,articles,danci-maso,"alias, kanonická /magazin/danci-maso-detail-1143; není v sitemap.xml"
+/magazin/danci-maso-detail-1143?page=5,article,200,Dančí maso,/magazin/danci-maso-detail-1143,,articles,danci-maso,"alias, kanonická /magazin/danci-maso-detail-1143; není v sitemap.xml"
+/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769,article,200,"Flank steak & Flap steak, hovězí pupek",/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769,,articles,flank-steak-flap-steak-hovezi-pupek,
+/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769?catId=101,article,200,"Flank steak & Flap steak, hovězí pupek",/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769,,articles,flank-steak-flap-steak-hovezi-pupek,"alias, kanonická /magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769"
+/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769?catId=101&list=hide,article,,,,,articles,flank-steak-flap-steak-hovezi-pupek,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769?Id=807,article,200,"Flank steak & Flap steak, hovězí pupek",/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769,,articles,flank-steak-flap-steak-hovezi-pupek,"alias, kanonická /magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769; není v sitemap.xml"
+/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769?list=hide,article,,,,,articles,flank-steak-flap-steak-hovezi-pupek,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769?page=2,article,200,"Flank steak & Flap steak, hovězí pupek",/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769,,articles,flank-steak-flap-steak-hovezi-pupek,"alias, kanonická /magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769; není v sitemap.xml"
+/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769?page=2&catId=101,article,200,"Flank steak & Flap steak, hovězí pupek",/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769,,articles,flank-steak-flap-steak-hovezi-pupek,"alias, kanonická /magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769; není v sitemap.xml"
+/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769?page=3,article,200,"Flank steak & Flap steak, hovězí pupek",/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769,,articles,flank-steak-flap-steak-hovezi-pupek,"alias, kanonická /magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769; není v sitemap.xml"
+/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769?page=4,article,200,"Flank steak & Flap steak, hovězí pupek",/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769,,articles,flank-steak-flap-steak-hovezi-pupek,"alias, kanonická /magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769; není v sitemap.xml"
+/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769?page=5,article,200,"Flank steak & Flap steak, hovězí pupek",/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769,,articles,flank-steak-flap-steak-hovezi-pupek,"alias, kanonická /magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769; není v sitemap.xml"
+/magazin/hovezi-svickova-tenderloin-detail-1049,article,200,Hovězí svíčková - Tenderloin,/magazin/hovezi-svickova-tenderloin-detail-1049,,articles,hovezi-svickova-tenderloin,
+/magazin/hovezi-svickova-tenderloin-detail-1049?catId=101,article,200,Hovězí svíčková - Tenderloin,/magazin/hovezi-svickova-tenderloin-detail-1049,,articles,hovezi-svickova-tenderloin,"alias, kanonická /magazin/hovezi-svickova-tenderloin-detail-1049"
+/magazin/hovezi-svickova-tenderloin-detail-1049?catId=101&list=hide,article,,,,,articles,hovezi-svickova-tenderloin,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/hovezi-svickova-tenderloin-detail-1049?Id=807,article,200,Hovězí svíčková - Tenderloin,/magazin/hovezi-svickova-tenderloin-detail-1049,,articles,hovezi-svickova-tenderloin,"alias, kanonická /magazin/hovezi-svickova-tenderloin-detail-1049; není v sitemap.xml"
+/magazin/hovezi-svickova-tenderloin-detail-1049?list=hide,article,,,,,articles,hovezi-svickova-tenderloin,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/hovezi-svickova-tenderloin-detail-1049?page=2,article,200,Hovězí svíčková - Tenderloin,/magazin/hovezi-svickova-tenderloin-detail-1049,,articles,hovezi-svickova-tenderloin,"alias, kanonická /magazin/hovezi-svickova-tenderloin-detail-1049; není v sitemap.xml"
+/magazin/hovezi-svickova-tenderloin-detail-1049?page=2&catId=101,article,200,Hovězí svíčková - Tenderloin,/magazin/hovezi-svickova-tenderloin-detail-1049,,articles,hovezi-svickova-tenderloin,"alias, kanonická /magazin/hovezi-svickova-tenderloin-detail-1049; není v sitemap.xml"
+/magazin/hovezi-svickova-tenderloin-detail-1049?page=3,article,200,Hovězí svíčková - Tenderloin,/magazin/hovezi-svickova-tenderloin-detail-1049,,articles,hovezi-svickova-tenderloin,"alias, kanonická /magazin/hovezi-svickova-tenderloin-detail-1049; není v sitemap.xml"
+/magazin/hovezi-svickova-tenderloin-detail-1049?page=4,article,200,Hovězí svíčková - Tenderloin,/magazin/hovezi-svickova-tenderloin-detail-1049,,articles,hovezi-svickova-tenderloin,"alias, kanonická /magazin/hovezi-svickova-tenderloin-detail-1049; není v sitemap.xml"
+/magazin/hovezi-svickova-tenderloin-detail-1049?page=5,article,200,Hovězí svíčková - Tenderloin,/magazin/hovezi-svickova-tenderloin-detail-1049,,articles,hovezi-svickova-tenderloin,"alias, kanonická /magazin/hovezi-svickova-tenderloin-detail-1049; není v sitemap.xml"
+/magazin/jak-pripravit-hovezi-steak-detail-857,article,200,Jak připravit hovězí steak,/magazin/jak-pripravit-hovezi-steak-detail-857,,articles,jak-pripravit-hovezi-steak,
+/magazin/jak-pripravit-hovezi-steak-detail-857?catId=86,article,200,Jak připravit hovězí steak,/magazin/jak-pripravit-hovezi-steak-detail-857,,articles,jak-pripravit-hovezi-steak,"alias, kanonická /magazin/jak-pripravit-hovezi-steak-detail-857"
+/magazin/jak-pripravit-hovezi-steak-detail-857?catId=86&list=hide,article,,,,,articles,jak-pripravit-hovezi-steak,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/jak-pripravit-hovezi-steak-detail-857?list=hide,article,,,,,articles,jak-pripravit-hovezi-steak,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/jak-pripravit-hovezi-steak-detail-857?page=2,article,200,Jak připravit hovězí steak,/magazin/jak-pripravit-hovezi-steak-detail-857,,articles,jak-pripravit-hovezi-steak,"alias, kanonická /magazin/jak-pripravit-hovezi-steak-detail-857; není v sitemap.xml"
+/magazin/jak-pripravit-hovezi-steak-detail-857?page=3,article,200,Jak připravit hovězí steak,/magazin/jak-pripravit-hovezi-steak-detail-857,,articles,jak-pripravit-hovezi-steak,"alias, kanonická /magazin/jak-pripravit-hovezi-steak-detail-857; není v sitemap.xml"
+/magazin/jak-pripravit-hovezi-steak-detail-857?page=4,article,200,Jak připravit hovězí steak,/magazin/jak-pripravit-hovezi-steak-detail-857,,articles,jak-pripravit-hovezi-steak,"alias, kanonická /magazin/jak-pripravit-hovezi-steak-detail-857; není v sitemap.xml"
+/magazin/jak-pripravit-hovezi-steak-detail-857?page=5,article,200,Jak připravit hovězí steak,/magazin/jak-pripravit-hovezi-steak-detail-857,,articles,jak-pripravit-hovezi-steak,"alias, kanonická /magazin/jak-pripravit-hovezi-steak-detail-857; není v sitemap.xml"
+/magazin/jak-pro-vas-balime-steaky-detail-1164,article,200,Jak pro Vás balíme steaky,/magazin/jak-pro-vas-balime-steaky-detail-1164,,articles,jak-pro-vas-balime-steaky,
+/magazin/jak-pro-vas-balime-steaky-detail-1164?catId=82,article,200,Jak pro Vás balíme steaky,/magazin/jak-pro-vas-balime-steaky-detail-1164,,articles,jak-pro-vas-balime-steaky,"alias, kanonická /magazin/jak-pro-vas-balime-steaky-detail-1164"
+/magazin/jak-pro-vas-balime-steaky-detail-1164?catId=82&list=hide,article,,,,,articles,jak-pro-vas-balime-steaky,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/jak-pro-vas-balime-steaky-detail-1164?list=hide,article,,,,,articles,jak-pro-vas-balime-steaky,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/jak-pro-vas-balime-steaky-detail-1164?page=2,article,200,Jak pro Vás balíme steaky,/magazin/jak-pro-vas-balime-steaky-detail-1164,,articles,jak-pro-vas-balime-steaky,"alias, kanonická /magazin/jak-pro-vas-balime-steaky-detail-1164"
+/magazin/jak-pro-vas-balime-steaky-detail-1164?page=2&list=hide,article,,,,,articles,jak-pro-vas-balime-steaky,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/jak-pro-vas-balime-steaky-detail-1164?page=3,article,200,Jak pro Vás balíme steaky,/magazin/jak-pro-vas-balime-steaky-detail-1164,,articles,jak-pro-vas-balime-steaky,"alias, kanonická /magazin/jak-pro-vas-balime-steaky-detail-1164; není v sitemap.xml"
+/magazin/jak-pro-vas-balime-steaky-detail-1164?page=4,article,200,Jak pro Vás balíme steaky,/magazin/jak-pro-vas-balime-steaky-detail-1164,,articles,jak-pro-vas-balime-steaky,"alias, kanonická /magazin/jak-pro-vas-balime-steaky-detail-1164; není v sitemap.xml"
+/magazin/jak-pro-vas-balime-steaky-detail-1164?page=5,article,200,Jak pro Vás balíme steaky,/magazin/jak-pro-vas-balime-steaky-detail-1164,,articles,jak-pro-vas-balime-steaky,"alias, kanonická /magazin/jak-pro-vas-balime-steaky-detail-1164; není v sitemap.xml"
+/magazin/kanci-maso-detail-1141,article,200,Kančí maso,/magazin/kanci-maso-detail-1141,,articles,kanci-maso,není v sitemap.xml
+/magazin/kanci-maso-detail-1141?catId=120,article,200,Kančí maso,/magazin/kanci-maso-detail-1141,,articles,kanci-maso,"alias, kanonická /magazin/kanci-maso-detail-1141"
+/magazin/kanci-maso-detail-1141?catId=120&list=hide,article,,,,,articles,kanci-maso,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/kanci-maso-detail-1141?Id=807,article,200,Kančí maso,/magazin/kanci-maso-detail-1141,,articles,kanci-maso,"alias, kanonická /magazin/kanci-maso-detail-1141; není v sitemap.xml"
+/magazin/kanci-maso-detail-1141?page=2,article,200,Kančí maso,/magazin/kanci-maso-detail-1141,,articles,kanci-maso,"alias, kanonická /magazin/kanci-maso-detail-1141; není v sitemap.xml"
+/magazin/kanci-maso-detail-1141?page=3,article,200,Kančí maso,/magazin/kanci-maso-detail-1141,,articles,kanci-maso,"alias, kanonická /magazin/kanci-maso-detail-1141; není v sitemap.xml"
+/magazin/kanci-maso-detail-1141?page=3&list=hide,article,,,,,articles,kanci-maso,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/kanci-maso-detail-1141?page=4,article,200,Kančí maso,/magazin/kanci-maso-detail-1141,,articles,kanci-maso,"alias, kanonická /magazin/kanci-maso-detail-1141; není v sitemap.xml"
+/magazin/kanci-maso-detail-1141?page=5,article,200,Kančí maso,/magazin/kanci-maso-detail-1141,,articles,kanci-maso,"alias, kanonická /magazin/kanci-maso-detail-1141; není v sitemap.xml"
+/magazin/pravidla-pro-grilovani-zveriny-detail-839,article,200,Pravidla pro grilování zvěřiny,/magazin/pravidla-pro-grilovani-zveriny-detail-839,,articles,pravidla-pro-grilovani-zveriny,není v sitemap.xml
+/magazin/pravidla-pro-grilovani-zveriny-detail-839?catId=86,article,200,Pravidla pro grilování zvěřiny,/magazin/pravidla-pro-grilovani-zveriny-detail-839,,articles,pravidla-pro-grilovani-zveriny,"alias, kanonická /magazin/pravidla-pro-grilovani-zveriny-detail-839"
+/magazin/pravidla-pro-grilovani-zveriny-detail-839?catId=86&list=hide,article,,,,,articles,pravidla-pro-grilovani-zveriny,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/pravidla-pro-grilovani-zveriny-detail-839?page=2,article,200,Pravidla pro grilování zvěřiny,/magazin/pravidla-pro-grilovani-zveriny-detail-839,,articles,pravidla-pro-grilovani-zveriny,"alias, kanonická /magazin/pravidla-pro-grilovani-zveriny-detail-839; není v sitemap.xml"
+/magazin/pravidla-pro-grilovani-zveriny-detail-839?page=3,article,200,Pravidla pro grilování zvěřiny,/magazin/pravidla-pro-grilovani-zveriny-detail-839,,articles,pravidla-pro-grilovani-zveriny,"alias, kanonická /magazin/pravidla-pro-grilovani-zveriny-detail-839; není v sitemap.xml"
+/magazin/pravidla-pro-grilovani-zveriny-detail-839?page=4,article,200,Pravidla pro grilování zvěřiny,/magazin/pravidla-pro-grilovani-zveriny-detail-839,,articles,pravidla-pro-grilovani-zveriny,"alias, kanonická /magazin/pravidla-pro-grilovani-zveriny-detail-839; není v sitemap.xml"
+/magazin/pravidla-pro-grilovani-zveriny-detail-839?page=5,article,200,Pravidla pro grilování zvěřiny,/magazin/pravidla-pro-grilovani-zveriny-detail-839,,articles,pravidla-pro-grilovani-zveriny,"alias, kanonická /magazin/pravidla-pro-grilovani-zveriny-detail-839; není v sitemap.xml"
+/magazin/pravidla-pro-grilovani-zveriny-detail-839?page=5&list=hide,article,,,,,articles,pravidla-pro-grilovani-zveriny,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/propeceni-steaku-rare-medium-well-done-detail-855,article,200,"Propečení steaku - rare, medium, well-done",/magazin/propeceni-steaku-rare-medium-well-done-detail-855,,articles,propeceni-steaku-rare-medium-well-done,
+/magazin/propeceni-steaku-rare-medium-well-done-detail-855?catId=86,article,200,"Propečení steaku - rare, medium, well-done",/magazin/propeceni-steaku-rare-medium-well-done-detail-855,,articles,propeceni-steaku-rare-medium-well-done,"alias, kanonická /magazin/propeceni-steaku-rare-medium-well-done-detail-855"
+/magazin/propeceni-steaku-rare-medium-well-done-detail-855?catId=86&list=hide,article,,,,,articles,propeceni-steaku-rare-medium-well-done,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/propeceni-steaku-rare-medium-well-done-detail-855?page=2,article,200,"Propečení steaku - rare, medium, well-done",/magazin/propeceni-steaku-rare-medium-well-done-detail-855,,articles,propeceni-steaku-rare-medium-well-done,"alias, kanonická /magazin/propeceni-steaku-rare-medium-well-done-detail-855; není v sitemap.xml"
+/magazin/propeceni-steaku-rare-medium-well-done-detail-855?page=3,article,200,"Propečení steaku - rare, medium, well-done",/magazin/propeceni-steaku-rare-medium-well-done-detail-855,,articles,propeceni-steaku-rare-medium-well-done,"alias, kanonická /magazin/propeceni-steaku-rare-medium-well-done-detail-855; není v sitemap.xml"
+/magazin/propeceni-steaku-rare-medium-well-done-detail-855?page=4,article,200,"Propečení steaku - rare, medium, well-done",/magazin/propeceni-steaku-rare-medium-well-done-detail-855,,articles,propeceni-steaku-rare-medium-well-done,"alias, kanonická /magazin/propeceni-steaku-rare-medium-well-done-detail-855; není v sitemap.xml"
+/magazin/propeceni-steaku-rare-medium-well-done-detail-855?page=4&list=hide,article,,,,,articles,propeceni-steaku-rare-medium-well-done,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/propeceni-steaku-rare-medium-well-done-detail-855?page=5,article,200,"Propečení steaku - rare, medium, well-done",/magazin/propeceni-steaku-rare-medium-well-done-detail-855,,articles,propeceni-steaku-rare-medium-well-done,"alias, kanonická /magazin/propeceni-steaku-rare-medium-well-done-detail-855; není v sitemap.xml"
+/magazin/rib-eye-vysoky-rostenec-detail-1053,article,200,Rib Eye - Vysoký roštěnec,/magazin/rib-eye-vysoky-rostenec-detail-1053,,articles,rib-eye-vysoky-rostenec,
+/magazin/rib-eye-vysoky-rostenec-detail-1053?catId=101,article,200,Rib Eye - Vysoký roštěnec,/magazin/rib-eye-vysoky-rostenec-detail-1053,,articles,rib-eye-vysoky-rostenec,"alias, kanonická /magazin/rib-eye-vysoky-rostenec-detail-1053"
+/magazin/rib-eye-vysoky-rostenec-detail-1053?catId=101&list=hide,article,,,,,articles,rib-eye-vysoky-rostenec,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/rib-eye-vysoky-rostenec-detail-1053?Id=807,article,200,Rib Eye - Vysoký roštěnec,/magazin/rib-eye-vysoky-rostenec-detail-1053,,articles,rib-eye-vysoky-rostenec,"alias, kanonická /magazin/rib-eye-vysoky-rostenec-detail-1053; není v sitemap.xml"
+/magazin/rib-eye-vysoky-rostenec-detail-1053?list=hide,article,,,,,articles,rib-eye-vysoky-rostenec,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/rib-eye-vysoky-rostenec-detail-1053?page=2,article,200,Rib Eye - Vysoký roštěnec,/magazin/rib-eye-vysoky-rostenec-detail-1053,,articles,rib-eye-vysoky-rostenec,"alias, kanonická /magazin/rib-eye-vysoky-rostenec-detail-1053"
+/magazin/rib-eye-vysoky-rostenec-detail-1053?page=2&catId=101,article,200,Rib Eye - Vysoký roštěnec,/magazin/rib-eye-vysoky-rostenec-detail-1053,,articles,rib-eye-vysoky-rostenec,"alias, kanonická /magazin/rib-eye-vysoky-rostenec-detail-1053; není v sitemap.xml"
+/magazin/rib-eye-vysoky-rostenec-detail-1053?page=2&list=hide,article,,,,,articles,rib-eye-vysoky-rostenec,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/rib-eye-vysoky-rostenec-detail-1053?page=3,article,200,Rib Eye - Vysoký roštěnec,/magazin/rib-eye-vysoky-rostenec-detail-1053,,articles,rib-eye-vysoky-rostenec,"alias, kanonická /magazin/rib-eye-vysoky-rostenec-detail-1053; není v sitemap.xml"
+/magazin/rib-eye-vysoky-rostenec-detail-1053?page=4,article,200,Rib Eye - Vysoký roštěnec,/magazin/rib-eye-vysoky-rostenec-detail-1053,,articles,rib-eye-vysoky-rostenec,"alias, kanonická /magazin/rib-eye-vysoky-rostenec-detail-1053; není v sitemap.xml"
+/magazin/rib-eye-vysoky-rostenec-detail-1053?page=5,article,200,Rib Eye - Vysoký roštěnec,/magazin/rib-eye-vysoky-rostenec-detail-1053,,articles,rib-eye-vysoky-rostenec,"alias, kanonická /magazin/rib-eye-vysoky-rostenec-detail-1053; není v sitemap.xml"
+/magazin/rump-kvetova-spicka-kyta-detail-1056,article,200,"Rump - květová špička, kýta",/magazin/rump-kvetova-spicka-kyta-detail-1056,,articles,rump-kvetova-spicka-kyta,není v sitemap.xml
+/magazin/rump-kvetova-spicka-kyta-detail-1056?Id=807,article,200,"Rump - květová špička, kýta",/magazin/rump-kvetova-spicka-kyta-detail-1056,,articles,rump-kvetova-spicka-kyta,"alias, kanonická /magazin/rump-kvetova-spicka-kyta-detail-1056; není v sitemap.xml"
+/magazin/rump-kvetova-spicka-kyta-detail-1056?page=2,article,200,"Rump - květová špička, kýta",/magazin/rump-kvetova-spicka-kyta-detail-1056,,articles,rump-kvetova-spicka-kyta,"alias, kanonická /magazin/rump-kvetova-spicka-kyta-detail-1056"
+/magazin/rump-kvetova-spicka-kyta-detail-1056?page=2&catId=101&list=hide,article,,,,,articles,rump-kvetova-spicka-kyta,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/rump-kvetova-spicka-kyta-detail-1056?page=2&list=hide,article,,,,,articles,rump-kvetova-spicka-kyta,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/rump-kvetova-spicka-kyta-detail-1056?page=3,article,200,"Rump - květová špička, kýta",/magazin/rump-kvetova-spicka-kyta-detail-1056,,articles,rump-kvetova-spicka-kyta,"alias, kanonická /magazin/rump-kvetova-spicka-kyta-detail-1056; není v sitemap.xml"
+/magazin/rump-kvetova-spicka-kyta-detail-1056?page=4,article,200,"Rump - květová špička, kýta",/magazin/rump-kvetova-spicka-kyta-detail-1056,,articles,rump-kvetova-spicka-kyta,"alias, kanonická /magazin/rump-kvetova-spicka-kyta-detail-1056; není v sitemap.xml"
+/magazin/rump-kvetova-spicka-kyta-detail-1056?page=5,article,200,"Rump - květová špička, kýta",/magazin/rump-kvetova-spicka-kyta-detail-1056,,articles,rump-kvetova-spicka-kyta,"alias, kanonická /magazin/rump-kvetova-spicka-kyta-detail-1056; není v sitemap.xml"
+/magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005,article,200,SelaVita se mění na TERRYS - první specializovanou prodejnu steakových mas,/magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005,,articles,selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas,není v sitemap.xml
+/magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005?catId=21,article,200,SelaVita se mění na TERRYS - první specializovanou prodejnu steakových mas,/magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005,,articles,selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas,"alias, kanonická /magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005"
+/magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005?catId=21&list=hide,article,,,,,articles,selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005?page=2,article,200,SelaVita se mění na TERRYS - první specializovanou prodejnu steakových mas,/magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005,,articles,selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas,"alias, kanonická /magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005; není v sitemap.xml"
+/magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005?page=3,article,200,SelaVita se mění na TERRYS - první specializovanou prodejnu steakových mas,/magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005,,articles,selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas,"alias, kanonická /magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005; není v sitemap.xml"
+/magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005?page=4,article,200,SelaVita se mění na TERRYS - první specializovanou prodejnu steakových mas,/magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005,,articles,selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas,"alias, kanonická /magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005; není v sitemap.xml"
+/magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005?page=4&list=hide,article,,,,,articles,selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005?page=5,article,200,SelaVita se mění na TERRYS - první specializovanou prodejnu steakových mas,/magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005,,articles,selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas,"alias, kanonická /magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005; není v sitemap.xml"
+/magazin/srnci-maso-detail-1139,article,200,Srnčí maso,/magazin/srnci-maso-detail-1139,,articles,srnci-maso,není v sitemap.xml
+/magazin/srnci-maso-detail-1139?catId=120,article,200,Srnčí maso,/magazin/srnci-maso-detail-1139,,articles,srnci-maso,"alias, kanonická /magazin/srnci-maso-detail-1139"
+/magazin/srnci-maso-detail-1139?catId=120&list=hide,article,,,,,articles,srnci-maso,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/srnci-maso-detail-1139?Id=807,article,200,Srnčí maso,/magazin/srnci-maso-detail-1139,,articles,srnci-maso,"alias, kanonická /magazin/srnci-maso-detail-1139; není v sitemap.xml"
+/magazin/srnci-maso-detail-1139?page=2,article,200,Srnčí maso,/magazin/srnci-maso-detail-1139,,articles,srnci-maso,"alias, kanonická /magazin/srnci-maso-detail-1139; není v sitemap.xml"
+/magazin/srnci-maso-detail-1139?page=3,article,200,Srnčí maso,/magazin/srnci-maso-detail-1139,,articles,srnci-maso,"alias, kanonická /magazin/srnci-maso-detail-1139; není v sitemap.xml"
+/magazin/srnci-maso-detail-1139?page=3&list=hide,article,,,,,articles,srnci-maso,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/srnci-maso-detail-1139?page=4,article,200,Srnčí maso,/magazin/srnci-maso-detail-1139,,articles,srnci-maso,"alias, kanonická /magazin/srnci-maso-detail-1139; není v sitemap.xml"
+/magazin/srnci-maso-detail-1139?page=5,article,200,Srnčí maso,/magazin/srnci-maso-detail-1139,,articles,srnci-maso,"alias, kanonická /magazin/srnci-maso-detail-1139; není v sitemap.xml"
+/magazin/striploin-nizky-rostenec-detail-1051,article,200,Striploin - nízký roštěnec,/magazin/striploin-nizky-rostenec-detail-1051,,articles,striploin-nizky-rostenec,není v sitemap.xml
+/magazin/striploin-nizky-rostenec-detail-1051?catId=101,article,200,Striploin - nízký roštěnec,/magazin/striploin-nizky-rostenec-detail-1051,,articles,striploin-nizky-rostenec,"alias, kanonická /magazin/striploin-nizky-rostenec-detail-1051"
+/magazin/striploin-nizky-rostenec-detail-1051?catId=101&list=hide,article,,,,,articles,striploin-nizky-rostenec,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/striploin-nizky-rostenec-detail-1051?Id=807,article,200,Striploin - nízký roštěnec,/magazin/striploin-nizky-rostenec-detail-1051,,articles,striploin-nizky-rostenec,"alias, kanonická /magazin/striploin-nizky-rostenec-detail-1051; není v sitemap.xml"
+/magazin/striploin-nizky-rostenec-detail-1051?page=2,article,200,Striploin - nízký roštěnec,/magazin/striploin-nizky-rostenec-detail-1051,,articles,striploin-nizky-rostenec,"alias, kanonická /magazin/striploin-nizky-rostenec-detail-1051"
+/magazin/striploin-nizky-rostenec-detail-1051?page=2&catId=101,article,200,Striploin - nízký roštěnec,/magazin/striploin-nizky-rostenec-detail-1051,,articles,striploin-nizky-rostenec,"alias, kanonická /magazin/striploin-nizky-rostenec-detail-1051; není v sitemap.xml"
+/magazin/striploin-nizky-rostenec-detail-1051?page=2&list=hide,article,,,,,articles,striploin-nizky-rostenec,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/striploin-nizky-rostenec-detail-1051?page=3,article,200,Striploin - nízký roštěnec,/magazin/striploin-nizky-rostenec-detail-1051,,articles,striploin-nizky-rostenec,"alias, kanonická /magazin/striploin-nizky-rostenec-detail-1051; není v sitemap.xml"
+/magazin/striploin-nizky-rostenec-detail-1051?page=4,article,200,Striploin - nízký roštěnec,/magazin/striploin-nizky-rostenec-detail-1051,,articles,striploin-nizky-rostenec,"alias, kanonická /magazin/striploin-nizky-rostenec-detail-1051; není v sitemap.xml"
+/magazin/striploin-nizky-rostenec-detail-1051?page=5,article,200,Striploin - nízký roštěnec,/magazin/striploin-nizky-rostenec-detail-1051,,articles,striploin-nizky-rostenec,"alias, kanonická /magazin/striploin-nizky-rostenec-detail-1051; není v sitemap.xml"
+/magazin/terrys.cz/magazin/rib-eye-vysoky-rostenec-detail-1053?page=3&list=hide,article,,,,,,,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166,article,200,"Velikost steaku, aneb jak si správně vybrat",/magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166,,articles,velikost-steaku-aneb-jak-si-spravne-vybrat,není v sitemap.xml
+/magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166?catId=82,article,200,"Velikost steaku, aneb jak si správně vybrat",/magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166,,articles,velikost-steaku-aneb-jak-si-spravne-vybrat,"alias, kanonická /magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166"
+/magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166?catId=82&list=hide,article,,,,,articles,velikost-steaku-aneb-jak-si-spravne-vybrat,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166?page=2,article,200,"Velikost steaku, aneb jak si správně vybrat",/magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166,,articles,velikost-steaku-aneb-jak-si-spravne-vybrat,"alias, kanonická /magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166"
+/magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166?page=2&list=hide,article,,,,,articles,velikost-steaku-aneb-jak-si-spravne-vybrat,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166?page=3,article,200,"Velikost steaku, aneb jak si správně vybrat",/magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166,,articles,velikost-steaku-aneb-jak-si-spravne-vybrat,"alias, kanonická /magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166; není v sitemap.xml"
+/magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166?page=4,article,200,"Velikost steaku, aneb jak si správně vybrat",/magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166,,articles,velikost-steaku-aneb-jak-si-spravne-vybrat,"alias, kanonická /magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166; není v sitemap.xml"
+/magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166?page=5,article,200,"Velikost steaku, aneb jak si správně vybrat",/magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166,,articles,velikost-steaku-aneb-jak-si-spravne-vybrat,"alias, kanonická /magazin/velikost-steaku-aneb-jak-si-spravne-vybrat-detail-1166; není v sitemap.xml"
+/magazin/vzpominky-na-uruguay-detail-403,article,200,Vzpomínky na Uruguay,/magazin/vzpominky-na-uruguay-detail-403,,articles,vzpominky-na-uruguay,není v sitemap.xml
+/magazin/vzpominky-na-uruguay-detail-403?catId=82,article,200,Vzpomínky na Uruguay,/magazin/vzpominky-na-uruguay-detail-403,,articles,vzpominky-na-uruguay,"alias, kanonická /magazin/vzpominky-na-uruguay-detail-403"
+/magazin/vzpominky-na-uruguay-detail-403?catId=82&list=hide,article,,,,,articles,vzpominky-na-uruguay,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/vzpominky-na-uruguay-detail-403?page=2,article,200,Vzpomínky na Uruguay,/magazin/vzpominky-na-uruguay-detail-403,,articles,vzpominky-na-uruguay,"alias, kanonická /magazin/vzpominky-na-uruguay-detail-403; není v sitemap.xml"
+/magazin/vzpominky-na-uruguay-detail-403?page=3,article,200,Vzpomínky na Uruguay,/magazin/vzpominky-na-uruguay-detail-403,,articles,vzpominky-na-uruguay,"alias, kanonická /magazin/vzpominky-na-uruguay-detail-403; není v sitemap.xml"
+/magazin/vzpominky-na-uruguay-detail-403?page=4,article,200,Vzpomínky na Uruguay,/magazin/vzpominky-na-uruguay-detail-403,,articles,vzpominky-na-uruguay,"alias, kanonická /magazin/vzpominky-na-uruguay-detail-403; není v sitemap.xml"
+/magazin/vzpominky-na-uruguay-detail-403?page=5,article,200,Vzpomínky na Uruguay,/magazin/vzpominky-na-uruguay-detail-403,,articles,vzpominky-na-uruguay,"alias, kanonická /magazin/vzpominky-na-uruguay-detail-403; není v sitemap.xml"
+/magazin/vzpominky-na-uruguay-detail-403?page=5&list=hide,article,,,,,articles,vzpominky-na-uruguay,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047,article,200,Wagyu - nejluxusnější hovězí maso na světě 1.díl,/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047,,articles,wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil,
+/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047?catId=100,article,200,Wagyu - nejluxusnější hovězí maso na světě 1.díl,/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047,,articles,wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil,"alias, kanonická /magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047"
+/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047?catId=100&list=hide,article,,,,,articles,wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047?Id=807,article,200,Wagyu - nejluxusnější hovězí maso na světě 1.díl,/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047,,articles,wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil,"alias, kanonická /magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047; není v sitemap.xml"
+/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047?page=2,article,200,Wagyu - nejluxusnější hovězí maso na světě 1.díl,/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047,,articles,wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil,"alias, kanonická /magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047; není v sitemap.xml"
+/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047?page=3,article,200,Wagyu - nejluxusnější hovězí maso na světě 1.díl,/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047,,articles,wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil,"alias, kanonická /magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047; není v sitemap.xml"
+/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047?page=3&list=hide,article,,,,,articles,wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil,parametr v URL (řazení/filtr) – neprocházeno
+/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047?page=4,article,200,Wagyu - nejluxusnější hovězí maso na světě 1.díl,/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047,,articles,wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil,"alias, kanonická /magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047; není v sitemap.xml"
+/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047?page=5,article,200,Wagyu - nejluxusnější hovězí maso na světě 1.díl,/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047,,articles,wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil,"alias, kanonická /magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047; není v sitemap.xml"
+/magazin,article-listing,302,,,/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769,articles,flank-steak-flap-steak-hovezi-pupek,
+/magazin/?Id=807,article-listing,302,,,/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769,articles,flank-steak-flap-steak-hovezi-pupek,
+/magazin/novinky-21,article-listing,302,,,/magazin/selavita-se-meni-na-terrys-prvni-specializovanou-prodejnu-steakovych-mas-detail-1005?catId=21,,,
+/magazin/poznavame-plemena-hoveziho-100,article-listing,302,,,/magazin/wagyu-nejluxusnejsi-hovezi-maso-na-svete-1-dil-detail-1047?catId=100,,,
+/magazin/poznavame-zverinu-120,article-listing,302,,,/magazin/danci-maso-detail-1143?catId=120,,,
+/magazin/predstavujeme-rezy-101,article-listing,302,,,/magazin/flank-steak-flap-steak-hovezi-pupek-detail-28769?catId=101,,,
+/magazin/rady-a-tipy-86,article-listing,302,,,/magazin/jak-pripravit-hovezi-steak-detail-857?catId=86,,,
+/magazin/stolovani-80,article-listing,200,Title,,,,,
+/magazin/zivot-v-terrysu-82,article-listing,302,,,/magazin/jak-pro-vas-balime-steaky-detail-1164?catId=82,,,
+/produkty/argentinske-hovezi-23,category,200,Argentinské hovězí | Terrys Steak,/produkty/argentinske-hovezi-23/1,,categories,argentinske-hovezi,"alias, kanonická /produkty/argentinske-hovezi-23/1"
+/produkty/australske-hovezi-96,category,200,Australské hovězí | Terrys Steak,/produkty/australske-hovezi-96/1,,categories,australske-hovezi,"alias, kanonická /produkty/australske-hovezi-96/1"
+/produkty/australske-hovezi-96?druh_masa=svickova,category,,,,,categories,australske-hovezi,parametr v URL (řazení/filtr) – neprocházeno
+/produkty/brazilske-hovezi-93,category,200,Brazilské hovězí | Terrys Steak,/produkty/brazilske-hovezi-93/1,,categories,brazilske-hovezi,"alias, kanonická /produkty/brazilske-hovezi-93/1"
+/produkty/brouseni-nozu-122,category,200,Broušení nožů | Terrys Steak,/produkty/brouseni-nozu-122/1,,categories,brouseni-nozu,"alias, kanonická /produkty/brouseni-nozu-122/1"
+/produkty/chuck-krk-110,category,200,Produkty | Terrys Steak,/produkty/chuck-krk-110/1,,categories,chuck-krk,"alias, kanonická /produkty/chuck-krk-110/1"
+/produkty/danci-maso-53,category,200,Dančí maso | Terrys Steak,/produkty/danci-maso-53/1,,categories,danci-maso,"alias, kanonická /produkty/danci-maso-53/1"
+/produkty/darkove-poukazy-a-krabicky-130,category,200,Dárkové poukazy a krabičky | Terrys Steak,/produkty/darkove-poukazy-a-krabicky-130/1,,categories,darkove-poukazy-a-krabicky,"alias, kanonická /produkty/darkove-poukazy-a-krabicky-130/1"
+/produkty/darkove-poukazy-set-90,category,200,Dárkové poukazy + set | Terrys Steak,/produkty/darkove-poukazy-set-90/1,,categories,darkove-poukazy-set,"alias, kanonická /produkty/darkove-poukazy-set-90/1"
+/produkty/dorty-128,category,200,Dorty | Terrys Steak,/produkty/dorty-128/1,,categories,dorty,"alias, kanonická /produkty/dorty-128/1"
+/produkty/drubezi-26,category,200,Drůbeží | Terrys Steak,/produkty/drubezi-26/1,,categories,drubezi,"alias, kanonická /produkty/drubezi-26/1"
+/produkty/falesna-svickova-chuck-tender-terrys-steak-113,category,200,Falešná svíčková / Chuck Tender | Terrys Steak,/produkty/falesna-svickova-chuck-tender-terrys-steak-113/1,,categories,falesna-svickova-chuck-tender-terrys-steak,"alias, kanonická /produkty/falesna-svickova-chuck-tender-terrys-steak-113/1"
+/produkty/farmarske-hovezi-83,category,200,Farmářské hovězí | Terrys Steak,/produkty/farmarske-hovezi-83/1,,categories,farmarske-hovezi,"alias, kanonická /produkty/farmarske-hovezi-83/1"
+/produkty/hotova-jidla-124,category,200,Hotová jídla | Terrys Steak,/produkty/hotova-jidla-124/1,,categories,hotova-jidla,"alias, kanonická /produkty/hotova-jidla-124/1"
+/produkty/hovezi-z-ceskeho-chovu-39,category,200,Hovězí z českého chovu | Terrys Steak,/produkty/hovezi-z-ceskeho-chovu-39/1,,categories,hovezi-z-ceskeho-chovu,"alias, kanonická /produkty/hovezi-z-ceskeho-chovu-39/1"
+/produkty/husi-maso-60,category,200,Husí maso | Terrys Steak,/produkty/husi-maso-60/1,,categories,husi-maso,"alias, kanonická /produkty/husi-maso-60/1"
+/produkty/irske-hovezi-97,category,200,Irské hovězí | Terrys Steak,/produkty/irske-hovezi-97/1,,categories,irske-hovezi,"alias, kanonická /produkty/irske-hovezi-97/1"
+/produkty/jehneci-maso-61,category,200,Jehněčí maso | Terrys Steak,/produkty/jehneci-maso-61/1,,categories,jehneci-maso,"alias, kanonická /produkty/jehneci-maso-61/1"
+/produkty/jeleni-maso-51,category,200,Jelení maso | Terrys Steak,/produkty/jeleni-maso-51/1,,categories,jeleni-maso,"alias, kanonická /produkty/jeleni-maso-51/1"
+/produkty/kachni-maso-59,category,200,Kachní maso | Terrys Steak,/produkty/kachni-maso-59/1,,categories,kachni-maso,"alias, kanonická /produkty/kachni-maso-59/1"
+/produkty/kanci-maso-52,category,200,Kančí maso | Terrys Steak,/produkty/kanci-maso-52/1,,categories,kanci-maso,"alias, kanonická /produkty/kanci-maso-52/1"
+/produkty/krk-chuck-roll-112,category,200,Krk / Chuck Roll | Terrys Steak,/produkty/krk-chuck-roll-112/1,,categories,krk-chuck-roll,"alias, kanonická /produkty/krk-chuck-roll-112/1"
+/produkty/kruti-maso-58,category,200,Krůtí maso | Terrys Steak,/produkty/kruti-maso-58/1,,categories,kruti-maso,"alias, kanonická /produkty/kruti-maso-58/1"
+/produkty/kureci-maso-57,category,200,Kuřecí maso | Terrys Steak,/produkty/kureci-maso-57/1,,categories,kureci-maso,"alias, kanonická /produkty/kureci-maso-57/1"
+/produkty/kvetova-spicka-rumpsteak-117,category,200,Květová špička / Rumpsteak | Terrys Steak,/produkty/kvetova-spicka-rumpsteak-117/1,,categories,kvetova-spicka-rumpsteak,"alias, kanonická /produkty/kvetova-spicka-rumpsteak-117/1"
+/produkty/lanyze-121,category,200,Lanýže | Terrys Steak,/produkty/lanyze-121/1,,categories,lanyze,"alias, kanonická /produkty/lanyze-121/1"
+/produkty/loupana-plec-top-blade-116,category,200,Loupaná plec / Top Blade | Terrys Steak,/produkty/loupana-plec-top-blade-116/1,,categories,loupana-plec-top-blade,"alias, kanonická /produkty/loupana-plec-top-blade-116/1"
+/produkty/makronky-127,category,200,Makronky | Terrys Steak,/produkty/makronky-127/1,,categories,makronky,"alias, kanonická /produkty/makronky-127/1"
+/produkty/mlete-maso-na-burgery-62,category,200,Mleté maso na burgery | Terrys Steak,/produkty/mlete-maso-na-burgery-62/1,,categories,mlete-maso-na-burgery,"alias, kanonická /produkty/mlete-maso-na-burgery-62/1"
+/produkty/namibijske-hovezi-95,category,200,Namibijské hovězí | Terrys Steak,/produkty/namibijske-hovezi-95/1,,categories,namibijske-hovezi,"alias, kanonická /produkty/namibijske-hovezi-95/1"
+/produkty/nizky-rostenec-striploin-108,category,200,Nízký roštěnec / Striploin | Terrys Steak,/produkty/nizky-rostenec-striploin-108/1,,categories,nizky-rostenec-striploin,"alias, kanonická /produkty/nizky-rostenec-striploin-108/1"
+/produkty/omacky-a-koreni-123,category,200,Omáčky a koření | Terrys Steak,/produkty/omacky-a-koreni-123/1,,categories,omacky-a-koreni,"alias, kanonická /produkty/omacky-a-koreni-123/1"
+/produkty/ostatni-30,category,200,Ostatní | Terrys Steak,/produkty/ostatni-30/1,,categories,ostatni,"alias, kanonická /produkty/ostatni-30/1"
+/produkty/pupek-flank-flap-111,category,200,Pupek / Flank & Flap | Terrys Steak,/produkty/pupek-flank-flap-111/1,,categories,pupek-flank-flap,"alias, kanonická /produkty/pupek-flank-flap-111/1"
+/produkty/rib-eye-106,category,301,,,/produkty/vysoky-rostenec-rib-eye-106,categories,vysoky-rostenec-rib-eye,
+/produkty/rib-eye-vysoky-rostenec-106,category,301,,,/produkty/vysoky-rostenec-rib-eye-106,categories,vysoky-rostenec-rib-eye,
+/produkty/ryby-40,category,200,Ryby | Terrys Steak,/produkty/ryby-40/1,,categories,ryby,"alias, kanonická /produkty/ryby-40/1"
+/produkty/severoamericke-hovezi-94,category,200,Severoamerické hovězí | Terrys Steak,/produkty/severoamericke-hovezi-94/1,,categories,severoamericke-hovezi,"alias, kanonická /produkty/severoamericke-hovezi-94/1"
+/produkty/severoamericke-hovezi-94?druh_masa=svickova,category,,,,,categories,severoamericke-hovezi,parametr v URL (řazení/filtr) – neprocházeno
+/produkty/srnci-maso-55,category,200,Srnčí maso | Terrys Steak,/produkty/srnci-maso-55/1,,categories,srnci-maso,"alias, kanonická /produkty/srnci-maso-55/1"
+/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105,category,200,Steaky - řezy | Terrys Steak,/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1,,categories,steaky-podle-rezu-hovezi-maso-terrys-steak,"alias, kanonická /produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1"
+/produkty/striploin-108,category,301,,,/produkty/nizky-rostenec-striploin-108,categories,nizky-rostenec-striploin,
+/produkty/striploin-nizky-rostenec-108,category,301,,,/produkty/nizky-rostenec-striploin-108,categories,nizky-rostenec-striploin,
+/produkty/svickova-109,category,301,,,/produkty/svickova-tenderloin-109,categories,svickova-tenderloin,
+/produkty/svickova-tenderloin-109,category,200,Svíčková / Tenderloin | Terrys Steak,/produkty/svickova-tenderloin-109/1,,categories,svickova-tenderloin,"alias, kanonická /produkty/svickova-tenderloin-109/1"
+/produkty/syry-70,category,200,Sýry | Terrys Steak,/produkty/syry-70/1,,categories,syry,"alias, kanonická /produkty/syry-70/1"
+/produkty/teleci-50,category,200,Telecí | Terrys Steak,/produkty/teleci-50/1,,categories,teleci,"alias, kanonická /produkty/teleci-50/1"
+/produkty/tenderloin-svickova-109,category,301,,,/produkty/svickova-tenderloin-109,categories,svickova-tenderloin,
+/produkty/termotasky-131,category,200,Termotašky | Terrys Steak,/produkty/termotasky-131/1,,categories,termotasky,"alias, kanonická /produkty/termotasky-131/1"
+/produkty/terrys-cake-126,category,200,Terrys Cake | Terrys Steak,/produkty/terrys-cake-126/1,,categories,terrys-cake,"alias, kanonická /produkty/terrys-cake-126/1"
+/produkty/uruguayske-hovezi-38,category,200,Uruguayské hovězí | Terrys Steak,/produkty/uruguayske-hovezi-38/1,,categories,uruguayske-hovezi,"alias, kanonická /produkty/uruguayske-hovezi-38/1"
+/produkty/uzeniny-27,category,200,Uzeniny | Terrys Steak,/produkty/uzeniny-27/1,,categories,uzeniny,"alias, kanonická /produkty/uzeniny-27/1"
+/produkty/vegetarianske-produkty-118,category,200,Vegetariánské produkty | Terrys Steak,/produkty/vegetarianske-produkty-118/1,,categories,vegetarianske-produkty,"alias, kanonická /produkty/vegetarianske-produkty-118/1"
+/produkty/veprove-28,category,200,Vepřové | Terrys Steak,/produkty/veprove-28/1,,categories,veprove,"alias, kanonická /produkty/veprove-28/1"
+/produkty/vysoky-rostenec-rib-eye-106,category,200,Vysoký roštěnec / Rib Eye | Terrys Steak,/produkty/vysoky-rostenec-rib-eye-106/1,,categories,vysoky-rostenec-rib-eye,"alias, kanonická /produkty/vysoky-rostenec-rib-eye-106/1"
+/produkty/wagyu-98,category,200,Wagyu | Terrys Steak,/produkty/wagyu-98/1,,categories,wagyu,"alias, kanonická /produkty/wagyu-98/1"
+/produkty/wagyu-98?druh_masa=svickova,category,,,,,categories,wagyu,parametr v URL (řazení/filtr) – neprocházeno
+/produkty/wagyu-australie-103,category,200,Wagyu Austrálie | Terrys Steak,/produkty/wagyu-australie-103/1,,categories,wagyu-australie,"alias, kanonická /produkty/wagyu-australie-103/1"
+/produkty/wagyu-chile-125,category,200,Wagyu Chile | Terrys Steak,/produkty/wagyu-chile-125/1,,categories,wagyu-chile,"alias, kanonická /produkty/wagyu-chile-125/1"
+/produkty/wagyu-japonsko-102,category,200,Wagyu Japonsko | Terrys Steak,/produkty/wagyu-japonsko-102/1,,categories,wagyu-japonsko,"alias, kanonická /produkty/wagyu-japonsko-102/1"
+/produkty/wagyu-uruguay-104,category,200,Wagyu Uruguay | Terrys Steak,/produkty/wagyu-uruguay-104/1,,categories,wagyu-uruguay,"alias, kanonická /produkty/wagyu-uruguay-104/1"
+/produkty/zverina-29,category,200,Zvěřina | Terrys Steak,/produkty/zverina-29/1,,categories,zverina,"alias, kanonická /produkty/zverina-29/1"
+/produkty/argentinske-hovezi-23/1,category-page,200,Argentinské hovězí | Terrys Steak,/produkty/argentinske-hovezi-23/1,,categories,argentinske-hovezi,není v sitemap.xml
+/produkty/australske-hovezi-96/1,category-page,200,Australské hovězí | Terrys Steak,/produkty/australske-hovezi-96/1,,categories,australske-hovezi,
+/produkty/australske-hovezi-96/2,category-page,200,Australské hovězí | Terrys Steak,/produkty/australske-hovezi-96/1,,categories,australske-hovezi,"alias, kanonická /produkty/australske-hovezi-96/1"
+/produkty/brazilske-hovezi-93/1,category-page,200,Brazilské hovězí | Terrys Steak,/produkty/brazilske-hovezi-93/1,,categories,brazilske-hovezi,není v sitemap.xml
+/produkty/brouseni-nozu-122/1,category-page,200,Broušení nožů | Terrys Steak,/produkty/brouseni-nozu-122/1,,categories,brouseni-nozu,není v sitemap.xml
+/produkty/chuck-krk-110/1,category-page,200,Produkty | Terrys Steak,/produkty/chuck-krk-110/1,,categories,chuck-krk,není v sitemap.xml
+/produkty/danci-maso-53/1,category-page,200,Dančí maso | Terrys Steak,/produkty/danci-maso-53/1,,categories,danci-maso,není v sitemap.xml
+/produkty/darkove-poukazy-a-krabicky-130/1,category-page,200,Dárkové poukazy a krabičky | Terrys Steak,/produkty/darkove-poukazy-a-krabicky-130/1,,categories,darkove-poukazy-a-krabicky,není v sitemap.xml
+/produkty/darkove-poukazy-set-90/1,category-page,200,Dárkové poukazy + set | Terrys Steak,/produkty/darkove-poukazy-set-90/1,,categories,darkove-poukazy-set,není v sitemap.xml
+/produkty/dorty-128/1,category-page,200,Dorty | Terrys Steak,/produkty/dorty-128/1,,categories,dorty,není v sitemap.xml
+/produkty/drubezi-26/1,category-page,200,Drůbeží | Terrys Steak,/produkty/drubezi-26/1,,categories,drubezi,není v sitemap.xml
+/produkty/falesna-svickova-chuck-tender-terrys-steak-113/1,category-page,200,Falešná svíčková / Chuck Tender | Terrys Steak,/produkty/falesna-svickova-chuck-tender-terrys-steak-113/1,,categories,falesna-svickova-chuck-tender-terrys-steak,není v sitemap.xml
+/produkty/farmarske-hovezi-83/1,category-page,200,Farmářské hovězí | Terrys Steak,/produkty/farmarske-hovezi-83/1,,categories,farmarske-hovezi,není v sitemap.xml
+/produkty/hotova-jidla-124/1,category-page,200,Hotová jídla | Terrys Steak,/produkty/hotova-jidla-124/1,,categories,hotova-jidla,není v sitemap.xml
+/produkty/hovezi-z-ceskeho-chovu-39/1,category-page,200,Hovězí z českého chovu | Terrys Steak,/produkty/hovezi-z-ceskeho-chovu-39/1,,categories,hovezi-z-ceskeho-chovu,není v sitemap.xml
+/produkty/husi-maso-60/1,category-page,200,Husí maso | Terrys Steak,/produkty/husi-maso-60/1,,categories,husi-maso,není v sitemap.xml
+/produkty/irske-hovezi-97/1,category-page,200,Irské hovězí | Terrys Steak,/produkty/irske-hovezi-97/1,,categories,irske-hovezi,není v sitemap.xml
+/produkty/jehneci-maso-61/1,category-page,200,Jehněčí maso | Terrys Steak,/produkty/jehneci-maso-61/1,,categories,jehneci-maso,není v sitemap.xml
+/produkty/jeleni-maso-51/1,category-page,200,Jelení maso | Terrys Steak,/produkty/jeleni-maso-51/1,,categories,jeleni-maso,není v sitemap.xml
+/produkty/kachni-maso-59/1,category-page,200,Kachní maso | Terrys Steak,/produkty/kachni-maso-59/1,,categories,kachni-maso,není v sitemap.xml
+/produkty/kanci-maso-52/1,category-page,200,Kančí maso | Terrys Steak,/produkty/kanci-maso-52/1,,categories,kanci-maso,není v sitemap.xml
+/produkty/krk-chuck-roll-112/1,category-page,200,Krk / Chuck Roll | Terrys Steak,/produkty/krk-chuck-roll-112/1,,categories,krk-chuck-roll,není v sitemap.xml
+/produkty/kruti-maso-58/1,category-page,200,Krůtí maso | Terrys Steak,/produkty/kruti-maso-58/1,,categories,kruti-maso,není v sitemap.xml
+/produkty/kureci-maso-57/1,category-page,200,Kuřecí maso | Terrys Steak,/produkty/kureci-maso-57/1,,categories,kureci-maso,není v sitemap.xml
+/produkty/kvetova-spicka-rumpsteak-117/1,category-page,200,Květová špička / Rumpsteak | Terrys Steak,/produkty/kvetova-spicka-rumpsteak-117/1,,categories,kvetova-spicka-rumpsteak,není v sitemap.xml
+/produkty/lanyze-121/1,category-page,200,Lanýže | Terrys Steak,/produkty/lanyze-121/1,,categories,lanyze,není v sitemap.xml
+/produkty/loupana-plec-top-blade-116/1,category-page,200,Loupaná plec / Top Blade | Terrys Steak,/produkty/loupana-plec-top-blade-116/1,,categories,loupana-plec-top-blade,není v sitemap.xml
+/produkty/makronky-127/1,category-page,200,Makronky | Terrys Steak,/produkty/makronky-127/1,,categories,makronky,není v sitemap.xml
+/produkty/mlete-maso-na-burgery-62/1,category-page,200,Mleté maso na burgery | Terrys Steak,/produkty/mlete-maso-na-burgery-62/1,,categories,mlete-maso-na-burgery,
+/produkty/mlete-maso-na-burgery-62/2,category-page,200,Mleté maso na burgery | Terrys Steak,/produkty/mlete-maso-na-burgery-62/1,,categories,mlete-maso-na-burgery,"alias, kanonická /produkty/mlete-maso-na-burgery-62/1"
+/produkty/namibijske-hovezi-95/1,category-page,200,Namibijské hovězí | Terrys Steak,/produkty/namibijske-hovezi-95/1,,categories,namibijske-hovezi,není v sitemap.xml
+/produkty/nizky-rostenec-striploin-108/1,category-page,200,Nízký roštěnec / Striploin | Terrys Steak,/produkty/nizky-rostenec-striploin-108/1,,categories,nizky-rostenec-striploin,
+/produkty/nizky-rostenec-striploin-108/2,category-page,200,Nízký roštěnec / Striploin | Terrys Steak,/produkty/nizky-rostenec-striploin-108/1,,categories,nizky-rostenec-striploin,"alias, kanonická /produkty/nizky-rostenec-striploin-108/1"
+/produkty/omacky-a-koreni-123/1,category-page,200,Omáčky a koření | Terrys Steak,/produkty/omacky-a-koreni-123/1,,categories,omacky-a-koreni,není v sitemap.xml
+/produkty/ostatni-30/1,category-page,200,Ostatní | Terrys Steak,/produkty/ostatni-30/1,,categories,ostatni,
+/produkty/ostatni-30/2,category-page,200,Ostatní | Terrys Steak,/produkty/ostatni-30/1,,categories,ostatni,"alias, kanonická /produkty/ostatni-30/1"
+/produkty/ostatni-30/3,category-page,200,Ostatní | Terrys Steak,/produkty/ostatni-30/1,,categories,ostatni,"alias, kanonická /produkty/ostatni-30/1"
+/produkty/ostatni-30/4,category-page,200,Ostatní | Terrys Steak,/produkty/ostatni-30/1,,categories,ostatni,"alias, kanonická /produkty/ostatni-30/1"
+/produkty/ostatni-30/5,category-page,200,Ostatní | Terrys Steak,/produkty/ostatni-30/1,,categories,ostatni,"alias, kanonická /produkty/ostatni-30/1"
+/produkty/pupek-flank-flap-111/1,category-page,200,Pupek / Flank & Flap | Terrys Steak,/produkty/pupek-flank-flap-111/1,,categories,pupek-flank-flap,
+/produkty/pupek-flank-flap-111/2,category-page,200,Pupek / Flank & Flap | Terrys Steak,/produkty/pupek-flank-flap-111/1,,categories,pupek-flank-flap,"alias, kanonická /produkty/pupek-flank-flap-111/1"
+/produkty/ryby-40/1,category-page,200,Ryby | Terrys Steak,/produkty/ryby-40/1,,categories,ryby,není v sitemap.xml
+/produkty/severoamericke-hovezi-94/1,category-page,200,Severoamerické hovězí | Terrys Steak,/produkty/severoamericke-hovezi-94/1,,categories,severoamericke-hovezi,
+/produkty/severoamericke-hovezi-94/2,category-page,200,Severoamerické hovězí | Terrys Steak,/produkty/severoamericke-hovezi-94/1,,categories,severoamericke-hovezi,"alias, kanonická /produkty/severoamericke-hovezi-94/1"
+/produkty/srnci-maso-55/1,category-page,200,Srnčí maso | Terrys Steak,/produkty/srnci-maso-55/1,,categories,srnci-maso,není v sitemap.xml
+/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1,category-page,200,Steaky - řezy | Terrys Steak,/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1,,categories,steaky-podle-rezu-hovezi-maso-terrys-steak,
+/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/2,category-page,200,Steaky - řezy | Terrys Steak,/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1,,categories,steaky-podle-rezu-hovezi-maso-terrys-steak,"alias, kanonická /produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1"
+/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/3,category-page,200,Steaky - řezy | Terrys Steak,/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1,,categories,steaky-podle-rezu-hovezi-maso-terrys-steak,"alias, kanonická /produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1"
+/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/4,category-page,200,Steaky - řezy | Terrys Steak,/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1,,categories,steaky-podle-rezu-hovezi-maso-terrys-steak,"alias, kanonická /produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1"
+/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/5,category-page,200,Steaky - řezy | Terrys Steak,/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1,,categories,steaky-podle-rezu-hovezi-maso-terrys-steak,"alias, kanonická /produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1"
+/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/6,category-page,200,Steaky - řezy | Terrys Steak,/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1,,categories,steaky-podle-rezu-hovezi-maso-terrys-steak,"alias, kanonická /produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1"
+/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/7,category-page,200,Steaky - řezy | Terrys Steak,/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1,,categories,steaky-podle-rezu-hovezi-maso-terrys-steak,"alias, kanonická /produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1"
+/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/8,category-page,200,Steaky - řezy | Terrys Steak,/produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1,,categories,steaky-podle-rezu-hovezi-maso-terrys-steak,"alias, kanonická /produkty/steaky-podle-rezu-hovezi-maso-terrys-steak-105/1"
+/produkty/svickova-tenderloin-109/1,category-page,200,Svíčková / Tenderloin | Terrys Steak,/produkty/svickova-tenderloin-109/1,,categories,svickova-tenderloin,
+/produkty/svickova-tenderloin-109/2,category-page,200,Svíčková / Tenderloin | Terrys Steak,/produkty/svickova-tenderloin-109/1,,categories,svickova-tenderloin,"alias, kanonická /produkty/svickova-tenderloin-109/1"
+/produkty/syry-70/1,category-page,200,Sýry | Terrys Steak,/produkty/syry-70/1,,categories,syry,není v sitemap.xml
+/produkty/teleci-50/1,category-page,200,Telecí | Terrys Steak,/produkty/teleci-50/1,,categories,teleci,není v sitemap.xml
+/produkty/termotasky-131/1,category-page,200,Termotašky | Terrys Steak,/produkty/termotasky-131/1,,categories,termotasky,není v sitemap.xml
+/produkty/terrys-cake-126/1,category-page,200,Terrys Cake | Terrys Steak,/produkty/terrys-cake-126/1,,categories,terrys-cake,není v sitemap.xml
+/produkty/uruguayske-hovezi-38/1,category-page,200,Uruguayské hovězí | Terrys Steak,/produkty/uruguayske-hovezi-38/1,,categories,uruguayske-hovezi,není v sitemap.xml
+/produkty/uzeniny-27/1,category-page,200,Uzeniny | Terrys Steak,/produkty/uzeniny-27/1,,categories,uzeniny,
+/produkty/uzeniny-27/2,category-page,200,Uzeniny | Terrys Steak,/produkty/uzeniny-27/1,,categories,uzeniny,"alias, kanonická /produkty/uzeniny-27/1"
+/produkty/uzeniny-27/3,category-page,200,Uzeniny | Terrys Steak,/produkty/uzeniny-27/1,,categories,uzeniny,"alias, kanonická /produkty/uzeniny-27/1"
+/produkty/vegetarianske-produkty-118/1,category-page,200,Vegetariánské produkty | Terrys Steak,/produkty/vegetarianske-produkty-118/1,,categories,vegetarianske-produkty,není v sitemap.xml
+/produkty/veprove-28/1,category-page,200,Vepřové | Terrys Steak,/produkty/veprove-28/1,,categories,veprove,není v sitemap.xml
+/produkty/vysoky-rostenec-rib-eye-106/1,category-page,200,Vysoký roštěnec / Rib Eye | Terrys Steak,/produkty/vysoky-rostenec-rib-eye-106/1,,categories,vysoky-rostenec-rib-eye,
+/produkty/vysoky-rostenec-rib-eye-106/2,category-page,200,Vysoký roštěnec / Rib Eye | Terrys Steak,/produkty/vysoky-rostenec-rib-eye-106/1,,categories,vysoky-rostenec-rib-eye,"alias, kanonická /produkty/vysoky-rostenec-rib-eye-106/1"
+/produkty/wagyu-98/1,category-page,200,Wagyu | Terrys Steak,/produkty/wagyu-98/1,,categories,wagyu,
+/produkty/wagyu-98/2,category-page,200,Wagyu | Terrys Steak,/produkty/wagyu-98/1,,categories,wagyu,"alias, kanonická /produkty/wagyu-98/1"
+/produkty/wagyu-98/3,category-page,200,Wagyu | Terrys Steak,/produkty/wagyu-98/1,,categories,wagyu,"alias, kanonická /produkty/wagyu-98/1"
+/produkty/wagyu-98/4,category-page,200,Wagyu | Terrys Steak,/produkty/wagyu-98/1,,categories,wagyu,"alias, kanonická /produkty/wagyu-98/1"
+/produkty/wagyu-australie-103/1,category-page,200,Wagyu Austrálie | Terrys Steak,/produkty/wagyu-australie-103/1,,categories,wagyu-australie,
+/produkty/wagyu-australie-103/2,category-page,200,Wagyu Austrálie | Terrys Steak,/produkty/wagyu-australie-103/1,,categories,wagyu-australie,"alias, kanonická /produkty/wagyu-australie-103/1"
+/produkty/wagyu-chile-125/1,category-page,200,Wagyu Chile | Terrys Steak,/produkty/wagyu-chile-125/1,,categories,wagyu-chile,není v sitemap.xml
+/produkty/wagyu-japonsko-102/1,category-page,200,Wagyu Japonsko | Terrys Steak,/produkty/wagyu-japonsko-102/1,,categories,wagyu-japonsko,
+/produkty/wagyu-japonsko-102/2,category-page,200,Wagyu Japonsko | Terrys Steak,/produkty/wagyu-japonsko-102/1,,categories,wagyu-japonsko,"alias, kanonická /produkty/wagyu-japonsko-102/1"
+/produkty/wagyu-uruguay-104/1,category-page,200,Wagyu Uruguay | Terrys Steak,/produkty/wagyu-uruguay-104/1,,categories,wagyu-uruguay,není v sitemap.xml
+/produkty/zverina-29/1,category-page,200,Zvěřina | Terrys Steak,/produkty/zverina-29/1,,categories,zverina,
+/produkty/zverina-29/2,category-page,200,Zvěřina | Terrys Steak,/produkty/zverina-29/1,,categories,zverina,"alias, kanonická /produkty/zverina-29/1"
+/jidelni-listek,file,200,application/pdf,,,,,soubor (application/pdf) – přenést ručně; není v sitemap.xml
+/pojmy,glossary-listing,200,Slovník pojmů | Terrys Steak,,,,,
+/pojmy/podle-typu-masa-74,glossary-listing,200,Podle typu masa | Terrys Steak,,,,,
+/pojmy/podle-typu-pripravy-75,glossary-listing,200,Podle typu přípravy | Terrys Steak,,,,,
+/pojmy/chuck-roll-detail-781,glossary-term,200,Chuck Roll,,,articles,chuck-roll,
+/pojmy/chuck-tender-detail-779,glossary-term,200,Chuck Tender,,,articles,chuck-tender,
+/pojmy/filirovani-detail-32,glossary-term,200,Filírování,,,articles,filirovani,
+/pojmy/flambovani-detail-34,glossary-term,200,Flambování,,,articles,flambovani,
+/pojmy/flap-steak-detail-791,glossary-term,200,Flap Steak,,,articles,flap-steak,
+/pojmy/grilovani-detail-17,glossary-term,200,Grilování,,,articles,grilovani,
+/pojmy/hovezi-kyta-detail-789,glossary-term,200,Hovězí kýta,,,articles,hovezi-kyta,
+/pojmy/hovezi-nizky-rostenec-detail-787,glossary-term,200,Hovězí nízký roštěnec,,,articles,hovezi-nizky-rostenec,
+/pojmy/hovezi-svickova-detail-783,glossary-term,200,Hovězí svíčková,,,articles,hovezi-svickova,
+/pojmy/hovezi-vysoky-rostenec-detail-785,glossary-term,200,Hovězí vysoký roštěnec,,,articles,hovezi-vysoky-rostenec,
+/pojmy/konfitovani-detail-35,glossary-term,200,Konfitování,,,articles,konfitovani,
+/pojmy/marinovani-detail-33,glossary-term,200,Marinování,,,articles,marinovani,
+/pojmy/posirovani-detail-399,glossary-term,200,Pošírování,,,articles,posirovani,
+/pojmy/rib-eye-detail-775,glossary-term,200,Rib Eye,,,articles,rib-eye,
+/pojmy/striploin-detail-777,glossary-term,200,Striploin,,,articles,striploin,
+/pojmy/veprova-krkovice-detail-769,glossary-term,200,Vepřová krkovice,,,articles,veprova-krkovice,
+/pojmy/veprova-kyta-detail-771,glossary-term,200,Vepřová kýta,,,articles,veprova-kyta,
+/pojmy/veprova-panenka-detail-142,glossary-term,200,Vepřová panenka,,,articles,veprova-panenka,
+/pojmy/veprova-pecene-kotleta-detail-767,glossary-term,200,Vepřová pečeně (kotleta),,,articles,veprova-pecene-kotleta,
+/pojmy/veprovy-bok-detail-773,glossary-term,200,Vepřový bok,,,articles,veprovy-bok,
+/,home,200,Terrys | Terrys Steak,,,,,
+/?Id=807,home,200,Terrys | Terrys Steak,,,,,
+/produkty/113g-vega-burger-detail-1131,product,200,113g Vega burger,,,products,113g-vega-burger,
+/produkty/120g-jeleni-burger-sul-detail-1090,product,200,120g Jelení burger sůl,,,products,120g-jeleni-burger-sul,
+/produkty/200g-burger-ze-stareneho-hov-masa-s-koriandrem-detail-550,product,200,200g burger ze stařeného hov. masa s koriandrem,,,products,200g-burger-ze-stareneho-hov-masa-s-koriandrem,
+/produkty/americka-steakova-smes-koreni-120g-detail-1277,product,200,Americká steaková směs koření 120g,,,products,americka-steakova-smes-koreni-120g,
+/produkty/anglicka-slanina-detail-215,product,200,Anglická slanina,,,products,anglicka-slanina,
+/produkty/argentinska-hovezi-svickova-3-4-detail-413,product,200,Argentinská hovězí svíčková 3/4,,,products,argentinska-hovezi-svickova-3-4,
+/produkty/argentinska-hovezi-svickova-4-5-detail-862,product,200,Argentinská hovězí svíčková 4/5,,,products,argentinska-hovezi-svickova-4-5,
+/produkty/argentinsky-hovezi-chuck-roll-detail-419,product,200,Argentinský hovězí Chuck Roll,,,products,argentinsky-hovezi-chuck-roll,
+/produkty/argentinsky-hovezi-chuck-tender-detail-421,product,200,Argentinský hovězí Chuck Tender,,,products,argentinsky-hovezi-chuck-tender,
+/produkty/argentinsky-hovezi-flank-steak-detail-415,product,200,Argentinský hovězí Flank Steak,,,products,argentinsky-hovezi-flank-steak,
+/produkty/argentinsky-hovezi-flap-steak-detail-417,product,200,Argentinský hovězí Flap Steak,,,products,argentinsky-hovezi-flap-steak,
+/produkty/argentinsky-hovezi-rib-eye-detail-406,product,200,Argentinský hovězí Rib Eye,,,products,argentinsky-hovezi-rib-eye,
+/produkty/argentinsky-hovezi-rumpsteak-detail-409,product,200,Argentinský hovězí Rumpsteak,,,products,argentinsky-hovezi-rumpsteak,
+/produkty/argentinsky-hovezi-striploin-detail-411,product,200,Argentinský hovězí Striploin,,,products,argentinsky-hovezi-striploin,
+/produkty/argentinsky-hovezi-top-blade-detail-423,product,200,Argentinský hovězí Top Blade,,,products,argentinsky-hovezi-top-blade,
+/produkty/australska-hovezi-picanha-detail-942,product,200,Australská hovězí Picanha,,,products,australska-hovezi-picanha,
+/produkty/australska-hovezi-svickova-detail-941,product,200,Australská hovězí svíčková,,,products,australska-hovezi-svickova,
+/produkty/australska-hovezi-zebra-short-ribs-detail-28801,product,200,Australská hovězí žebra - short ribs,,,products,australska-hovezi-zebra-short-ribs,
+/produkty/australsky-hovezi-brisket-hrudi-detail-1314,product,200,Australský hovězí Brisket - hrudí,,,products,australsky-hovezi-brisket-hrudi,
+/produkty/australsky-hovezi-chuck-roll-detail-945,product,200,Australský hovězí Chuck Roll,,,products,australsky-hovezi-chuck-roll,
+/produkty/australsky-hovezi-chuck-tender-detail-946,product,200,Australský hovězí Chuck Tender,,,products,australsky-hovezi-chuck-tender,
+/produkty/australsky-hovezi-flank-steak-detail-943,product,200,Australský hovězí Flank Steak,,,products,australsky-hovezi-flank-steak,
+/produkty/australsky-hovezi-flap-steak-detail-944,product,200,Australský hovězí Flap Steak,,,products,australsky-hovezi-flap-steak,
+/produkty/australsky-hovezi-rib-eye-detail-947,product,200,Australský hovězí Rib Eye,,,products,australsky-hovezi-rib-eye,
+/produkty/australsky-hovezi-rumpsteak-detail-948,product,200,Australský hovězí Rumpsteak,,,products,australsky-hovezi-rumpsteak,
+/produkty/australsky-hovezi-skirt-steak-detail-29390,product,200,Australský hovězí skirt Steak,,,products,australsky-hovezi-skirt-steak,
+/produkty/australsky-hovezi-striploin-detail-949,product,200,Australský hovězí Striploin,,,products,australsky-hovezi-striploin,
+/produkty/australsky-hovezi-tomahawk-steak-detail-1133,product,200,Australský hovězí TOMAHAWK steak,,,products,australsky-hovezi-tomahawk-steak,
+/produkty/australsky-hovezi-top-blade-detail-950,product,200,Australský hovězí Top Blade,,,products,australsky-hovezi-top-blade,
+/produkty/bbq-omacka-honey-chipotle-detail-1273,product,200,BBQ omáčka Honey Chipotle,,,products,bbq-omacka-honey-chipotle,
+/produkty/bbq-omacka-original-detail-1271,product,200,BBQ omáčka originál,,,products,bbq-omacka-original,
+/produkty/brazilska-hovezi-svickova-3-4-detail-901,product,200,Brazilská hovězí svíčková 3/4,,,products,brazilska-hovezi-svickova-3-4,
+/produkty/brazilska-hovezi-svickova-4-5-detail-903,product,200,Brazilská hovězí svíčková 4/5,,,products,brazilska-hovezi-svickova-4-5,
+/produkty/brazilsky-hovezi-chuck-roll-detail-906,product,200,Brazilský hovězí Chuck Roll,,,products,brazilsky-hovezi-chuck-roll,
+/produkty/brazilsky-hovezi-flank-steak-detail-904,product,200,Brazilský hovězí Flank Steak,,,products,brazilsky-hovezi-flank-steak,
+/produkty/brazilsky-hovezi-rib-eye-detail-908,product,200,Brazilský hovězí Rib Eye,,,products,brazilsky-hovezi-rib-eye,
+/produkty/brazilsky-hovezi-rumpsteak-detail-909,product,200,Brazilský hovězí Rumpsteak,,,products,brazilsky-hovezi-rumpsteak,
+/produkty/brazilsky-hovezi-striploin-detail-910,product,200,Brazilský hovězí Striploin,,,products,brazilsky-hovezi-striploin,
+/produkty/brdska-jemna-klobasa-detail-1224,product,200,Brdská jemná klobása,,,products,brdska-jemna-klobasa,
+/produkty/brdska-paliva-klobasa-detail-1226,product,200,Brdská pálivá klobása,,,products,brdska-paliva-klobasa,
+/produkty/bulka-cerstva-se-sezamem-90g-cca-13cm-detail-1012,product,200,Bulka čerstvá se sezamem 90g (cca 13cm),,,products,bulka-cerstva-se-sezamem-90g-cca-13cm,
+/produkty/bulka-velka-balena-se-sezamem-4x-75g-detail-1214,product,200,"Bulka velká, balená se sezamem 4x 75g",,,products,bulka-velka-balena-se-sezamem-4x-75g,
+/produkty/cheddar-cheese-detail-1176,product,200,Cheddar cheese,,,products,cheddar-cheese,
+/produkty/chorizo-klobasa-detail-294,product,200,Chorizo klobása,,,products,chorizo-klobasa,
+/produkty/danci-hrbet-detail-326,product,200,Dančí hřbet,,,products,danci-hrbet,
+/produkty/danci-krk-detail-328,product,200,Dančí krk,,,products,danci-krk,
+/produkty/danci-kyta-detail-330,product,200,Dančí kýta,,,products,danci-kyta,
+/produkty/danci-maso-na-gulas-detail-491,product,200,Dančí maso na guláš,,,products,danci-maso-na-gulas,
+/produkty/danci-plec-detail-332,product,200,Dančí plec,,,products,danci-plec,
+/produkty/danci-svickova-detail-324,product,200,Dančí svíčková,,,products,danci-svickova,
+/produkty/darkovy-poukaz-1-000-kc-detail-866,product,200,Dárkový poukaz 1 000 Kč,,,products,darkovy-poukaz-1-000-kc,
+/produkty/darkovy-poukaz-2-000-kc-detail-28794,product,200,Dárkový poukaz 2 000 Kč,,,products,darkovy-poukaz-2-000-kc,
+/produkty/darkovy-poukaz-5-000-kc-detail-28792,product,200,Dárkový poukaz 5 000 Kč,,,products,darkovy-poukaz-5-000-kc,
+/produkty/darkovy-poukaz-500-kc-detail-864,product,200,Dárkový poukaz 500 Kč,,,products,darkovy-poukaz-500-kc,
+/produkty/darkovy-steakovy-set-krabicka-mala-detail-1124,product,200,Dárkový steakový set - krabička malá,,,products,darkovy-steakovy-set-krabicka-mala,
+/produkty/darkovy-steakovy-set-krabicka-velka-detail-1232,product,200,Dárkový steakový set - krabička velká,,,products,darkovy-steakovy-set-krabicka-velka,
+/produkty/debracinske-parky-detail-219,product,200,Debracínské párky,,,products,debracinske-parky,
+/produkty/demi-glace-160g-detail-1249,product,200,Demi Glace 160g,,,products,demi-glace-160g,
+/produkty/dort-detsky-spider-man-detail-28809,product,200,Dort dětský SPIDER-MAN,,,products,dort-detsky-spider-man,
+/produkty/drstkova-polevka-detail-1255,product,200,Dršťková polévka,,,products,drstkova-polevka,
+/produkty/emmental-detail-1179,product,200,Emmentál,,,products,emmental,
+/produkty/farmarska-hovezi-falesna-svickova-detail-242,product,200,Farmářská hovězí falešná svíčková,,,products,farmarska-hovezi-falesna-svickova,
+/produkty/farmarska-hovezi-kyta-orech-detail-246,product,200,Farmářská hovězí kýta - ořech,,,products,farmarska-hovezi-kyta-orech,
+/produkty/farmarska-hovezi-loupana-plec-bez-kosti-detail-441,product,200,Farmářská hovězí loupaná plec bez kosti,,,products,farmarska-hovezi-loupana-plec-bez-kosti,
+/produkty/farmarska-hovezi-svickova-detail-147,product,200,Farmářská hovězí svíčková,,,products,farmarska-hovezi-svickova,
+/produkty/farmarske-hovezi-predni-bez-kosti-detail-439,product,200,Farmářské hovězí přední bez kosti,,,products,farmarske-hovezi-predni-bez-kosti,
+/produkty/farmarsky-hovezi-nizky-rostenec-detail-149,product,200,Farmářský hovězí nízký roštěnec,,,products,farmarsky-hovezi-nizky-rostenec,
+/produkty/farmarsky-hovezi-vysoky-rostenec-detail-248,product,200,Farmářský hovězí vysoký roštěnec,,,products,farmarsky-hovezi-vysoky-rostenec,
+/produkty/francouzska-makronka-malinova-5ks-detail-28765,product,200,Francouzská Makronka malinová 5ks,,,products,francouzska-makronka-malinova-5ks,
+/produkty/francouzska-makronka-pistaciova-5ks-detail-28805,product,200,Francouzská Makronka pistaciová 5ks,,,products,francouzska-makronka-pistaciova-5ks,
+/produkty/francouzska-makronka-s-motivem-5ks-detail-28807,product,200,Francouzská Makronka s motivem 5ks,,,products,francouzska-makronka-s-motivem-5ks,
+/produkty/gouda-detail-1182,product,200,Gouda,,,products,gouda,
+/produkty/gulasova-polevka-detail-1257,product,200,Gulášová polévka,,,products,gulasova-polevka,
+/produkty/gyulai-klobasa-detail-292,product,200,Gyulai klobása,,,products,gyulai-klobasa,
+/produkty/hovezi-burger-chilli-cokolada-detail-1082,product,200,Hovězí burger chilli&čokoláda,,,products,hovezi-burger-chilli-cokolada,
+/produkty/hovezi-burger-jahoda-a-mandle-detail-1210,product,200,Hovězí burger jahoda a mandle,,,products,hovezi-burger-jahoda-a-mandle,
+/produkty/hovezi-burger-jalapenos-detail-1109,product,200,Hovězí burger Jalapeños,,,products,hovezi-burger-jalapenos,
+/produkty/hovezi-burger-rum-orechy-detail-1189,product,200,Hovězí burger Rum&ořechy,,,products,hovezi-burger-rum-orechy,
+/produkty/hovezi-burger-sul-detail-1084,product,200,Hovězí burger sůl,,,products,hovezi-burger-sul,
+/produkty/hovezi-burger-svestka-skorice-detail-1105,product,200,Hovězí burger švestka&skořice,,,products,hovezi-burger-svestka-skorice,
+/produkty/hovezi-mlete-maso-solene-detail-548,product,200,Hovězí mleté maso solené,,,products,hovezi-mlete-maso-solene,
+/produkty/hovezi-pastrami-detail-193,product,200,Hovězí Pastrami,,,products,hovezi-pastrami,
+/produkty/husa-cela-detail-536,product,200,Husa celá,,,products,husa-cela,
+/produkty/irska-hovezi-svickova-charolais-detail-952,product,200,Irská hovězí svíčková Charolais,,,products,irska-hovezi-svickova-charolais,
+/produkty/irsky-hovezi-chuck-roll-detail-955,product,200,Irský hovězí Chuck Roll,,,products,irsky-hovezi-chuck-roll,
+/produkty/irsky-hovezi-chuck-tender-detail-956,product,200,Irský hovězí Chuck Tender,,,products,irsky-hovezi-chuck-tender,
+/produkty/irsky-hovezi-flank-steak-detail-953,product,200,Irský hovězí Flank Steak,,,products,irsky-hovezi-flank-steak,
+/produkty/irsky-hovezi-flap-steak-detail-954,product,200,Irský hovězí Flap Steak,,,products,irsky-hovezi-flap-steak,
+/produkty/irsky-hovezi-rib-eye-detail-957,product,200,Irský hovězí Rib Eye,,,products,irsky-hovezi-rib-eye,
+/produkty/irsky-hovezi-striploin-detail-959,product,200,Irský hovězí Striploin,,,products,irsky-hovezi-striploin,
+/produkty/irsky-hovezi-top-blade-detail-960,product,200,Irský hovězí Top Blade,,,products,irsky-hovezi-top-blade,
+/produkty/jarni-kuratko-detail-1068,product,200,Jarní kuřátko,,,products,jarni-kuratko,
+/produkty/jehneci-bok-rolovany-detail-1162,product,200,Jehněčí bok rolovaný,,,products,jehneci-bok-rolovany,
+/produkty/jehneci-hrebinky-s-kosti-french-rack-detail-544,product,200,Jehněčí hřebínky s kostí - French Rack,,,products,jehneci-hrebinky-s-kosti-french-rack,
+/produkty/jehneci-kyta-bez-kosti-detail-542,product,200,Jehněčí kýta BEZ kosti,,,products,jehneci-kyta-bez-kosti,
+/produkty/jehneci-plec-bez-kosti-detail-540,product,200,Jehněčí plec bez kosti,,,products,jehneci-plec-bez-kosti,
+/produkty/jeleni-hrbet-detail-485,product,200,Jelení hřbet,,,products,jeleni-hrbet,
+/produkty/jeleni-krk-detail-350,product,200,Jelení krk,,,products,jeleni-krk,
+/produkty/jeleni-kyta-detail-352,product,200,Jelení kýta,,,products,jeleni-kyta,
+/produkty/jeleni-maso-na-gulas-detail-1015,product,200,Jelení maso na guláš,,,products,jeleni-maso-na-gulas,
+/produkty/jeleni-plec-detail-354,product,200,Jelení plec,,,products,jeleni-plec,
+/produkty/jeleni-svickova-detail-346,product,200,Jelení svíčková,,,products,jeleni-svickova,
+/produkty/jelito-detail-1222,product,200,Jelito,,,products,jelito,
+/produkty/jitrnice-detail-1220,product,200,Jitrnice,,,products,jitrnice,
+/produkty/kachna-cela-detail-531,product,200,Kachna celá,,,products,kachna-cela,
+/produkty/kanci-hrbet-detail-265,product,200,Kančí hřbet,,,products,kanci-hrbet,
+/produkty/kanci-krkovice-detail-257,product,200,Kančí krkovice,,,products,kanci-krkovice,
+/produkty/kanci-kyta-detail-224,product,200,Kančí kýta,,,products,kanci-kyta,
+/produkty/kanci-maso-na-gulas-detail-261,product,200,Kančí maso na guláš,,,products,kanci-maso-na-gulas,
+/produkty/kanci-panenka-detail-263,product,200,Kančí panenka,,,products,kanci-panenka,
+/produkty/kanci-plec-detail-259,product,200,Kančí plec,,,products,kanci-plec,
+/produkty/koreni-na-bylinkove-maslo-40g-detail-1279,product,200,Koření na bylinkové máslo 40g,,,products,koreni-na-bylinkove-maslo-40g,
+/produkty/koreni-na-grilovanou-zeleninu-100g-detail-1281,product,200,Koření na grilovanou zeleninu 100g,,,products,koreni-na-grilovanou-zeleninu-100g,
+/produkty/koriandr-rezany-180g-detail-589,product,200,Koriandr řezaný 180g,,,products,koriandr-rezany-180g,
+/produkty/kruti-prsa-detail-1218,product,200,Krůtí prsa,,,products,kruti-prsa,
+/produkty/kure-cele-detail-511,product,200,Kuře celé,,,products,kure-cele,
+/produkty/kureci-ctvrtky-detail-507,product,200,Kuřecí čtvrtky,,,products,kureci-ctvrtky,
+/produkty/kureci-kridla-detail-1010,product,200,Kuřecí křídla,,,products,kureci-kridla,
+/produkty/kureci-prsa-detail-505,product,200,Kuřecí prsa,,,products,kureci-prsa,
+/produkty/lanyz-cerny-letni-detail-1195,product,200,Lanýž černý letní,,,products,lanyz-cerny-letni,
+/produkty/lanyz-cerny-zimni-detail-1269,product,200,Lanýž černý zimní,,,products,lanyz-cerny-zimni,
+/produkty/losos-filet-detail-228,product,200,Losos - filet,,,products,losos-filet,
+/produkty/lovecky-salam-detail-207,product,200,Lovecký salám,,,products,lovecky-salam,
+/produkty/mata-rezana-180g-detail-591,product,200,Máta řezaná 180g,,,products,mata-rezana-180g,
+/produkty/metsky-hruby-detail-205,product,200,Métský hrubý,,,products,metsky-hruby,
+/produkty/metsky-jemny-detail-183,product,200,Métský jemný,,,products,metsky-jemny,
+/produkty/moravske-uzene-detail-647,product,200,Moravské uzené,,,products,moravske-uzene,
+/produkty/namibijska-hovezi-svickova-4-5-detail-962,product,200,Namibijská hovězí svíčková 4/5,,,products,namibijska-hovezi-svickova-4-5,
+/produkty/namibijske-hovezi-hrudi-brisket-point-end-detail-961,product,200,Namibijské hovězí hrudí - BRISKET POINT END,,,products,namibijske-hovezi-hrudi-brisket-point-end,
+/produkty/namibijsky-hovezi-chuck-roll-detail-965,product,200,Namibijský hovězí Chuck Roll,,,products,namibijsky-hovezi-chuck-roll,
+/produkty/namibijsky-hovezi-chuck-tender-detail-966,product,200,Namibijský hovězí Chuck Tender,,,products,namibijsky-hovezi-chuck-tender,
+/produkty/namibijsky-hovezi-flank-steak-detail-963,product,200,Namibijský hovězí Flank Steak,,,products,namibijsky-hovezi-flank-steak,
+/produkty/namibijsky-hovezi-flap-steak-detail-964,product,200,Namibijský hovězí Flap Steak,,,products,namibijsky-hovezi-flap-steak,
+/produkty/namibijsky-hovezi-rib-eye-detail-967,product,200,Namibijský hovězí Rib Eye,,,products,namibijsky-hovezi-rib-eye,
+/produkty/namibijsky-hovezi-rump-steak-detail-968,product,200,Namibijský hovězí rump steak,,,products,namibijsky-hovezi-rump-steak,
+/produkty/namibijsky-hovezi-striploin-detail-969,product,200,Namibijský hovězí Striploin,,,products,namibijsky-hovezi-striploin,
+/produkty/namibijsky-hovezi-top-blade-detail-970,product,200,Namibijský hovězí Top Blade,,,products,namibijsky-hovezi-top-blade,
+/produkty/niva-detail-1185,product,200,Niva,,,products,niva,
+/produkty/paprikova-klobasa-detail-1206,product,200,Papriková klobása,,,products,paprikova-klobasa,
+/produkty/pecena-sekana-detail-288,product,200,Pečená sekaná,,,products,pecena-sekana,
+/produkty/peprova-omacka-160g-detail-1251,product,200,Pepřová omáčka 160g,,,products,peprova-omacka-160g,
+/produkty/profesionalni-brouseni-noze-detail-1212,product,200,Profesionální broušení nože,,,products,profesionalni-brouseni-noze,
+/produkty/prosciutto-detail-201,product,200,Prosciutto,,,products,prosciutto,
+/produkty/rozmaryn-rezany-180g-detail-593,product,200,Rozmarýn řezaný 180g,,,products,rozmaryn-rezany-180g,
+/produkty/sadlo-skvarene-detail-1267,product,200,Sádlo škvařené,,,products,sadlo-skvarene,
+/produkty/segedinsky-gulas-detail-1263,product,200,Segedínský guláš,,,products,segedinsky-gulas,
+/produkty/selsky-hovezi-gulas-detail-1261,product,200,Selský hovězí guláš,,,products,selsky-hovezi-gulas,
+/produkty/spek-mangalica-detail-663,product,200,Špek Mangalica,,,products,spek-mangalica,
+/produkty/spekacky-detail-221,product,200,Špekáčky,,,products,spekacky,
+/produkty/srnci-hrbet-s-kosti-detail-305,product,200,Srnčí hřbet s kostí,,,products,srnci-hrbet-s-kosti,
+/produkty/srnci-kyta-detail-310,product,200,Srnčí kýta,,,products,srnci-kyta,
+/produkty/srnci-maso-na-gulas-detail-314,product,200,Srnčí maso na guláš,,,products,srnci-maso-na-gulas,
+/produkty/srnci-plec-detail-307,product,200,Srnčí plec,,,products,srnci-plec,
+/produkty/sunka-od-kosti-detail-645,product,200,Šunka od kosti,,,products,sunka-od-kosti,
+/produkty/teleci-burger-sul-detail-1086,product,200,Telecí burger sůl,,,products,teleci-burger-sul,
+/produkty/teleci-krk-detail-362,product,200,Telecí krk,,,products,teleci-krk,
+/produkty/teleci-kyta-spodni-sal-detail-364,product,200,Telecí kýta - spodní šál,,,products,teleci-kyta-spodni-sal,
+/produkty/teleci-kyta-valecek-detail-1007,product,200,Telecí kýta - váleček,,,products,teleci-kyta-valecek,
+/produkty/teleci-maso-na-gulas-detail-691,product,200,Telecí maso na guláš,,,products,teleci-maso-na-gulas,
+/produkty/teleci-mlete-maso-solene-detail-552,product,200,Telecí mleté maso solené,,,products,teleci-mlete-maso-solene,
+/produkty/teleci-pecene-detail-360,product,200,Telecí pečeně,,,products,teleci-pecene,
+/produkty/teleci-plec-detail-366,product,200,Telecí plec,,,products,teleci-plec,
+/produkty/teleci-svickova-detail-358,product,200,Telecí svíčková,,,products,teleci-svickova,
+/produkty/termotaska-mala-detail-28873,product,200,Termotaška malá,,,products,termotaska-mala,
+/produkty/termotaska-xl-detail-28871,product,200,Termotaška XL,,,products,termotaska-xl,
+/produkty/tlacenka-detail-286,product,200,Tlačenka,,,products,tlacenka,
+/produkty/treska-detail-1070,product,200,Treska,,,products,treska,
+/produkty/trhane-hovezi-maso-v-bbq-detail-1259,product,200,Trhané hovězí maso v BBQ,,,products,trhane-hovezi-maso-v-bbq,
+/produkty/uhersky-salam-pick-detail-639,product,200,Uherský salám Pick,,,products,uhersky-salam-pick,
+/produkty/uruguayska-hovezi-svickova-3-4-detail-338,product,200,Uruguayská hovězí svíčková 3/4,,,products,uruguayska-hovezi-svickova-3-4,
+/produkty/uruguayska-hovezi-svickova-4-5-detail-1001,product,200,Uruguayská hovězí svíčková 4/5,,,products,uruguayska-hovezi-svickova-4-5,
+/produkty/uruguaysky-hovezi-brisket-hrudi-bez-kosti-zacisteny-detail-28850,product,200,Uruguayský hovězí Brisket - hrudí bez kosti začištěný,,,products,uruguaysky-hovezi-brisket-hrudi-bez-kosti-zacisteny,
+/produkty/uruguaysky-hovezi-chuck-roll-detail-431,product,200,Uruguayský hovězí Chuck Roll,,,products,uruguaysky-hovezi-chuck-roll,
+/produkty/uruguaysky-hovezi-chuck-tender-detail-433,product,200,Uruguayský hovězí Chuck Tender,,,products,uruguaysky-hovezi-chuck-tender,
+/produkty/uruguaysky-hovezi-flank-steak-detail-427,product,200,Uruguayský hovězí Flank Steak,,,products,uruguaysky-hovezi-flank-steak,
+/produkty/uruguaysky-hovezi-flap-steak-detail-429,product,200,Uruguayský hovězí Flap Steak,,,products,uruguaysky-hovezi-flap-steak,
+/produkty/uruguaysky-hovezi-rib-eye-detail-344,product,200,Uruguayský hovězí Rib Eye,,,products,uruguaysky-hovezi-rib-eye,
+/produkty/uruguaysky-hovezi-rumpsteak-detail-342,product,200,Uruguayský hovězí Rumpsteak,,,products,uruguaysky-hovezi-rumpsteak,
+/produkty/uruguaysky-hovezi-striploin-detail-793,product,200,Uruguayský hovězí Striploin,,,products,uruguaysky-hovezi-striploin,
+/produkty/uruguaysky-hovezi-top-blade-detail-435,product,200,Uruguayský hovězí Top Blade,,,products,uruguaysky-hovezi-top-blade,
+/produkty/us-hovezi-brisket-choice-hrudi-full-detail-1312,product,200,"US hovězí brisket CHOICE - hrudí ""FULL""",,,products,us-hovezi-brisket-choice-hrudi-full,
+/produkty/us-hovezi-chuck-flap-detail-1191,product,200,US hovězí Chuck Flap,,,products,us-hovezi-chuck-flap,
+/produkty/us-hovezi-chuck-roll-detail-925,product,200,US hovězí Chuck Roll,,,products,us-hovezi-chuck-roll,
+/produkty/us-hovezi-chuck-tender-detail-926,product,200,US hovězí Chuck Tender,,,products,us-hovezi-chuck-tender,
+/produkty/us-hovezi-flank-steak-detail-923,product,200,US hovězí Flank Steak,,,products,us-hovezi-flank-steak,
+/produkty/us-hovezi-flap-steak-detail-924,product,200,US hovězí Flap Steak,,,products,us-hovezi-flap-steak,
+/produkty/us-hovezi-picanha-detail-1241,product,200,US hovězí Picanha,,,products,us-hovezi-picanha,
+/produkty/us-hovezi-porterhouse-steak-detail-1284,product,200,US hovězí Porterhouse steak,,,products,us-hovezi-porterhouse-steak,
+/produkty/us-hovezi-prime-rib-rib-eye-s-kratkou-kosti-detail-1310,product,200,US hovězí Prime rib (rib eye s krátkou kostí),,,products,us-hovezi-prime-rib-rib-eye-s-kratkou-kosti,
+/produkty/us-hovezi-rib-eye-prime-quality-detail-927,product,200,US hovězí Rib Eye PRIME quality,,,products,us-hovezi-rib-eye-prime-quality,
+/produkty/us-hovezi-rumpsteak-detail-928,product,200,US hovězí Rumpsteak,,,products,us-hovezi-rumpsteak,
+/produkty/us-hovezi-short-ribs-zebra-detail-1306,product,200,US hovězí short ribs - žebra,,,products,us-hovezi-short-ribs-zebra,
+/produkty/us-hovezi-skirt-steak-detail-28779,product,200,US hovězí Skirt Steak,,,products,us-hovezi-skirt-steak,
+/produkty/us-hovezi-striploin-detail-929,product,200,US hovězí Striploin,,,products,us-hovezi-striploin,
+/produkty/us-hovezi-svickova-detail-922,product,200,US hovězí svíčková,,,products,us-hovezi-svickova,
+/produkty/us-hovezi-t-bone-steak-detail-1286,product,200,US hovězí T-bone steak,,,products,us-hovezi-t-bone-steak,
+/produkty/us-hovezi-tomahawk-detail-1107,product,200,US hovězí Tomahawk,,,products,us-hovezi-tomahawk,
+/produkty/us-hovezi-top-blade-detail-930,product,200,US hovězí Top Blade,,,products,us-hovezi-top-blade,
+/produkty/uzena-krkovice-bez-kosti-detail-801,product,200,Uzená krkovice bez kosti,,,products,uzena-krkovice-bez-kosti,
+/produkty/valentyn-promo-wagyu-burger-pouze-9-2-13-2-2026-detail-28803,product,200,VALENTÝN promo Wagyu burger POUZE 9.2. - 13.2.2026,,,products,valentyn-promo-wagyu-burger-pouze-9-2-13-2-2026,
+/produkty/veprova-krkovice-bez-kosti-detail-132,product,200,Vepřová krkovice bez kosti,,,products,veprova-krkovice-bez-kosti,
+/produkty/veprova-kyta-bez-kosti-detail-120,product,200,Vepřová kýta bez kosti,,,products,veprova-kyta-bez-kosti,
+/produkty/veprova-panenka-detail-27,product,200,Vepřová panenka,,,products,veprova-panenka,
+/produkty/veprova-pecene-bez-kosti-detail-465,product,200,Vepřová pečeně bez kosti,,,products,veprova-pecene-bez-kosti,
+/produkty/veprova-plec-bez-kosti-detail-122,product,200,Vepřová plec bez kosti,,,products,veprova-plec-bez-kosti,
+/produkty/veprova-zebirka-plocha-pasky-detail-469,product,200,Vepřová žebírka - plochá / pásky,,,products,veprova-zebirka-plocha-pasky,
+/produkty/veprove-mlete-maso-solene-detail-1008,product,200,Vepřové mleté maso solené,,,products,veprove-mlete-maso-solene,
+/produkty/veprove-ve-vlastni-stave-detail-1265,product,200,Vepřové ve vlastní šťávě,,,products,veprove-ve-vlastni-stave,
+/produkty/veprovy-burger-sul-detail-1088,product,200,Vepřový burger sůl,,,products,veprovy-burger-sul,
+/produkty/videnske-parky-detail-298,product,200,Vídeňské párky,,,products,videnske-parky,
+/produkty/vlockova-sul-cornisch-100g-detail-1275,product,200,Vločková sůl cornisch 100g,,,products,vlockova-sul-cornisch-100g,
+/produkty/vlockova-sul-cornisch-detail-1275,product,301,,,/produkty/vlockova-sul-cornisch-100g-detail-1275,products,vlockova-sul-cornisch-100g,
+/produkty/vysocina-premium-detail-199,product,200,Vysočina prémium,,,products,vysocina-premium,
+/produkty/wagyu-brisket-hrudi-aus-bms-8-9-detail-28838,product,200,Wagyu Brisket - hrudí - AUS BMS 8/9,,,products,wagyu-brisket-hrudi-aus-bms-8-9,
+/produkty/wagyu-burger-japan-detail-1187,product,200,Wagyu burger JAPAN,,,products,wagyu-burger-japan,
+/produkty/wagyu-chuck-flap-japonsko-a5-detail-1230,product,200,Wagyu Chuck Flap JAPONSKO A5,,,products,wagyu-chuck-flap-japonsko-a5,
+/produkty/wagyu-chuck-roll-aus-bms-8-9-detail-28773,product,200,Wagyu Chuck roll AUS BMS 8/9,,,products,wagyu-chuck-roll-aus-bms-8-9,
+/produkty/wagyu-chuck-roll-japonsko-a5-detail-1202,product,200,Wagyu Chuck Roll JAPONSKO A5,,,products,wagyu-chuck-roll-japonsko-a5,
+/produkty/wagyu-chuck-roll-urug-bms-5-7-detail-1037,product,200,Wagyu Chuck roll URUG_BMS 5-7,,,products,wagyu-chuck-roll-urug-bms-5-7,
+/produkty/wagyu-flank-chile-bms-5-7-detail-1291,product,200,Wagyu Flank CHILE_BMS 5-7,,,products,wagyu-flank-chile-bms-5-7,
+/produkty/wagyu-flank-steak-aus-bms-8-9-detail-1239,product,200,Wagyu Flank steak AUS BMS 8/9,,,products,wagyu-flank-steak-aus-bms-8-9,
+/produkty/wagyu-flank-steak-japonsko-a5-detail-1160,product,200,Wagyu Flank steak JAPONSKO A5,,,products,wagyu-flank-steak-japonsko-a5,
+/produkty/wagyu-flank-urug-bms-6-7-detail-1303,product,200,Wagyu Flank URUG_BMS 6-7,,,products,wagyu-flank-urug-bms-6-7,
+/produkty/wagyu-flap-chile-bms-5-7-detail-1127,product,200,Wagyu Flap CHILE_BMS 5-7,,,products,wagyu-flap-chile-bms-5-7,
+/produkty/wagyu-flap-meat-aus-bms-8-9-detail-1151,product,200,Wagyu Flap meat AUS BMS 8/9,,,products,wagyu-flap-meat-aus-bms-8-9,
+/produkty/wagyu-flap-urug-bms-5-7-detail-1292,product,200,Wagyu Flap URUG_BMS 5-7,,,products,wagyu-flap-urug-bms-5-7,
+/produkty/wagyu-picanha-aus-bms-8-detail-28771,product,200,Wagyu Picanha AUS. BMS 8+,,,products,wagyu-picanha-aus-bms-8,
+/produkty/wagyu-picanha-japonsko-a5-detail-1027,product,200,Wagyu Picanha JAPONSKO A5,,,products,wagyu-picanha-japonsko-a5,
+/produkty/wagyu-rib-cap-japonsko-a5-detail-1236,product,200,Wagyu Rib Cap JAPONSKO A5+,,,products,wagyu-rib-cap-japonsko-a5,
+/produkty/wagyu-rib-eye-australie-bms-6-detail-1169,product,200,Wagyu Rib Eye AUSTRÁLIE BMS 6,,,products,wagyu-rib-eye-australie-bms-6,
+/produkty/wagyu-rib-eye-australie-bms-8-detail-1074,product,200,Wagyu Rib Eye AUSTRÁLIE BMS 8+,,,products,wagyu-rib-eye-australie-bms-8,
+/produkty/wagyu-rib-eye-chile-bms-5-7-detail-1294,product,200,Wagyu Rib Eye CHILE BMS 5-7,,,products,wagyu-rib-eye-chile-bms-5-7,
+/produkty/wagyu-rib-eye-japonsko-a3-detail-1148,product,200,Wagyu Rib Eye JAPONSKO A3,,,products,wagyu-rib-eye-japonsko-a3,
+/produkty/wagyu-rib-eye-japonsko-a4-detail-1153,product,200,Wagyu Rib eye JAPONSKO A4,,,products,wagyu-rib-eye-japonsko-a4,
+/produkty/wagyu-rib-eye-japonsko-a5-high-quality-detail-1080,product,200,Wagyu Rib eye JAPONSKO A5+ HIGH QUALITY,,,products,wagyu-rib-eye-japonsko-a5-high-quality,
+/produkty/wagyu-rib-eye-uruguay-bms-5-7-detail-1094,product,200,Wagyu Rib Eye URUGUAY BMS 5-7,,,products,wagyu-rib-eye-uruguay-bms-5-7,
+/produkty/wagyu-rump-steak-aus-bms-8-detail-1216,product,200,Wagyu Rump steak AUS. BMS 8+,,,products,wagyu-rump-steak-aus-bms-8,
+/produkty/wagyu-rump-steak-japonsko-a5-detail-1208,product,200,Wagyu Rump steak JAPONSKO A5,,,products,wagyu-rump-steak-japonsko-a5,
+/produkty/wagyu-sirloin-butt-japonsko-a5-detail-1228,product,200,Wagyu Sirloin butt JAPONSKO A5+,,,products,wagyu-sirloin-butt-japonsko-a5,
+/produkty/wagyu-striploin-aus-bms-6-7-detail-1247,product,200,Wagyu Striploin AUS BMS 6-7,,,products,wagyu-striploin-aus-bms-6-7,
+/produkty/wagyu-striploin-aus-bms-8-9-detail-1076,product,200,Wagyu Striploin AUS BMS 8-9,,,products,wagyu-striploin-aus-bms-8-9,
+/produkty/wagyu-striploin-chile-bms-5-7-detail-1295,product,200,Wagyu Striploin CHILE_BMS 5-7,,,products,wagyu-striploin-chile-bms-5-7,
+/produkty/wagyu-striploin-japonsko-a3-detail-1204,product,200,Wagyu Striploin JAPONSKO A3,,,products,wagyu-striploin-japonsko-a3,
+/produkty/wagyu-striploin-japonsko-a4-detail-1029,product,200,Wagyu Striploin JAPONSKO A4,,,products,wagyu-striploin-japonsko-a4,
+/produkty/wagyu-striploin-japonsko-a5-high-quality-detail-1156,product,200,Wagyu Striploin JAPONSKO A5+ HIGH QUALITY,,,products,wagyu-striploin-japonsko-a5-high-quality,
+/produkty/wagyu-striploin-urug-bms-5-7-detail-1100,product,200,Wagyu Striploin URUG_BMS 5-7,,,products,wagyu-striploin-urug-bms-5-7,
+/produkty/wagyu-tenderloin-aus-bms-6-7-detail-1243,product,200,Wagyu Tenderloin AUS BMS 6-7,,,products,wagyu-tenderloin-aus-bms-6-7,
+/produkty/wagyu-tenderloin-aus-bms-8-9-detail-1031,product,200,Wagyu Tenderloin AUS BMS 8-9,,,products,wagyu-tenderloin-aus-bms-8-9,
+/produkty/wagyu-tenderloin-chile-bms-5-7-detail-1296,product,200,Wagyu Tenderloin CHILE_BMS 5-7,,,products,wagyu-tenderloin-chile-bms-5-7,
+/produkty/wagyu-tenderloin-japonsko-a3-detail-1234,product,200,Wagyu Tenderloin JAPONSKO A3,,,products,wagyu-tenderloin-japonsko-a3,
+/produkty/wagyu-tenderloin-japonsko-a4-detail-1072,product,200,Wagyu Tenderloin JAPONSKO A4,,,products,wagyu-tenderloin-japonsko-a4,
+/produkty/wagyu-tenderloin-japonsko-a5-high-quality-detail-1146,product,200,Wagyu Tenderloin JAPONSKO A5+ HIGH QUALITY,,,products,wagyu-tenderloin-japonsko-a5-high-quality,
+/produkty/wagyu-tenderloin-urug-bms-5-7-detail-1096,product,200,Wagyu Tenderloin URUG_BMS 5-7,,,products,wagyu-tenderloin-urug-bms-5-7,
+/produkty/wagyu-tomahawk-s-dlouhou-kosti-aus-bms-8-9-detail-1245,product,200,Wagyu Tomahawk s dlouhou kostí AUS BMS 8/9,,,products,wagyu-tomahawk-s-dlouhou-kosti-aus-bms-8-9,
+/produkty/wagyu-top-blade-aus-bms-8-detail-28776,product,200,Wagyu Top Blade AUS. BMS 8+,,,products,wagyu-top-blade-aus-bms-8,
+/produkty/wagyu-top-blade-urug-bms-5-7-detail-1035,product,200,Wagyu Top Blade URUG BMS 5-7,,,products,wagyu-top-blade-urug-bms-5-7,
+/produkty/wagyu-tuk-orez-japonsko-detail-1158,product,200,Wagyu tuk / ořez JAPONSKO,,,products,wagyu-tuk-orez-japonsko,
+/produkty/zamecka-klobasa-detail-296,product,200,Zámecká klobása,,,products,zamecka-klobasa,
+/produkty,product-listing,200,Produkty | Terrys Steak,/produkty,,,,
+/produkty?Page=1,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=10,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=11,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=12,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=13,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=14,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=15,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=16,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=17,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=18,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=19,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=2,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=20,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=21,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=22,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=3,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=4,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=5,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=6,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=7,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=8,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/produkty?Page=9,product-listing,200,Produkty | Terrys Steak,/produkty,,,,"alias, kanonická /produkty"
+/recepty/anglicky-roastbeef-detail-868?page=4&catId=31&list=hide,recipe,,,,,,,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/anglicky-roastbeef-detail-868?page=4&list=hide,recipe,,,,,,,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762,recipe,200,Farmářský hovězí burger s dresinkem,/recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762,,recipes,farmarsky-hovezi-burger-s-dresinkem,
+/recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762?Id=807,recipe,200,Farmářský hovězí burger s dresinkem,/recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762,,recipes,farmarsky-hovezi-burger-s-dresinkem,"alias, kanonická /recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762; není v sitemap.xml"
+/recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762?page=2,recipe,200,Farmářský hovězí burger s dresinkem,/recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762,,recipes,farmarsky-hovezi-burger-s-dresinkem,"alias, kanonická /recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762; není v sitemap.xml"
+/recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762?page=3,recipe,200,Farmářský hovězí burger s dresinkem,/recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762,,recipes,farmarsky-hovezi-burger-s-dresinkem,"alias, kanonická /recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762; není v sitemap.xml"
+/recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762?page=3&catId=31&list=hide,recipe,,,,,recipes,farmarsky-hovezi-burger-s-dresinkem,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762?page=3&list=hide,recipe,,,,,recipes,farmarsky-hovezi-burger-s-dresinkem,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762?page=4,recipe,200,Farmářský hovězí burger s dresinkem,/recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762,,recipes,farmarsky-hovezi-burger-s-dresinkem,"alias, kanonická /recepty/farmarsky-hovezi-burger-s-dresinkem-detail-762; není v sitemap.xml"
+/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836,recipe,200,Hovězí žebra SHORT RIBS US PRIME,/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836,,recipes,hovezi-zebra-short-ribs-us-prime,
+/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836?catId=31,recipe,200,Hovězí žebra SHORT RIBS US PRIME,/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836,,recipes,hovezi-zebra-short-ribs-us-prime,"alias, kanonická /recepty/hovezi-zebra-short-ribs-us-prime-detail-28836"
+/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836?catId=31&list=hide,recipe,,,,,recipes,hovezi-zebra-short-ribs-us-prime,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836?Id=807,recipe,200,Hovězí žebra SHORT RIBS US PRIME,/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836,,recipes,hovezi-zebra-short-ribs-us-prime,"alias, kanonická /recepty/hovezi-zebra-short-ribs-us-prime-detail-28836; není v sitemap.xml"
+/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836?list=hide,recipe,,,,,recipes,hovezi-zebra-short-ribs-us-prime,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836?page=2,recipe,200,Hovězí žebra SHORT RIBS US PRIME,/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836,,recipes,hovezi-zebra-short-ribs-us-prime,"alias, kanonická /recepty/hovezi-zebra-short-ribs-us-prime-detail-28836; není v sitemap.xml"
+/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836?page=2&catId=31,recipe,200,Hovězí žebra SHORT RIBS US PRIME,/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836,,recipes,hovezi-zebra-short-ribs-us-prime,"alias, kanonická /recepty/hovezi-zebra-short-ribs-us-prime-detail-28836; není v sitemap.xml"
+/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836?page=3,recipe,200,Hovězí žebra SHORT RIBS US PRIME,/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836,,recipes,hovezi-zebra-short-ribs-us-prime,"alias, kanonická /recepty/hovezi-zebra-short-ribs-us-prime-detail-28836; není v sitemap.xml"
+/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836?page=3&catId=31,recipe,200,Hovězí žebra SHORT RIBS US PRIME,/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836,,recipes,hovezi-zebra-short-ribs-us-prime,"alias, kanonická /recepty/hovezi-zebra-short-ribs-us-prime-detail-28836; není v sitemap.xml"
+/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836?page=4,recipe,200,Hovězí žebra SHORT RIBS US PRIME,/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836,,recipes,hovezi-zebra-short-ribs-us-prime,"alias, kanonická /recepty/hovezi-zebra-short-ribs-us-prime-detail-28836; není v sitemap.xml"
+/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836?page=4&catId=31,recipe,200,Hovězí žebra SHORT RIBS US PRIME,/recepty/hovezi-zebra-short-ribs-us-prime-detail-28836,,recipes,hovezi-zebra-short-ribs-us-prime,"alias, kanonická /recepty/hovezi-zebra-short-ribs-us-prime-detail-28836; není v sitemap.xml"
+/recepty/jehneci-kyta-s-rozmarynem-detail-870,recipe,200,Jehněčí kýta s rozmarýnem,/recepty/jehneci-kyta-s-rozmarynem-detail-870,,recipes,jehneci-kyta-s-rozmarynem,
+/recepty/jehneci-kyta-s-rozmarynem-detail-870?Id=807,recipe,200,Jehněčí kýta s rozmarýnem,/recepty/jehneci-kyta-s-rozmarynem-detail-870,,recipes,jehneci-kyta-s-rozmarynem,"alias, kanonická /recepty/jehneci-kyta-s-rozmarynem-detail-870; není v sitemap.xml"
+/recepty/jehneci-kyta-s-rozmarynem-detail-870?page=2,recipe,200,Jehněčí kýta s rozmarýnem,/recepty/jehneci-kyta-s-rozmarynem-detail-870,,recipes,jehneci-kyta-s-rozmarynem,"alias, kanonická /recepty/jehneci-kyta-s-rozmarynem-detail-870; není v sitemap.xml"
+/recepty/jehneci-kyta-s-rozmarynem-detail-870?page=3,recipe,200,Jehněčí kýta s rozmarýnem,/recepty/jehneci-kyta-s-rozmarynem-detail-870,,recipes,jehneci-kyta-s-rozmarynem,"alias, kanonická /recepty/jehneci-kyta-s-rozmarynem-detail-870; není v sitemap.xml"
+/recepty/jehneci-kyta-s-rozmarynem-detail-870?page=4,recipe,200,Jehněčí kýta s rozmarýnem,/recepty/jehneci-kyta-s-rozmarynem-detail-870,,recipes,jehneci-kyta-s-rozmarynem,"alias, kanonická /recepty/jehneci-kyta-s-rozmarynem-detail-870; není v sitemap.xml"
+/recepty/jehneci-kyta-s-rozmarynem-detail-870?page=4&catId=31&list=hide,recipe,,,,,recipes,jehneci-kyta-s-rozmarynem,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/jehneci-kyta-s-rozmarynem-detail-870?page=4&list=hide,recipe,,,,,recipes,jehneci-kyta-s-rozmarynem,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835,recipe,200,"Kančí hřbet na bylinkách, pečený v celku",/recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835,,recipes,kanci-hrbet-na-bylinkach-peceny-v-celku,
+/recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835?Id=807,recipe,200,"Kančí hřbet na bylinkách, pečený v celku",/recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835,,recipes,kanci-hrbet-na-bylinkach-peceny-v-celku,"alias, kanonická /recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835; není v sitemap.xml"
+/recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835?page=2,recipe,200,"Kančí hřbet na bylinkách, pečený v celku",/recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835,,recipes,kanci-hrbet-na-bylinkach-peceny-v-celku,"alias, kanonická /recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835; není v sitemap.xml"
+/recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835?page=2&catId=31&list=hide,recipe,,,,,recipes,kanci-hrbet-na-bylinkach-peceny-v-celku,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835?page=3,recipe,200,"Kančí hřbet na bylinkách, pečený v celku",/recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835,,recipes,kanci-hrbet-na-bylinkach-peceny-v-celku,"alias, kanonická /recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835; není v sitemap.xml"
+/recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835?page=3&list=hide,recipe,,,,,recipes,kanci-hrbet-na-bylinkach-peceny-v-celku,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835?page=4,recipe,200,"Kančí hřbet na bylinkách, pečený v celku",/recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835,,recipes,kanci-hrbet-na-bylinkach-peceny-v-celku,"alias, kanonická /recepty/kanci-hrbet-na-bylinkach-peceny-v-celku-detail-835; není v sitemap.xml"
+/recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758,recipe,200,Kančí hřbet v pomerančovo-zázvorové marinádě,/recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758,,recipes,kanci-hrbet-v-pomerancovo-zazvorove-marinade,
+/recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758?Id=807,recipe,200,Kančí hřbet v pomerančovo-zázvorové marinádě,/recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758,,recipes,kanci-hrbet-v-pomerancovo-zazvorove-marinade,"alias, kanonická /recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758; není v sitemap.xml"
+/recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758?page=2,recipe,200,Kančí hřbet v pomerančovo-zázvorové marinádě,/recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758,,recipes,kanci-hrbet-v-pomerancovo-zazvorove-marinade,"alias, kanonická /recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758; není v sitemap.xml"
+/recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758?page=2&catId=31&list=hide,recipe,,,,,recipes,kanci-hrbet-v-pomerancovo-zazvorove-marinade,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758?page=2&list=hide,recipe,,,,,recipes,kanci-hrbet-v-pomerancovo-zazvorove-marinade,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758?page=3,recipe,200,Kančí hřbet v pomerančovo-zázvorové marinádě,/recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758,,recipes,kanci-hrbet-v-pomerancovo-zazvorove-marinade,"alias, kanonická /recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758; není v sitemap.xml"
+/recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758?page=4,recipe,200,Kančí hřbet v pomerančovo-zázvorové marinádě,/recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758,,recipes,kanci-hrbet-v-pomerancovo-zazvorove-marinade,"alias, kanonická /recepty/kanci-hrbet-v-pomerancovo-zazvorove-marinade-detail-758; není v sitemap.xml"
+/recepty/kanci-kyta-se-sipkovou-omackou-detail-1039?page=2&catId=31&list=hide,recipe,,,,,,,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/kanci-kyta-se-sipkovou-omackou-detail-1039?page=2&list=hide,recipe,,,,,,,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844,recipe,200,"Příprava hovězí svíčkové WELLINGTON v keramickém grilu, či jakémkoliv grilu s víkem, popřípadě v domácí troubě",/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844,,recipes,priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube,
+/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844?catId=31,recipe,200,"Příprava hovězí svíčkové WELLINGTON v keramickém grilu, či jakémkoliv grilu s víkem, popřípadě v domácí troubě",/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844,,recipes,priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube,"alias, kanonická /recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844"
+/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844?catId=31&list=hide,recipe,,,,,recipes,priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844?Id=807,recipe,200,"Příprava hovězí svíčkové WELLINGTON v keramickém grilu, či jakémkoliv grilu s víkem, popřípadě v domácí troubě",/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844,,recipes,priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube,"alias, kanonická /recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844; není v sitemap.xml"
+/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844?list=hide,recipe,,,,,recipes,priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844?page=2,recipe,200,"Příprava hovězí svíčkové WELLINGTON v keramickém grilu, či jakémkoliv grilu s víkem, popřípadě v domácí troubě",/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844,,recipes,priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube,"alias, kanonická /recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844; není v sitemap.xml"
+/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844?page=2&catId=31,recipe,200,"Příprava hovězí svíčkové WELLINGTON v keramickém grilu, či jakémkoliv grilu s víkem, popřípadě v domácí troubě",/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844,,recipes,priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube,"alias, kanonická /recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844; není v sitemap.xml"
+/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844?page=3,recipe,200,"Příprava hovězí svíčkové WELLINGTON v keramickém grilu, či jakémkoliv grilu s víkem, popřípadě v domácí troubě",/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844,,recipes,priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube,"alias, kanonická /recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844; není v sitemap.xml"
+/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844?page=3&catId=31,recipe,200,"Příprava hovězí svíčkové WELLINGTON v keramickém grilu, či jakémkoliv grilu s víkem, popřípadě v domácí troubě",/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844,,recipes,priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube,"alias, kanonická /recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844; není v sitemap.xml"
+/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844?page=4,recipe,200,"Příprava hovězí svíčkové WELLINGTON v keramickém grilu, či jakémkoliv grilu s víkem, popřípadě v domácí troubě",/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844,,recipes,priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube,"alias, kanonická /recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844; není v sitemap.xml"
+/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844?page=4&catId=31,recipe,200,"Příprava hovězí svíčkové WELLINGTON v keramickém grilu, či jakémkoliv grilu s víkem, popřípadě v domácí troubě",/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844,,recipes,priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube,"alias, kanonická /recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844; není v sitemap.xml"
+/recepty/priprava-rib-eye-steaku-reverzni-metodou-reverse-sear-detail-28762,recipe,200,Příprava Rib Eye steaku reverzní metodou / reverse sear,/recepty/priprava-rib-eye-steaku-reverzni-metodou-reverse-sear-detail-28762,,recipes,priprava-rib-eye-steaku-reverzni-metodou-reverse-sear,
+/recepty/priprava-rib-eye-steaku-reverzni-metodou-reverse-sear-detail-28762?Id=807,recipe,200,Příprava Rib Eye steaku reverzní metodou / reverse sear,/recepty/priprava-rib-eye-steaku-reverzni-metodou-reverse-sear-detail-28762,,recipes,priprava-rib-eye-steaku-reverzni-metodou-reverse-sear,"alias, kanonická /recepty/priprava-rib-eye-steaku-reverzni-metodou-reverse-sear-detail-28762; není v sitemap.xml"
+/recepty/priprava-rib-eye-steaku-reverzni-metodou-reverse-sear-detail-28762?list=hide,recipe,,,,,recipes,priprava-rib-eye-steaku-reverzni-metodou-reverse-sear,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/priprava-rib-eye-steaku-reverzni-metodou-reverse-sear-detail-28762?page=2,recipe,200,Příprava Rib Eye steaku reverzní metodou / reverse sear,/recepty/priprava-rib-eye-steaku-reverzni-metodou-reverse-sear-detail-28762,,recipes,priprava-rib-eye-steaku-reverzni-metodou-reverse-sear,"alias, kanonická /recepty/priprava-rib-eye-steaku-reverzni-metodou-reverse-sear-detail-28762; není v sitemap.xml"
+/recepty/priprava-rib-eye-steaku-reverzni-metodou-reverse-sear-detail-28762?page=3,recipe,200,Příprava Rib Eye steaku reverzní metodou / reverse sear,/recepty/priprava-rib-eye-steaku-reverzni-metodou-reverse-sear-detail-28762,,recipes,priprava-rib-eye-steaku-reverzni-metodou-reverse-sear,"alias, kanonická /recepty/priprava-rib-eye-steaku-reverzni-metodou-reverse-sear-detail-28762; není v sitemap.xml"
+/recepty/priprava-rib-eye-steaku-reverzni-metodou-reverse-sear-detail-28762?page=4,recipe,200,Příprava Rib Eye steaku reverzní metodou / reverse sear,/recepty/priprava-rib-eye-steaku-reverzni-metodou-reverse-sear-detail-28762,,recipes,priprava-rib-eye-steaku-reverzni-metodou-reverse-sear,"alias, kanonická /recepty/priprava-rib-eye-steaku-reverzni-metodou-reverse-sear-detail-28762; není v sitemap.xml"
+/recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833,recipe,200,Srnčí kýta marinovaná v červeném víně se skořicí,/recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833,,recipes,srnci-kyta-marinovana-v-cervenem-vine-se-skorici,
+/recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833?Id=807,recipe,200,Srnčí kýta marinovaná v červeném víně se skořicí,/recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833,,recipes,srnci-kyta-marinovana-v-cervenem-vine-se-skorici,"alias, kanonická /recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833; není v sitemap.xml"
+/recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833?page=2,recipe,200,Srnčí kýta marinovaná v červeném víně se skořicí,/recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833,,recipes,srnci-kyta-marinovana-v-cervenem-vine-se-skorici,"alias, kanonická /recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833; není v sitemap.xml"
+/recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833?page=3,recipe,200,Srnčí kýta marinovaná v červeném víně se skořicí,/recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833,,recipes,srnci-kyta-marinovana-v-cervenem-vine-se-skorici,"alias, kanonická /recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833; není v sitemap.xml"
+/recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833?page=3&catId=31&list=hide,recipe,,,,,recipes,srnci-kyta-marinovana-v-cervenem-vine-se-skorici,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833?page=4,recipe,200,Srnčí kýta marinovaná v červeném víně se skořicí,/recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833,,recipes,srnci-kyta-marinovana-v-cervenem-vine-se-skorici,"alias, kanonická /recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833; není v sitemap.xml"
+/recepty/srnci-kyta-marinovana-v-cervenem-vine-se-skorici-detail-833?page=4&list=hide,recipe,,,,,recipes,srnci-kyta-marinovana-v-cervenem-vine-se-skorici,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831,recipe,200,Srnčí steaky z kýty po lesnicku,/recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831,,recipes,srnci-steaky-z-kyty-po-lesnicku,
+/recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831?Id=807,recipe,200,Srnčí steaky z kýty po lesnicku,/recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831,,recipes,srnci-steaky-z-kyty-po-lesnicku,"alias, kanonická /recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831; není v sitemap.xml"
+/recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831?page=2,recipe,200,Srnčí steaky z kýty po lesnicku,/recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831,,recipes,srnci-steaky-z-kyty-po-lesnicku,"alias, kanonická /recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831; není v sitemap.xml"
+/recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831?page=3,recipe,200,Srnčí steaky z kýty po lesnicku,/recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831,,recipes,srnci-steaky-z-kyty-po-lesnicku,"alias, kanonická /recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831; není v sitemap.xml"
+/recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831?page=3&catId=31&list=hide,recipe,,,,,recipes,srnci-steaky-z-kyty-po-lesnicku,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831?page=3&list=hide,recipe,,,,,recipes,srnci-steaky-z-kyty-po-lesnicku,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831?page=4,recipe,200,Srnčí steaky z kýty po lesnicku,/recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831,,recipes,srnci-steaky-z-kyty-po-lesnicku,"alias, kanonická /recepty/srnci-steaky-z-kyty-po-lesnicku-detail-831; není v sitemap.xml"
+/recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837,recipe,200,"Steak z divočáka na grilu, marinovaný v brusinkách a čerstvých bylinkách",/recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837,,recipes,steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach,
+/recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837?Id=807,recipe,200,"Steak z divočáka na grilu, marinovaný v brusinkách a čerstvých bylinkách",/recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837,,recipes,steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach,"alias, kanonická /recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837; není v sitemap.xml"
+/recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837?page=2,recipe,200,"Steak z divočáka na grilu, marinovaný v brusinkách a čerstvých bylinkách",/recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837,,recipes,steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach,"alias, kanonická /recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837; není v sitemap.xml"
+/recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837?page=3,recipe,200,"Steak z divočáka na grilu, marinovaný v brusinkách a čerstvých bylinkách",/recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837,,recipes,steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach,"alias, kanonická /recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837; není v sitemap.xml"
+/recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837?page=3&catId=31&list=hide,recipe,,,,,recipes,steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837?page=3&list=hide,recipe,,,,,recipes,steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837?page=4,recipe,200,"Steak z divočáka na grilu, marinovaný v brusinkách a čerstvých bylinkách",/recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837,,recipes,steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach,"alias, kanonická /recepty/steak-z-divocaka-na-grilu-marinovany-v-brusinkach-a-cerstvych-bylinkach-detail-837; není v sitemap.xml"
+/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330,recipe,200,Steak z hovězí svíčkové - příprava v grilu,/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330,,recipes,steak-z-hovezi-svickove-priprava-v-grilu,není v sitemap.xml
+/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330?catId=31,recipe,200,Steak z hovězí svíčkové - příprava v grilu,/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330,,recipes,steak-z-hovezi-svickove-priprava-v-grilu,"alias, kanonická /recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330"
+/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330?catId=31&list=hide,recipe,,,,,recipes,steak-z-hovezi-svickove-priprava-v-grilu,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330?Id=807,recipe,200,Steak z hovězí svíčkové - příprava v grilu,/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330,,recipes,steak-z-hovezi-svickove-priprava-v-grilu,"alias, kanonická /recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330; není v sitemap.xml"
+/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330?page=2,recipe,200,Steak z hovězí svíčkové - příprava v grilu,/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330,,recipes,steak-z-hovezi-svickove-priprava-v-grilu,"alias, kanonická /recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330; není v sitemap.xml"
+/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330?page=2&catId=31,recipe,200,Steak z hovězí svíčkové - příprava v grilu,/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330,,recipes,steak-z-hovezi-svickove-priprava-v-grilu,"alias, kanonická /recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330; není v sitemap.xml"
+/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330?page=2&list=hide,recipe,,,,,recipes,steak-z-hovezi-svickove-priprava-v-grilu,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330?page=3,recipe,200,Steak z hovězí svíčkové - příprava v grilu,/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330,,recipes,steak-z-hovezi-svickove-priprava-v-grilu,"alias, kanonická /recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330; není v sitemap.xml"
+/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330?page=3&catId=31,recipe,200,Steak z hovězí svíčkové - příprava v grilu,/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330,,recipes,steak-z-hovezi-svickove-priprava-v-grilu,"alias, kanonická /recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330; není v sitemap.xml"
+/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330?page=4,recipe,200,Steak z hovězí svíčkové - příprava v grilu,/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330,,recipes,steak-z-hovezi-svickove-priprava-v-grilu,"alias, kanonická /recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330; není v sitemap.xml"
+/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330?page=4&catId=31,recipe,200,Steak z hovězí svíčkové - příprava v grilu,/recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330,,recipes,steak-z-hovezi-svickove-priprava-v-grilu,"alias, kanonická /recepty/steak-z-hovezi-svickove-priprava-v-grilu-detail-1330; není v sitemap.xml"
+/recepty/tatarak-podle-terrys-steak-detail-1321?page=2&catId=31&list=hide,recipe,,,,,,,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/tatarak-podle-terrys-steak-detail-1321?page=2&list=hide,recipe,,,,,,,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/trhane-hovezi-v-bbq-omacce-z-hoveziho-brisketu-us-prime-quality-v-keramickem-grillu-detail-28813?page=4&catId=31&list=hide,recipe,,,,,,,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/trhane-hovezi-v-bbq-omacce-z-hoveziho-brisketu-us-prime-quality-v-keramickem-grillu-detail-28813?page=4&list=hide,recipe,,,,,,,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840,recipe,200,"WAGYU hovězí brisket v keramickém grillu, zauzený třešní",/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840,,recipes,wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni,
+/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840?catId=31,recipe,200,"WAGYU hovězí brisket v keramickém grillu, zauzený třešní",/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840,,recipes,wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni,"alias, kanonická /recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840"
+/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840?catId=31&list=hide,recipe,,,,,recipes,wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840?Id=807,recipe,200,"WAGYU hovězí brisket v keramickém grillu, zauzený třešní",/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840,,recipes,wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni,"alias, kanonická /recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840; není v sitemap.xml"
+/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840?list=hide,recipe,,,,,recipes,wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni,parametr v URL (řazení/filtr) – neprocházeno
+/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840?page=2,recipe,200,"WAGYU hovězí brisket v keramickém grillu, zauzený třešní",/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840,,recipes,wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni,"alias, kanonická /recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840; není v sitemap.xml"
+/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840?page=2&catId=31,recipe,200,"WAGYU hovězí brisket v keramickém grillu, zauzený třešní",/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840,,recipes,wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni,"alias, kanonická /recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840; není v sitemap.xml"
+/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840?page=3,recipe,200,"WAGYU hovězí brisket v keramickém grillu, zauzený třešní",/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840,,recipes,wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni,"alias, kanonická /recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840; není v sitemap.xml"
+/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840?page=3&catId=31,recipe,200,"WAGYU hovězí brisket v keramickém grillu, zauzený třešní",/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840,,recipes,wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni,"alias, kanonická /recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840; není v sitemap.xml"
+/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840?page=4,recipe,200,"WAGYU hovězí brisket v keramickém grillu, zauzený třešní",/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840,,recipes,wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni,"alias, kanonická /recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840; není v sitemap.xml"
+/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840?page=4&catId=31,recipe,200,"WAGYU hovězí brisket v keramickém grillu, zauzený třešní",/recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840,,recipes,wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni,"alias, kanonická /recepty/wagyu-hovezi-brisket-v-keramickem-grillu-zauzeny-tresni-detail-28840; není v sitemap.xml"
+/recepty,recipe-listing,302,,,/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844,recipes,priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube,
+/recepty/?Id=807,recipe-listing,302,,,/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844,recipes,priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube,
+/recepty/hlavni-jidla-31,recipe-listing,302,,,/recepty/priprava-hovezi-svickove-wellington-v-keramickem-grilu-ci-jakemkoliv-grilu-s-vikem-popripade-v-domaci-troube-detail-28844?catId=31,,,
+/doprava-a-platba,static,200,Doprava a platba | Terrys Steak,,,pages,doprava-a-platba,
+/informace-o-zpracovani-osobnich-udaju,static,200,Informace o zpracování osobních údajů | Terrys Steak,,,pages,informace-o-zpracovani-osobnich-udaju,
+/kontaktni-informace,static,200,Kontakt | Terrys Steak,,,pages,kontaktni-informace,
+/obchodni-podminky,static,200,Obchodní podmínky | Terrys Steak,,,pages,obchodni-podminky,
+/pages/cookies/info.aspx,static,200,"Nastavení ""Cookies""",,,pages,info,
+/pages/cookies/info.aspx?Lang=cs,static,,,,,pages,info,parametr v URL (řazení/filtr) – neprocházeno
+/pages/cookies/table.aspx,static,200,Přehled nejpoužívanějších cookies,,,pages,table,
+/pages/cookies/table.aspx?lang=cs,static,,,,,pages,table,parametr v URL (řazení/filtr) – neprocházeno
+/prubeh-objednavky,static,200,Průběh objednávky | Terrys Steak,,,pages,prubeh-objednavky,
+/slozeni,static,200,Složení | Terrys Steak,,,pages,slozeni,
+/tym,static,200,Tým | Terrys Steak,,,pages,tym,
+/videa,static,200,Videa | Terrys Steak,,,pages,videa,
+/prodejny/prodejna-terrys-steak-praha-detail-382,store,200,Prodejna Terrys Steak Praha,,,pages,prodejna-terrys-steak-praha,
+/prodejny/sidlo-spolecnosti-vydejni-misto-detail-1003,store,200,Sídlo společnosti + výdejní místo,,,pages,sidlo-spolecnosti-vydejni-misto,
+/prodejny,store-listing,200,Prodejny | Terrys Steak,,,,,
+/obchod/kosik,unknown,,,,,,,košík/účet/systémová adresa – neprocházeno

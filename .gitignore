@@ -32,3 +32,6 @@ Thumbs.db
 /.idea/
 *.pem
 .vercel
+
+# Migration (stage 8): cache of pages and images fetched from the old terrys.cz
+/migration/.cache/

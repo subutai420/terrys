@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { editors, publishedOrLoggedIn } from '@/access'
-import { legacyUrlField, seoGroup } from '@/fields/common'
+import { legacyUrlField, migrationGroup, seoGroup } from '@/fields/common'
 import { slugField } from '@/fields/slug'
 
 import { ADMIN_GROUPS } from './adminGroups'
@@ -160,6 +160,18 @@ export const Recipes: CollectionConfig = {
               ],
             },
             {
+              // Added in stage 8: old recipes are long texts with photos and links between the
+              // steps, which the plain-text steps cannot hold. Also for tips and serving notes.
+              name: 'content',
+              type: 'richText',
+              label: 'Text receptu (úvod, tipy, fotky)',
+              admin: {
+                description:
+                  'Nepovinné. Delší text k receptu: úvod, tipy, fotky s popisem. Suroviny a ' +
+                  'postup patří do polí výše.',
+              },
+            },
+            {
               name: 'relatedProducts',
               type: 'relationship',
               relationTo: 'products',
@@ -194,5 +206,6 @@ export const Recipes: CollectionConfig = {
       },
     },
     legacyUrlField,
+    migrationGroup,
   ],
 }

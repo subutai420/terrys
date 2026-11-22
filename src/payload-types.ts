@@ -304,6 +304,17 @@ export interface Product {
    * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
    */
   legacyUrl?: string | null;
+  /**
+   * Vyplňuje import ze starého terrys.cz. Položku, kterou jste po importu upravili, import sám nepřepíše; zaškrtnutím „Nepřepisovat importem“ ji ochráníte natrvalo.
+   */
+  migration?: {
+    locked?: boolean | null;
+    importedAt?: string | null;
+    /**
+     * Technický údaj: podle něj import pozná, že se na starém webu nic nezměnilo.
+     */
+    sourceHash?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -541,6 +552,24 @@ export interface Recipe {
       }[]
     | null;
   /**
+   * Nepovinné. Delší text k receptu: úvod, tipy, fotky s popisem. Suroviny a postup patří do polí výše.
+   */
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
    * Produkty z e-shopu, které se v receptu používají.
    */
   relatedProducts?: (number | Product)[] | null;
@@ -573,6 +602,17 @@ export interface Recipe {
    * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
    */
   legacyUrl?: string | null;
+  /**
+   * Vyplňuje import ze starého terrys.cz. Položku, kterou jste po importu upravili, import sám nepřepíše; zaškrtnutím „Nepřepisovat importem“ ji ochráníte natrvalo.
+   */
+  migration?: {
+    locked?: boolean | null;
+    importedAt?: string | null;
+    /**
+     * Technický údaj: podle něj import pozná, že se na starém webu nic nezměnilo.
+     */
+    sourceHash?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -671,6 +711,17 @@ export interface Category {
    * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
    */
   legacyUrl?: string | null;
+  /**
+   * Vyplňuje import ze starého terrys.cz. Položku, kterou jste po importu upravili, import sám nepřepíše; zaškrtnutím „Nepřepisovat importem“ ji ochráníte natrvalo.
+   */
+  migration?: {
+    locked?: boolean | null;
+    importedAt?: string | null;
+    /**
+     * Technický údaj: podle něj import pozná, že se na starém webu nic nezměnilo.
+     */
+    sourceHash?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -741,6 +792,17 @@ export interface Article {
    * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
    */
   legacyUrl?: string | null;
+  /**
+   * Vyplňuje import ze starého terrys.cz. Položku, kterou jste po importu upravili, import sám nepřepíše; zaškrtnutím „Nepřepisovat importem“ ji ochráníte natrvalo.
+   */
+  migration?: {
+    locked?: boolean | null;
+    importedAt?: string | null;
+    /**
+     * Technický údaj: podle něj import pozná, že se na starém webu nic nezměnilo.
+     */
+    sourceHash?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -794,6 +856,17 @@ export interface Page {
    * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
    */
   legacyUrl?: string | null;
+  /**
+   * Vyplňuje import ze starého terrys.cz. Položku, kterou jste po importu upravili, import sám nepřepíše; zaškrtnutím „Nepřepisovat importem“ ji ochráníte natrvalo.
+   */
+  migration?: {
+    locked?: boolean | null;
+    importedAt?: string | null;
+    /**
+     * Technický údaj: podle něj import pozná, že se na starém webu nic nezměnilo.
+     */
+    sourceHash?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -1192,6 +1265,13 @@ export interface ProductsSelect<T extends boolean = true> {
   categories?: T;
   sku?: T;
   legacyUrl?: T;
+  migration?:
+    | T
+    | {
+        locked?: T;
+        importedAt?: T;
+        sourceHash?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1218,6 +1298,13 @@ export interface CategoriesSelect<T extends boolean = true> {
   menuColumn?: T;
   menuOrder?: T;
   legacyUrl?: T;
+  migration?:
+    | T
+    | {
+        locked?: T;
+        importedAt?: T;
+        sourceHash?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1308,6 +1395,13 @@ export interface ArticlesSelect<T extends boolean = true> {
   authorName?: T;
   publishedAt?: T;
   legacyUrl?: T;
+  migration?:
+    | T
+    | {
+        locked?: T;
+        importedAt?: T;
+        sourceHash?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1340,6 +1434,7 @@ export interface RecipesSelect<T extends boolean = true> {
         image?: T;
         id?: T;
       };
+  content?: T;
   relatedProducts?: T;
   seo?:
     | T
@@ -1351,6 +1446,13 @@ export interface RecipesSelect<T extends boolean = true> {
   slug?: T;
   publishedAt?: T;
   legacyUrl?: T;
+  migration?:
+    | T
+    | {
+        locked?: T;
+        importedAt?: T;
+        sourceHash?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1371,6 +1473,13 @@ export interface PagesSelect<T extends boolean = true> {
       };
   slug?: T;
   legacyUrl?: T;
+  migration?:
+    | T
+    | {
+        locked?: T;
+        importedAt?: T;
+        sourceHash?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;

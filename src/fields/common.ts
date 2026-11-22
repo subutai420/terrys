@@ -18,6 +18,54 @@ export const legacyUrlField: TextField = {
   },
 }
 
+/**
+ * Bookkeeping of the stage 8 import from the old terrys.cz (`pnpm migrate:import`).
+ *
+ * Overwrite rule (see CLAUDE.md "Migration"): a re-run of the import updates a document only when
+ * nobody changed it in the admin since the last import (its `updatedAt` is at most a few seconds
+ * after `importedAt`) and it is not `locked`. Edited documents are skipped and listed in
+ * migration/report.md; `--force` overwrites edited ones too, but never locked ones.
+ */
+export const migrationGroup: GroupField = {
+  name: 'migration',
+  type: 'group',
+  label: 'Import ze starého webu',
+  admin: {
+    position: 'sidebar',
+    description:
+      'Vyplňuje import ze starého terrys.cz. Položku, kterou jste po importu upravili, import ' +
+      'sám nepřepíše; zaškrtnutím „Nepřepisovat importem“ ji ochráníte natrvalo.',
+    // Show the box only on documents that came from the import.
+    condition: (data) => Boolean(data?.migration?.importedAt),
+  },
+  fields: [
+    {
+      name: 'locked',
+      type: 'checkbox',
+      label: 'Nepřepisovat importem',
+      defaultValue: false,
+    },
+    {
+      name: 'importedAt',
+      type: 'date',
+      label: 'Naposledy importováno',
+      admin: {
+        readOnly: true,
+        date: { pickerAppearance: 'dayAndTime', displayFormat: 'd. M. yyyy HH:mm' },
+      },
+    },
+    {
+      name: 'sourceHash',
+      type: 'text',
+      label: 'Otisk importovaných dat',
+      admin: {
+        readOnly: true,
+        description: 'Technický údaj: podle něj import pozná, že se na starém webu nic nezměnilo.',
+      },
+    },
+  ],
+}
+
 /** Manual ordering in lists and menus (lower number = earlier). */
 export const sortOrderField = (): NumberField => ({
   name: 'sortOrder',

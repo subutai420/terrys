@@ -21,6 +21,7 @@ const eslintConfig = [
       '.next/',
       'node_modules/',
       'media/',
+      'migration/.cache/',
       'playwright-report/',
       'test-results/',
       'src/payload-types.ts',

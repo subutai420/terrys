@@ -1,7 +1,7 @@
 import type { CollectionConfig, NumberFieldSingleValidation } from 'payload'
 
 import { editors, publicProductsOrLoggedIn } from '@/access'
-import { legacyUrlField, seoGroup } from '@/fields/common'
+import { legacyUrlField, migrationGroup, seoGroup } from '@/fields/common'
 import { slugField } from '@/fields/slug'
 import {
   AVAILABILITY,
@@ -394,5 +394,6 @@ export const Products: CollectionConfig = {
       },
     },
     legacyUrlField,
+    migrationGroup,
   ],
 }

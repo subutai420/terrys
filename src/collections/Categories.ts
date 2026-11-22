@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { anyone, editors } from '@/access'
-import { legacyUrlField, seoGroup } from '@/fields/common'
+import { legacyUrlField, migrationGroup, seoGroup } from '@/fields/common'
 import { slugField } from '@/fields/slug'
 
 import { ADMIN_GROUPS } from './adminGroups'
@@ -139,5 +139,6 @@ export const Categories: CollectionConfig = {
       },
     },
     legacyUrlField,
+    migrationGroup,
   ],
 }
