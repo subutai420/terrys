@@ -1,5 +1,6 @@
 import { resendAdapter } from '@payloadcms/email-resend'
 import { mkdir, writeFile } from 'fs/promises'
+import os from 'os'
 import path from 'path'
 import type { EmailAdapter, SendEmailOptions } from 'payload'
 
@@ -26,7 +27,11 @@ export function emailFrom() {
 }
 
 export function outboxDir(): string {
-  return path.resolve(process.cwd(), process.env.EMAIL_OUTBOX_DIR || '.emails')
+  if (process.env.EMAIL_OUTBOX_DIR) return path.resolve(process.cwd(), process.env.EMAIL_OUTBOX_DIR)
+  // Stage 9: on Vercel only /tmp is writable (and temporary). A preview deployment without
+  // RESEND_API_KEY then still "sends" (to /tmp) instead of marking every e-mail as failed.
+  if (process.env.VERCEL === '1') return path.join(os.tmpdir(), 'terrys-emails')
+  return path.resolve(process.cwd(), '.emails')
 }
 
 const addressList = (value: SendEmailOptions['to']): string => {

@@ -52,6 +52,11 @@ read it: the bundled Next.js docs in `node_modules/next/dist/docs/` match the in
   see "Gift vouchers (stage 7)".
 - `src/redirects` + `src/lib/redirects` + collection `redirects` – stage 8b redirects of old
   addresses (used by `src/proxy.ts`), see "Redirects from the old addresses".
+- Stage 9 operations: `src/ops` (health check, sample e-mails), `src/privacy` (GDPR export /
+  anonymisation) + `src/lib/privacy`, `src/monitoring` + `src/lib/monitoring` (Sentry, structured
+  logs, scrubbing), `src/lib/security` (headers, CSP), `src/instrumentation*.ts`, `scripts/`
+  (Vercel build, backups, Blob upload), `docs/spusteni.md` + `docs/provoz.md`. See
+  "Operations (stage 9)".
 - `src/delivery` – Payload glue of the delivery module (loading rules, endpoints, CSV import);
   the pure logic is in `src/lib/delivery`. `src/components/admin` – custom admin components.
 - `tests/e2e` – Playwright tests (`*.e2e.spec.ts`).
@@ -422,6 +427,8 @@ redirect without deploy).
   a real batch, CRON_SECRET (overdue job), Resend with attachments tested on a real inbox
   (Gmail/Outlook/Apple Mail: inline QR shows), owner/accountant answers (VAT of vouchers, voucher
   sent before payment).
+- Stage 9 (operations, go-live preparation) is done in code, see "Operations (stage 9)"; the
+  account-dependent steps are the owner's checklist in `docs/spusteni.md`.
 
 ## Orders (stage 4)
 
@@ -1240,6 +1247,206 @@ statement import (FIO/ČSOB API or CSV/GPC) for automatic pairing by VS + amount
 to the recipient on date X" (left out to keep it simple: it needs a scheduled job and a second
 recipient), invoices for company purchases (accounting software as today), customer-facing
 balance check page.
+
+## Operations (stage 9)
+
+Owner/marketer documents (Czech): `docs/spusteni.md` (launch checklist: accounts + env table,
+Neon/Vercel, catalog import, DNS for Resend, Balíkobot test parcel, dress rehearsal, DNS switch +
+rollback, first 48 h, open questions) and `docs/provoz.md` (runbook + retention proposal). No
+real account was available in stage 9: everything external is code that is env-gated plus a
+checklist step. Docs read 2026-11-22 (URLs below); nothing was called against a real service.
+
+### Hosting: Vercel + Neon (decisions)
+
+- Vercel **Pro** is required: Hobby is non-commercial and allows only daily crons (the 15-min
+  `/api/integrations/retry` cron makes a Hobby deploy fail) – https://vercel.com/docs/cron-jobs/usage-and-pricing.
+  `vercel.json`: `buildCommand: pnpm build:vercel`, `regions: ["fra1"]` (Neon project must be in
+  AWS eu-central-1), the two crons. Function duration: Fluid compute default 300 s is enough; no
+  `maxDuration` set.
+- **Migrations run in the build**, not on cold start: Payload docs (database/migrations) say
+  `prodMigrations` "should only be used for long-running servers" and slows serverless cold
+  starts. `scripts/vercel-build.mjs` runs `payload migrate` with `PAYLOAD_DB_DIRECT=1` (config
+  then uses `DATABASE_URL_UNPOOLED`, Neon's direct connection – Neon docs recommend it for
+  migrations/pg_dump; the pooled `-pooler` URL is PgBouncer transaction mode) and then
+  `pnpm build`; a failed migration fails the build and the old deployment stays live. On preview
+  deployments it migrates only with `MIGRATE_ON_PREVIEW=1` (set when the Neon integration gives
+  each preview its own branch) – a branch must never migrate the production DB.
+  `payload.config.ts`: `prodMigrations` only when `VERCEL !== '1'` (`pnpm start` elsewhere and CI
+  e2e keep it), override `PAYLOAD_PROD_MIGRATIONS=0/1`. Pool `max` 5 (`DATABASE_POOL_MAX`),
+  idle 30 s, connect timeout 10 s. Neon integration env: `DATABASE_URL` (pooled),
+  `DATABASE_URL_UNPOOLED` (direct) – https://neon.com/docs/guides/vercel-managed-integration.
+- **Media on Vercel Blob** (`@payloadcms/storage-vercel-blob` 3.94.1, official, same version as
+  Payload): enabled only when `BLOB_READ_WRITE_TOKEN` is set (without a token the plugin returns
+  the config unchanged → local `media/` in dev/CI/tests – verified in the plugin source).
+  Chosen over S3/R2: native to Vercel (token injected by the store), no CORS/bucket policy,
+  public read fits (media read access is `anyone`). Files are still served through
+  `/api/media/file/<name>` (default, no `disablePayloadAccessControl`): URLs in the DB, feeds,
+  JSON-LD and `next/image` do not change; the handler streams from Blob with a 1-year
+  Cache-Control. `clientUploads: true` because Vercel functions accept ≤ 4.5 MB bodies; the
+  adapter always registers its client handler in the import map. Generated sizes are uploaded
+  too. Payload has no migration tool for existing local files → `pnpm media:upload-blob`
+  (`scripts/media-upload-blob.mjs`, dry run unless `--confirm`): reads filenames (original +
+  `sizes_*_filename`) from the target DB and `put`s each local file under the same pathname
+  (no random suffix – what the adapter's `generateURL` expects). Imported catalog: 348 media
+  records, 1 422 files, 0 missing. Preferred path: run `pnpm migrate:import` directly against
+  Neon with the Blob token set (Payload uploads to Blob itself).
+- The outbox e-mail adapter writes to `os.tmpdir()/terrys-emails` on Vercel (only /tmp is
+  writable) unless `EMAIL_OUTBOX_DIR` is set.
+
+### Security
+
+- `src/lib/security/headers.ts` (pure, tested) → `next.config.ts` `headers()` (build-time):
+  every route `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`,
+  `X-Frame-Options: SAMEORIGIN`, `Permissions-Policy` (camera, mic, geolocation, payment, usb,
+  topics off); HSTS `max-age=31536000` (no includeSubDomains/preload yet) only for an https
+  `NEXT_PUBLIC_SERVER_URL` and not in dev. **CSP** on storefront paths only (not `/admin`, `/api`,
+  `/_next`, `/feeds`): ISR pages cannot carry per-request nonces (bundled Next docs, "Content
+  Security Policy": nonces force dynamic rendering), so the documented "without nonces" policy
+  with `'unsafe-inline'` + host allow-list (GTM/GA4/Ads, Meta, Sklik/Seznam, Heureka, Turnstile,
+  Sentry ingest host from `NEXT_PUBLIC_SENTRY_DSN`, `CSP_EXTRA_SOURCES`). Default
+  `CSP_MODE=report-only` (GTM tags are chosen by the marketer, the list cannot be complete);
+  `enforce` adds `upgrade-insecure-requests`; `off`. Reports → `POST /api/csp-report`
+  (`src/ops/endpoints.ts`, `src/lib/security/cspReport.ts`: legacy + Reporting API format, URLs
+  cut to origin + path, 30/min/IP, always 204) → log line `csp.violation`.
+- Login (`Users.ts`): `maxLoginAttempts: 5`, `lockTime: 15 min`, `tokenExpiration: 2 h`,
+  `useSessions: true`, cookie `SameSite=Lax`, `secure` when the site URL is https (Payload
+  3.94 defaults from the source: 5 / 10 min / 7200 s / sessions on / Lax / secure false).
+  `beforeOperation` hook limits `login` + `forgotPassword` to 20 per 15 min per IP (429 with a
+  Czech message; local API calls without an IP are not limited; `RATE_LIMIT_DISABLED=1` off).
+- Rate limits are in-memory per instance (`src/lib/orders/rateLimit.ts` documents why: real
+  limit = limit × warm instances; shared store not built – extra paid service + latency, other
+  protections exist). Stage 9 added limits to `GET /api/delivery/options` (120/min) and the public
+  voucher PDF (30/min). `clientIp` trusts X-Forwarded-For: Vercel overwrites it
+  (https://vercel.com/docs/headers/request-headers). Keep Cloudflare DNS-only (orange cloud
+  would make every visitor share Cloudflare's IP).
+- Public endpoint review: checkout POSTs (same-origin, limit, no-store), delivery options
+  (public cache 60 s, limit), voucher PDF (token only, limit, no-store), legacy redirect index
+  (public data, no-store), health + csp-report (limit, no-store), feeds (public). Admin and cron
+  endpoints check role / `CRON_SECRET`.
+- **2FA**: Payload 3.94 has none (no core option, no official plugin; community `payload-totp`
+  3.0.7). Decision: launch with lockout + IP limit + strong personal passwords; recommend
+  reviewing and adding `payload-totp` for admin/staff after launch. Cloudflare Access was
+  rejected for now: needs proxied DNS (against Vercel's advice, breaks IP rate limits) and an
+  origin check of the Access JWT, otherwise bypassable via `*.vercel.app`.
+- `pnpm audit` (2026-11-22): fixed `sharp` 0.35.4 → 0.35.5 (high, librsvg), `vitest` 4.0.18 →
+  4.1.12 (critical/moderate dev-only), `dompurify` override `<3.4.17 → 3.4.18` (low, admin code
+  editor). Left: `happy-dom` 20.14.6 via `@payloadcms/richtext-lexical` → `@lexical/headless`
+  (2 high; fix needs major 21 inside Payload's dependency – wait for Payload; parses only
+  admin-authored rich text), `esbuild` ≤ 0.24.2 via `drizzle-kit` (moderate, dev-server only).
+
+### Monitoring
+
+- Sentry (`@sentry/nextjs` 11.16.0, peer `next ^16`): `src/instrumentation.ts` imports and
+  inits the SDK ONLY when `SENTRY_DSN` is set (Node runtime); `onRequestError` forwards render
+  errors. Browser: `src/instrumentation-client.ts` loads the SDK as a separate chunk only when
+  `NEXT_PUBLIC_SENTRY_DSN` was set at build, not on `/admin`, and only after ANALYTICS consent.
+  No `withSentryConfig` (no source-map upload; avoids build changes without an account – add
+  it with `SENTRY_AUTH_TOKEN` later if minified browser stacks are a problem). Options
+  (`src/lib/monitoring/sentryOptions.ts`): v11 `dataCollection` all off (user info, cookies,
+  headers, bodies, query params, DB data, frame variables), `tracesSampleRate` 0 by default,
+  `beforeSend` = `scrubEvent` (`src/lib/monitoring/scrub.ts`: drops user/cookies/headers/body/
+  server name; scrubs e-mails, phones, thank-you/PDF tokens, JWT/Bearer, query strings; filters
+  keys by exact name or suffix – `customerEmail`, `accessToken` yes, `orderNumber` no).
+- Structured logs (`src/lib/monitoring/log.ts`): one JSON line `{ts, level, event, …}` with
+  scrubbed fields. `place-order` logs `order.placed` (number), `order.rejected` (error code,
+  status, field names) and `order.place_failed` (via `reportServerError`, also to Sentry).
+  Privacy anonymisation logs `privacy.anonymised` (counts).
+- `GET /api/health` (`src/ops/health.ts`, pure `summariseHealth` tested): DB `SELECT 1` +
+  latency, applied vs `src/migrations` names, integration jobs (pending/failed/expired 30 d/stuck),
+  failed order/withdrawal e-mails in 7 days, config problems (production without Resend,
+  Resend without `EMAIL_FROM_ADDRESS`, Vercel without Blob, production without `CRON_SECRET`).
+  200 `ok`/`degraded` (with `problems`), 503 `down` (DB down or migrations pending). Counts
+  and problem codes only; no-store, noindex, 30/min/IP.
+- Storefront `error.tsx` (Czech, retry, digest shown).
+
+### Backups
+
+Neon point-in-time restore is primary (restore window: Free 6 h, Launch up to 7 d – default 1 d,
+raise it; Scale 30 d – https://neon.com/docs/introduction/plans). `pnpm db:backup`
+(`scripts/db-backup.mjs`: `pg_dump -Fc --no-owner --no-acl`, `--url` or `DATABASE_URL`,
+`--docker=<container>` runs pg_dump inside the local container) → `backups/` (git-ignored).
+`pnpm db:restore-test` (`scripts/db-restore-test.mjs`): new DB `terrys_restore_test_<ms>`,
+`pg_restore`, compare `count(*)` of every public table with the source, drop (unless `--keep`),
+exit 1 on differences. Run 2026-11-22 on `terrys_migration` (dump read-only): 0.84 MB dump,
+restored in 1.4 s, 64 tables / 10 975 rows identical.
+
+### GDPR (data subject requests, retention)
+
+- `src/lib/privacy/anonymise.ts` (pure, tested): eligibility (only final statuses delivered /
+  picked-up / cancelled; not twice; retention run also by age in whole months) and the update:
+  name/e-mail/phone (`anonymizovano-<no>@anonymizovano.invalid`, phone `—`), street + city,
+  customer note, internal note text, voucher recipient/message, attribution, carrier error,
+  `sentEmails[].to`, new `accessToken`; `privacy` {anonymisedAt, anonymisedReason
+  request|retention, anonymisedBy}. Kept: lines, totals, VAT, invoice number, payment, vouchers,
+  company name/IČO/DIČ, delivery method/date/postcode, status history.
+- `src/privacy/service.ts`: `exportPersonalData(email)` (orders by lower-cased
+  `contact_email`/`customer_email`, withdrawals, vouchers of those orders, integration jobs of
+  those orders + newsletter jobs with `payload->>'email'`; `accessToken`/`idempotencyKey`
+  removed) and `anonymise({email} | {olderThanMonths}, {confirm, actor})` – dry run unless
+  `confirm`; also anonymises matching withdrawals (`anonymisedAt`), voucher messages (SQL),
+  outbox payloads (`{"anonymised":true}`); one `order-audit-log` row per order (field
+  `anonymizace`, created with overrideAccess). Retention batch ≤ 500 oldest per run; re-runnable.
+  NEVER automatic (no cron).
+- Endpoints (admin role only): `GET /api/privacy/export?email=` (JSON attachment),
+  `POST /api/privacy/anonymise` (same-origin; `olderThanMonths` 1–600). Admin view
+  `/admin/osobni-udaje` (`src/components/admin/privacy/*`, nav group "Ochrana údajů", admin
+  only). Migration `20261122_230617_privacy`.
+- Retention proposal (lawyer + accountant to confirm; table in `docs/provoz.md`): accounting
+  data 10 years, personal data on orders 3 years after fulfilment, withdrawals 3 years, outbox
+  payloads 90 days, file backups 90 days.
+
+### E-mail
+
+- Resend DNS (records generated per domain; Cloudflare DNS-only): DKIM TXT `resend._domainkey`,
+  MX + SPF TXT on `send` (return path), DMARC staged `p=none; rua=…` → quarantine → reject –
+  https://resend.com/docs/dashboard/domains/introduction, …/knowledge-base/cloudflare,
+  …/dashboard/domains/dmarc. Region eu-west-1.
+- From/Reply-To review: every customer e-mail now has Reply-To `EMAIL_REPLY_TO` → contact e-mail
+  (stage 9 added it to the withdrawal confirmation); internal copies reply to the customer.
+  The default sender `objednavky@example.invalid` would fail in production → health problem
+  `email-from-missing`.
+- `pnpm ops:test-emails -- --to=… [--only=kind,…]` (`src/ops/testEmails.ts`, samples in
+  `src/ops/emailSamples.ts`): 12 kinds (order confirmation/internal, final price, shipped
+  courier/van, ready for pickup, cancelled, voucher issued (inline QR)/paid/reminder,
+  withdrawal confirmation/internal), subject prefix `[TEST]`, fake data, no DB writes; outbox
+  locally, Resend when configured. Verified locally: 12/12 written to the outbox.
+- Wording fix (stage 7 leftover): `src/lib/orders/contents.ts` (`orderContents`: weighed /
+  printed vouchers (`variantId === 'printed'`) / other fixed goods; `preparationStep`,
+  `paymentStep`, `isEstimate`) drives the thank-you page and the confirmation e-mail (steps,
+  estimate vs fixed price, "≈", note heading). Tests in `contents.test.ts`, `emails.test.ts`.
+
+### Pre-launch audit (2026-11-22, local production build, seeded throwaway DB)
+
+Lighthouse 13.6.0 (headless Chromium from Playwright, default mobile throttling, Windows dev
+PC – lab numbers, re-measure on the Vercel preview). First run: home perf 92 / a11y 100 / best
+practices 100 / SEO 100; category 85 / 100 / 100 / 92; product 86 / 100 / 100 / 92; cart 91 / 100 /
+100 / 66 (cart is noindex + disallowed on purpose). After the fix (rebuild, second run): home
+92 / 100 / 100 / 100 (LCP 3.3 s), category 84 / 100 / 100 / 100 (LCP 4.6 s), product 89 / 100 /
+100 / 100 (LCP 3.8 s), cart 99 / 100 / 100 / 66 (LCP 0.9 s); TBT ≤ 30 ms, CLS ≤ 0.07 everywhere. Fixed: generic meta description fallback in
+`src/storefront/seo.ts` (seed docs without text had none). Not fixed: LCP 3.3–4.6 s under
+throttling (hero/product image; check on Vercel with real images before optimising), Lighthouse
+reported a 600 ms "redirect" on the first load that a direct request does not show (200, no
+Location). axe (WCAG 2.1 A/AA, `tests/e2e/a11y.e2e.spec.ts`): 0 violations on home, category,
+product, cart, checkout, withdrawal. `tests/e2e/ops.e2e.spec.ts`: every sitemap URL 200 +
+canonical + no noindex, noindex pages not in the sitemap, real 404 with layout, GTM not loaded
+without the env gate, security headers, health JSON.
+
+### Tests
+
+`src/lib/security/headers.test.ts`, `src/lib/monitoring/monitoring.test.ts` (scrubbing, logs,
+Sentry options, health summary, CSP report parsing), `src/lib/privacy/privacy.test.ts`,
+`src/lib/orders/contents.test.ts`, `src/email/templates/emails.test.ts` (wording),
+`tests/int/privacy.int.test.ts` (export, dry run, anonymise + audit + outbox, retention, admin-only
+endpoints, health queries), `tests/e2e/a11y.e2e.spec.ts`, `tests/e2e/ops.e2e.spec.ts`.
+Integration test files now run in alphabetical order (`AlphabeticalSequencer` in
+`vitest.config.mts`): they share one database and `access.int.test.ts` expects to create the
+very first user; Vitest's default order comes from a local timing cache and differed by machine.
+
+### Not verified (no accounts) – owner's checklist in docs/spusteni.md
+
+Vercel build with `pnpm build:vercel` (script run only in its local branch: `VERCEL_ENV` unset
+→ skip migrate → build), Neon pooled/direct URLs, Blob upload/streaming against a real store,
+Resend DNS + real inboxes, Sentry ingestion, Balíkobot live API, cron delivery, Instant Rollback.
 
 ## Business rules – never violate these
 

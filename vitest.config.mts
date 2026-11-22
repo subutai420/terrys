@@ -1,5 +1,17 @@
 import tsconfigPaths from 'vite-tsconfig-paths'
 import { defineConfig } from 'vitest/config'
+import { BaseSequencer, type TestSpecification } from 'vitest/node'
+
+/**
+ * Integration test files share ONE database and some assert facts about an empty database (the
+ * very first user becomes admin). Vitest's default order depends on a local timing cache, so the
+ * order differed between machines; this runs the files alphabetically everywhere (stage 9).
+ */
+class AlphabeticalSequencer extends BaseSequencer {
+  async sort(files: TestSpecification[]): Promise<TestSpecification[]> {
+    return [...files].sort((a, b) => a.moduleId.localeCompare(b.moduleId))
+  }
+}
 
 /**
  * Two groups of tests:
@@ -37,6 +49,7 @@ export default defineConfig({
           hookTimeout: 180_000,
           // One test file at a time: they share one database.
           fileParallelism: false,
+          sequence: { sequencer: AlphabeticalSequencer },
         },
       },
     ],

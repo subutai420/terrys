@@ -29,7 +29,13 @@ export function buildMetadata({
   noindex?: boolean
   type?: 'website' | 'article'
 }): Metadata {
-  const description = metaDescription(seo?.description, ...descriptionFallbacks)
+  // Stage 9 (Lighthouse SEO audit): a page whose document has no text at all still gets a
+  // description – generic, but better than none (search engines then pick random page text).
+  const description = metaDescription(
+    seo?.description,
+    ...descriptionFallbacks,
+    `${title} – prémiové maso a steaky z řeznictví Terrys.`,
+  )
   const ogMedia = isMedia(seo?.image) ? seo?.image : isMedia(image) ? image : null
   const og = ogMedia && isMedia(ogMedia) ? mediaSource(ogMedia, 'og') : null
   const canonical = absoluteUrl(path)

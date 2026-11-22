@@ -1,5 +1,10 @@
 import { z } from 'zod'
 
+// Stage 9: no eval-based fast path in zod. Otherwise zod probes `new Function()` in the browser,
+// which the Content Security Policy reports (and would block in enforce mode). Same results,
+// only marginally slower validation of small forms.
+z.config({ jitless: true })
+
 import { isIsoDate } from '../delivery/calendar'
 import { isValidPostcode, normalizePostcode } from '../delivery/constants'
 

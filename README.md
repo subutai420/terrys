@@ -9,7 +9,7 @@ Nový e-shop řeznictví **Terrys.cz** (prémiové maso a steaky). Jedna aplikac
 Projekt vzniká po etapách (0–9). Hotové jsou **etapa 0 – základ projektu**, **etapa 1 – katalog
 a obsah v administraci** (produkty, kategorie, číselníky, články, recepty, stránky, nastavení)
 **etapa 2 – doručování** (způsoby dopravy, PSČ, rozvozové oblasti, kalendář výjimek a svátků,
-výpočet termínů doručení) **etapa 3 – obchod pro zákazníky**, **etapa 4 – košík a objednávky**, **etapa 5 – vážení a expedice objednávek**, **etapa 6 – měření a feedy** a **etapa 7 – prodej dárkových poukazů** (viz níže). Z etapy 8 (migrace) je hotová první část: **přenos katalogu a obsahu
+výpočet termínů doručení) **etapa 3 – obchod pro zákazníky**, **etapa 4 – košík a objednávky**, **etapa 5 – vážení a expedice objednávek**, **etapa 6 – měření a feedy** a **etapa 7 – prodej dárkových poukazů**, etapa 8 (přenos dat a přesměrování starých adres) a **etapa 9 – příprava provozu a spuštění** (viz níže a [docs/spusteni.md](./docs/spusteni.md)). Z etapy 8 (migrace) je hotová první část: **přenos katalogu a obsahu
 ze starého webu** (viz níže). Navazují další etapy (měření a marketing, dárkové
 poukazy, spuštění). Pravidla pro vývoj a obchodní pravidla jsou v souboru [`CLAUDE.md`](./CLAUDE.md).
 
@@ -85,7 +85,11 @@ angličtiny), anglicky pro anglický prohlížeč. Jazyk lze přepnout v adminis
 | `pnpm migrate:import`          | Nahraje uložený starý web do administrace (viz Přenos dat ze starého webu).                                                                               |
 | `pnpm migrate:redirects`       | Sestaví plán přesměrování starých adres a report (viz Přesměrování starých adres).                                                                        |
 | `pnpm migrate:check-redirects` | Ověří přesměrování na běžícím novém webu (viz Přesměrování starých adres).                                                                                |
-| `pnpm test:e2e`                | Spustí testy v prohlížeči (Playwright). Databáze musí běžet.                                                                                              |
+| `pnpm build:vercel`            | Sestavení na Vercelu: migrace databáze (přímé spojení Neon) a pak `pnpm build`. Spouští Vercel sám (`vercel.json`).                                       |
+| `pnpm db:backup`               | Záloha databáze do souboru `backups/…dump` (jen čte). Viz `docs/provoz.md`.                                                                               |
+| `pnpm db:restore-test`         | Zkouška obnovy zálohy do dočasné databáze a porovnání počtu řádků.                                                                                        |
+| `pnpm media:upload-blob`       | Nahraje obrázky z `media/` do Vercel Blob (jen při přenosu místní databáze, viz `docs/spusteni.md`).                                                      |
+| `pnpm ops:test-emails`         | Pošle ukázku každého e-mailu e-shopu na zadanou adresu (`-- --to=adresa`); bez Resendu jen uloží do `.emails`.                                            |     | `pnpm test:e2e` | Spustí testy v prohlížeči (Playwright). Databáze musí běžet. |
 | `pnpm format`                  | Naformátuje kód nástrojem Prettier.                                                                                                                       |
 | `pnpm generate:types`          | Přegeneruje TypeScript typy z nastavení Payloadu (`src/payload-types.ts`).                                                                                |
 | `pnpm generate:importmap`      | Přegeneruje mapu komponent administrace (po přidání vlastních komponent).                                                                                 |
@@ -119,13 +123,19 @@ nad prázdnou databází, do které jste pustili `pnpm payload migrate` a `pnpm 
 │   ├── fields/                # společná pole (slug, SEO, původní URL, pořadí)
 │   ├── globals/               # nastavení obchodu (Settings)
 │   ├── lib/                   # pomocné funkce (ceny, odhad ceny, slug) + jejich testy
+│   ├── ops/                   # etapa 9: kontrola stavu (/api/health), ukázkové e-maily
+│   ├── privacy/               # etapa 9: export a anonymizace osobních údajů (GDPR)
+│   ├── monitoring/            # etapa 9: hlášení chyb (Sentry, logy)
 │   ├── migration/             # přenos ze starého webu (crawler, převod stránek, import)
 │   │   └── delivery/          # výpočet termínů doručení, svátky, CSV (bez databáze) + testy
 │   ├── seed/                  # ukázková data pro pnpm seed (+ obrázky v seed/assets)
 │   ├── migrations/            # migrace databáze (generuje Payload)
 │   ├── payload.config.ts      # hlavní nastavení Payloadu
 │   └── payload-types.ts       # generované typy (pnpm generate:types), neupravovat ručně
+├── docs/spusteni.md           # etapa 9: kontrolní seznam spuštění webu (pro správce)
+├── docs/provoz.md             # etapa 9: co dělat, když… (e-maily, dopravce, obnova, GDPR)
 ├── docs/screenshots/          # snímky obrazovek po etapách
+├── scripts/                   # etapa 9: sestavení na Vercelu, zálohy, nahrání obrázků
 ├── tests/e2e/                 # testy v prohlížeči (Playwright)
 ├── tests/int/                 # integrační testy (Payload + dočasná databáze)
 ├── migration/                 # inventura starých URL, report importu, uložené vzorové stránky
@@ -1024,12 +1034,47 @@ Přesměrování `terrys.cz` → `www.terrys.cz` (nebo obráceně) a `http` → 
 v Cloudflare / Vercelu (jedno přesměrování, které zachová cestu i parametry). Staré obrázky
 (`/ew/ew_images/…`) se nepřesměrovávají – na webu jsou nahrané znovu.
 
+## Provoz a spuštění (etapa 9)
+
+Dva dokumenty pro správce webu:
+
+- [`docs/spusteni.md`](./docs/spusteni.md): kontrolní seznam spuštění krok za krokem (účty,
+  proměnné prostředí, Neon + Vercel, import katalogu, e-maily a DNS, Balíkobot, zkouška
+  nanečisto, přepnutí domény, prvních 48 hodin, otevřené otázky pro majitele, účetní
+  a právníka).
+- [`docs/provoz.md`](./docs/provoz.md): co dělat, když neodcházejí e-maily, zasekne se fronta
+  marketingu, nefunguje dopravce, nasazení rozbije web nebo je potřeba obnovit databázi.
+  Obsahuje i návrh dob uchování osobních údajů.
+
+Co etapa 9 přidala do webu:
+
+- **Hosting Vercel + Neon:** migrace databáze běží při sestavení (ne při každém spuštění
+  funkce). Obrázky jsou ve **Vercel Blob**, když je nastavená proměnná `BLOB_READ_WRITE_TOKEN`.
+  Na vlastním počítači zůstávají ve složce `media/`.
+- **Bezpečnost:** bezpečnostní hlavičky, Content Security Policy v režimu „jen hlásit“
+  (`CSP_MODE`), zamčení účtu po 5 špatných heslech, limit pokusů o přihlášení z jedné adresy,
+  přihlašovací cookie jen přes https.
+- **Hlídání:** `GET /api/health` pro hlídací službu (stav databáze, migrace, fronta marketingu,
+  neodeslané e-maily; žádné osobní údaje). Volitelně **Sentry** (`SENTRY_DSN`; v prohlížeči jen
+  se souhlasem s analytickými cookies, bez osobních údajů). Logy odmítnutých objednávek
+  (`order.rejected`) bez údajů zákazníka.
+- **GDPR:** Administrace → Ochrana údajů → **Osobní údaje (GDPR)**: export všeho o zákazníkovi
+  podle e-mailu a anonymizace (na žádost nebo po uplynutí doby uchování). Vždy nejdřív zkouška,
+  pak potvrzení. Zapisuje se do historie změn.
+- **Zálohy:** `pnpm db:backup` a `pnpm db:restore-test` (hlavní záloha je obnova k okamžiku
+  v Neonu).
+- **E-maily:** `pnpm ops:test-emails -- --to=adresa` pošle ukázku každého e-mailu (test
+  doručitelnosti). Texty děkovací stránky a potvrzení se řídí obsahem objednávky: objednávka
+  jen s tištěným poukazem nemluví o porcování a vážení masa.
+- **Stránka chyby** obchodu (`Něco se pokazilo`, tlačítko Zkusit znovu).
+
 ## Databáze a migrace (stručně)
 
 - Při `pnpm dev` Payload sám upravuje strukturu lokální databáze podle kódu.
 - Pro produkci a CI se struktura vytváří **migracemi** ze složky `src/migrations`. Po každé změně
   kolekcí je potřeba vytvořit novou migraci: `pnpm payload migrate:create popis-zmeny`.
-  Produkční server (`pnpm start`) migrace při startu sám spustí.
+  Produkční server (`pnpm start`) migrace při startu sám spustí. Na Vercelu běží migrace při
+  sestavení (`pnpm build:vercel`), ne při startu.
 - Lokální databázi upravovanou přes `pnpm dev` nekombinujte s migracemi. Pokud chcete lokálně
   zkoušet `pnpm start`, použijte samostatnou prázdnou databázi (jiný název v `DATABASE_URL`), nebo
   databázi smažte (`docker compose down -v`) a začněte znovu.
