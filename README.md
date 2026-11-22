@@ -251,13 +251,11 @@ i Windows-1250 (české Excely). Odkaz **„Stáhnout všechna PSČ (CSV)“** s
 (lze ho upravit v Excelu a znovu naimportovat). Hromadně lze PSČ upravit i přímo v seznamu
 (zaškrtnout řádky → Upravit).
 
-**Úplný seznam PSČ:** `pnpm seed` vkládá jen **ukázkový vzorek 20 PSČ** (soubor
-`src/seed/postcodes-sample.csv`). Oficiální seznam zveřejňuje Česká pošta na
-<https://www.ceskaposta.cz/ke-stazeni/zakaznicke-vystupy> („Seznam adresních PSČ“, CSV v archivu
-ZIP). Stáhněte ho, rozbalte a naimportujte. Import rozpozná sloupec `PSC` a název pošty/obce ve
-sloupcích jako `NAZPOST`, `NAZEV_POSTY` nebo `NAZOBCE`; po prvním importu zkontrolujte souhrn
-a pár PSČ v seznamu. Před spuštěním e-shopu je to nutné – bez toho se rozvoz nabídne jen na PSČ
-ze vzorku.
+**Úplný seznam PSČ:** `pnpm seed` vkládá oficiální seznam 2 680 doručovacích PSČ s obcí a okresem
+(soubor `src/seed/postcodes-cr.csv`, sestavený ze souboru „PSČ částí obcí“ České pošty, stav
+
+1. 11. 2026, zdroj <https://www.ceskaposta.cz/ke-stazeni/zakaznicke-vystupy>). U PSČ sdílených více
+   obcemi je uvedena nejčastější obec. Aktualizovaný seznam lze kdykoli naimportovat v administraci.
 
 ### Pro košík (programátorsky)
 

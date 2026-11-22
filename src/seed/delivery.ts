@@ -133,13 +133,13 @@ export async function seedDelivery(
   }
   log('Rozvozové oblasti: 1')
 
-  // ------------------------------------------------------------------ postcodes (sample)
-  const csv = await readFile(path.join(dirname, 'postcodes-sample.csv'), 'utf-8')
+  // ------------------------------------------------------------------ postcodes (official list)
+  const csv = await readFile(path.join(dirname, 'postcodes-cr.csv'), 'utf-8')
   const imported = await importPostcodesCsv(payload, csv, { createOnly: true })
   stats.created += imported.created
   stats.existing += imported.unchanged
   log(
-    `PSČ (UKÁZKA, ne úplný seznam): nových ${imported.created}, existujících ${imported.unchanged}`,
+    `PSČ (Česká pošta, stav 1. 11. 2026): nových ${imported.created}, existujících ${imported.unchanged}`,
   )
 
   // ------------------------------------------------------------------ holidays
