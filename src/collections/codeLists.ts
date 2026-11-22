@@ -3,6 +3,7 @@ import type { CollectionConfig, Field } from 'payload'
 import { anyone, editors } from '@/access'
 import { nameField, sortOrderField } from '@/fields/common'
 import { slugField } from '@/fields/slug'
+import { storefrontRevalidationHooks } from '@/storefront/revalidate'
 
 import { ADMIN_GROUPS } from './adminGroups'
 
@@ -41,6 +42,8 @@ function codeListCollection({
       description,
     },
     defaultSort: ['sortOrder', 'name'],
+    // Stage 3: code lists appear in filters, product details and homepage tiles.
+    hooks: { ...storefrontRevalidationHooks },
     access: {
       read: anyone,
       create: editors,
@@ -103,6 +106,18 @@ export const Origins = codeListCollection({
       type: 'text',
       label: 'Přívlastek',
       admin: { description: 'Nepovinné. Např. „Argentinské hovězí“ – pro nadpisy a menu.' },
+    },
+    {
+      // Stage 3: where the country tile on the homepage leads.
+      name: 'category',
+      type: 'relationship',
+      relationTo: 'categories',
+      label: 'Kategorie země',
+      admin: {
+        description:
+          'Nepovinné. Kam vede dlaždice země na úvodní stránce, např. „Argentinské hovězí“. ' +
+          'Prázdné = výpis všech produktů z této země.',
+      },
     },
   ],
 })

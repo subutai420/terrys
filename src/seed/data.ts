@@ -282,6 +282,8 @@ export type SeedProduct = {
   availability: 'in-stock' | 'in-transit'
   marbling?: string
   variants: SeedVariant[]
+  /** Address of the same product on the old terrys.cz (the storefront serves it there). */
+  legacyUrl?: string
 }
 
 /** The 12 Rib Eye products from the design prototype (category Vysoký roštěnec / Rib Eye). */
@@ -296,6 +298,7 @@ export const products: SeedProduct[] = [
     categorySlugs: ['steaky', 'rib-eye', 'argentinske-hovezi'],
     availability: 'in-stock',
     variants: STEAK_VARIANTS,
+    legacyUrl: '/produkty/argentinsky-hovezi-rib-eye-detail-406',
   },
   {
     title: 'Uruguayský hovězí Rib Eye',

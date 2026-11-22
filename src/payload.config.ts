@@ -21,6 +21,7 @@ import { Recipes } from './collections/Recipes'
 import { ShippingMethods } from './collections/ShippingMethods'
 import { Users } from './collections/Users'
 import { deliveryOptionsEndpoint } from './delivery/optionsEndpoint'
+import { Homepage } from './globals/Homepage'
 import { Settings } from './globals/Settings'
 import { migrations } from './migrations'
 
@@ -81,7 +82,8 @@ export default buildConfig({
     Locations,
     Users,
   ],
-  globals: [Settings],
+  // Homepage = editable blocks of the storefront homepage (stage 3).
+  globals: [Homepage, Settings],
   // Public endpoint for the cart: GET /api/delivery/options?psc=12000 (src/delivery/).
   endpoints: [deliveryOptionsEndpoint],
   editor: lexicalEditor(),

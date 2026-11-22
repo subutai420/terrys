@@ -8,9 +8,9 @@ Nový e-shop řeznictví **Terrys.cz** (prémiové maso a steaky). Jedna aplikac
 
 Projekt vzniká po etapách (0–9). Hotové jsou **etapa 0 – základ projektu**, **etapa 1 – katalog
 a obsah v administraci** (produkty, kategorie, číselníky, články, recepty, stránky, nastavení)
-a **etapa 2 – doručování** (způsoby dopravy, PSČ, rozvozové oblasti, kalendář výjimek a svátků,
-výpočet termínů doručení). Z etapy 8 (migrace) je hotová první část: **přenos katalogu a obsahu
-ze starého webu** (viz níže). Navazují další etapy (obchod pro zákazníky, košík a objednávky, vážení
+**etapa 2 – doručování** (způsoby dopravy, PSČ, rozvozové oblasti, kalendář výjimek a svátků,
+výpočet termínů doručení) a **etapa 3 – obchod pro zákazníky** (viz níže). Z etapy 8 (migrace) je hotová první část: **přenos katalogu a obsahu
+ze starého webu** (viz níže). Navazují další etapy (košík a objednávky, vážení
 objednávek, napojení na další služby). Pravidla pro vývoj a obchodní pravidla jsou v souboru [`CLAUDE.md`](./CLAUDE.md).
 
 ## Co je potřeba nainstalovat
@@ -58,7 +58,7 @@ Všechny příkazy se zadávají v terminálu ve složce projektu.
    pnpm seed
    ```
 7. Otevřete v prohlížeči:
-   - <http://localhost:3000> – obchod (zatím jen úvodní stránka „připravujeme“),
+   - <http://localhost:3000> – obchod,
    - <http://localhost:3000/admin> – administrace. Při prvním spuštění vytvoříte prvního
      uživatele (e-mail a heslo).
 
@@ -70,27 +70,28 @@ angličtiny), anglicky pro anglický prohlížeč. Jazyk lze přepnout v adminis
 
 ## Příkazy (scripts)
 
-| Příkaz                    | Co dělá                                                                      |
-| ------------------------- | ---------------------------------------------------------------------------- |
-| `pnpm dev`                | Spustí vývojový server na <http://localhost:3000>.                           |
-| `pnpm build`              | Vytvoří produkční sestavení aplikace.                                        |
-| `pnpm start`              | Spustí produkční sestavení (po `pnpm build`).                                |
-| `pnpm lint`               | Zkontroluje kód nástrojem ESLint.                                            |
-| `pnpm typecheck`          | Zkontroluje typy TypeScriptu.                                                |
-| `pnpm test`               | Spustí všechny testy (Vitest): jednotkové + integrační. Databáze musí běžet. |
-| `pnpm test:unit`          | Jen rychlé jednotkové testy (bez databáze).                                  |
-| `pnpm test:int`           | Jen integrační testy (Payload + dočasná testovací databáze).                 |
-| `pnpm seed`               | Naplní databázi výchozími a ukázkovými daty (lze spouštět opakovaně).        |
-| `pnpm migrate:crawl`      | Projde starý terrys.cz a uloží ho (viz Přenos dat ze starého webu).          |
-| `pnpm migrate:import`     | Nahraje uložený starý web do administrace (viz Přenos dat ze starého webu).  |
-| `pnpm test:e2e`           | Spustí testy v prohlížeči (Playwright). Databáze musí běžet.                 |
-| `pnpm format`             | Naformátuje kód nástrojem Prettier.                                          |
-| `pnpm generate:types`     | Přegeneruje TypeScript typy z nastavení Payloadu (`src/payload-types.ts`).   |
-| `pnpm generate:importmap` | Přegeneruje mapu komponent administrace (po přidání vlastních komponent).    |
-| `pnpm payload …`          | Příkazy Payload CLI, např. `pnpm payload migrate:create nazev`.              |
+| Příkaz                    | Co dělá                                                                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                | Spustí vývojový server na <http://localhost:3000>.                                                                              |
+| `pnpm build`              | Vytvoří produkční sestavení aplikace.                                                                                           |
+| `pnpm start`              | Spustí produkční sestavení (po `pnpm build`).                                                                                   |
+| `pnpm lint`               | Zkontroluje kód nástrojem ESLint.                                                                                               |
+| `pnpm typecheck`          | Zkontroluje typy TypeScriptu.                                                                                                   |
+| `pnpm test`               | Spustí všechny testy (Vitest): jednotkové + integrační. Databáze musí běžet.                                                    |
+| `pnpm test:unit`          | Jen rychlé jednotkové testy (bez databáze).                                                                                     |
+| `pnpm test:int`           | Jen integrační testy (Payload + dočasná testovací databáze).                                                                    |
+| `pnpm seed`               | Naplní databázi výchozími a ukázkovými daty (lze spouštět opakovaně). `--only=settings,locations,delivery` = jen některé části. |
+| `pnpm migrate:crawl`      | Projde starý terrys.cz a uloží ho (viz Přenos dat ze starého webu).                                                             |
+| `pnpm migrate:import`     | Nahraje uložený starý web do administrace (viz Přenos dat ze starého webu).                                                     |
+| `pnpm test:e2e`           | Spustí testy v prohlížeči (Playwright). Databáze musí běžet.                                                                    |
+| `pnpm format`             | Naformátuje kód nástrojem Prettier.                                                                                             |
+| `pnpm generate:types`     | Přegeneruje TypeScript typy z nastavení Payloadu (`src/payload-types.ts`).                                                      |
+| `pnpm generate:importmap` | Přegeneruje mapu komponent administrace (po přidání vlastních komponent).                                                       |
+| `pnpm payload …`          | Příkazy Payload CLI, např. `pnpm payload migrate:create nazev`.                                                                 |
 
 Před prvním spuštěním `pnpm test:e2e` je potřeba jednou stáhnout prohlížeč:
-`pnpm exec playwright install chromium`.
+`pnpm exec playwright install chromium`. Testy obchodu počítají s daty z `pnpm seed`: spouštějte je
+nad prázdnou databází, do které jste pustili `pnpm payload migrate` a `pnpm seed` (stejně jako CI).
 
 ## Struktura složek
 
@@ -104,6 +105,9 @@ Před prvním spuštěním `pnpm test:e2e` je potřeba jednou stáhnout prohlí�
 │   ├── access/                # kdo co smí (role a přístupová práva) + testy
 │   ├── collections/           # datové kolekce Payloadu (produkty, kategorie, číselníky, obsah…)
 │   ├── components/admin/      # vlastní části administrace (import PSČ, svátky, kalendář)
+│   ├── components/storefront/ # části obchodu (hlavička, menu, karty produktů, výběr varianty…)
+│   ├── storefront/            # načítání dat pro obchod, vyhledávání, obnova po úpravách
+│   ├── proxy.ts               # přesměrování starých adres kategorií na stránku kategorie (interně)
 │   ├── delivery/              # doručování: načtení pravidel z databáze, API, import PSČ
 │   ├── fields/                # společná pole (slug, SEO, původní URL, pořadí)
 │   ├── globals/               # nastavení obchodu (Settings)
@@ -182,6 +186,81 @@ Na úplně prázdné databázi můžete seedem rovnou vytvořit administrátora:
 `SEED_ADMIN_EMAIL` a `SEED_ADMIN_PASSWORD`. Jinak prvního uživatele vytvoříte v prohlížeči na
 <http://localhost:3000/admin>.
 
+## Obchod pro zákazníky (etapa 3)
+
+Obchod má vzhled podle návrhu **A „Řeznictví“** (červená hlavička, dlaždice zemí, filtry v levém
+sloupci). Všechno, co zákazník vidí, se bere z administrace – nic se nepíše do programu.
+
+### Odkud se bere obsah
+
+| Na webu                              | Kde se upravuje v administraci                                                                                   |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| Menu „Sortiment“                     | **Katalog → Kategorie**: pole „Sloupec v menu“ (podle druhu masa / řezu / původu / samostatně) a „Pořadí v menu“ |
+| Kategorie (úvodní text, text dole)   | **Katalog → Kategorie**                                                                                          |
+| Produkty, ceny, varianty, dostupnost | **Katalog → Produkty**                                                                                           |
+| Filtry v kategorii                   | Číselníky (řez, země původu, druh masa, hodí se na) vyplněné u produktů + dostupnost                             |
+| Úvodní stránka                       | **Obsah → Úvodní stránka** (viz níže)                                                                            |
+| Magazín, Terrys Academy, slovník     | **Obsah → Články** (rubrika Magazín / Terrys Academy)                                                            |
+| Recepty                              | **Obsah → Recepty** (pole „V tomto receptu jsme použili“ = produkty s tlačítkem do košíku)                       |
+| Stálé stránky                        | **Obsah → Stránky**                                                                                              |
+| Patička: kontakty, firma, sítě       | **Nastavení → Nastavení obchodu**                                                                                |
+| Prodejny, otevírací doba             | **Nastavení → Provozovny** (pole „Stránka prodejny na webu“ propojí provozovnu se stránkou)                      |
+| Cena dopravy (229 Kč), text u odhadu | **Nastavení → Nastavení obchodu**                                                                                |
+
+- Změna v administraci se na webu projeví **hned při dalším načtení stránky** (web si stránky
+  pamatuje kvůli rychlosti a po každém uložení si je obnoví).
+- Koncepty a produkty se stavem „Skryto“ se na webu nikdy neukážou. Vyprodané produkty se ukazují
+  (kvůli vyhledávačům), ale nejdou přidat do košíku.
+- **Náhled konceptu:** u produktu, článku, receptu nebo stránky klikněte v administraci na
+  „Náhled“. Web se otevře i s uloženými, ale ještě nezveřejněnými změnami a nahoře bude žlutý pruh
+  „Náhled konceptů“. Funguje jen přihlášeným redaktorům.
+- Když u provozovny vyplníte otevírací dobu, ukáže se na stránce prodejny „Dnes otevřeno do …“
+  nebo „Dnes zavřeno“. Prázdná otevírací doba = nic se neukazuje (nic si nedomýšlíme).
+- Údaje začínající slovem „DOPLNIT“ se zákazníkům nikdy nezobrazí.
+
+### Jak upravit úvodní stránku
+
+**Obsah → Úvodní stránka** má tři záložky:
+
+1. **Úvod** – nadpis, text a fotka velkého pruhu nahoře, dvě tlačítka a lišta „Proč nakoupit
+   u nás“ (max. 4 body; `{doprava}` se nahradí cenou dopravy).
+2. **Kategorie a produkty** – výběr kategorií do velkých karet („Naše nejoblíbenější steaky“),
+   výběr a pořadí zemí, malé dlaždice „Další maso a dárky“ a doporučené produkty.
+3. **Příběh a magazín** – hnědý pás „O nás“ (ukáže se jen s nadpisem a textem) a nadpisy sekcí
+   magazínu a receptů. Nejnovější články a recepty se doplňují samy.
+
+Když výběr necháte prázdný, web si poradí sám: karty řezů vezme ze sloupce menu „Podle řezu“,
+dlaždice zemí ze zemí původu, ke kterým máme produkty (kam dlaždice vede, nastavíte u země polem
+„Kategorie země“), a fotky kategorií z fotek jejich produktů.
+
+### Adresy stránek (URL) – důležité pro vyhledávače
+
+- Vše, co se přeneslo ze starého webu, má **stejnou adresu jako na starém webu** (pole „Původní
+  URL“), např. `/produkty/argentinsky-hovezi-rib-eye-detail-406`. Nic se nepřesměrovává.
+- Nové položky založené v administraci dostanou adresu ze slugu: produkt
+  `/produkty/detail/slug`, kategorie `/produkty/kategorie/slug`, článek `/magazin/clanek/slug`
+  (Terrys Academy `/academy-magazin/clanek/slug`), recept `/recepty/recept/slug`, stránka
+  `/stranky/slug`. Tyto adresy se se starými nikdy nepotkají.
+- Pole „Původní URL“ a slug po zveřejnění neměňte – změnila by se adresa a staré odkazy by
+  přestaly fungovat.
+- Vyhledávání zůstává na staré adrese `/vyhledavani?ProductsSearch=…` (používá se v reklamách)
+  a najde i slova bez diakritiky („svickova“ najde „Svíčková“).
+- Filtrované výpisy (`?puvod=argentina`) a vyhledávání se do Googlu neindexují; mapa webu je na
+  `/sitemap.xml`.
+
+### Spuštění obchodu nad daty ze starého webu
+
+```bash
+# PowerShell; databáze terrys_migration z importu (etapa 8)
+$env:DATABASE_URL='postgres://terrys:terrys@127.0.0.1:5433/terrys_migration'
+pnpm payload migrate
+pnpm seed --only=settings,locations,delivery   # jen nastavení, provozovny a doprava, ne ukázkové produkty
+pnpm build; pnpm start                          # nebo: $env:PAYLOAD_MIGRATING='true'; pnpm dev
+```
+
+Košík je zatím jen náhled (ukládá se v prohlížeči); objednávky přijdou v etapě 4. Přihlášení
+k newsletteru se zatím jen kontroluje a nikam neodesílá (Ecomail v etapě 6).
+
 ## Doručování (etapa 2)
 
 ### Jak to funguje
@@ -255,7 +334,7 @@ i Windows-1250 (české Excely). Odkaz **„Stáhnout všechna PSČ (CSV)“** s
 (soubor `src/seed/postcodes-cr.csv`, sestavený ze souboru „PSČ částí obcí“ České pošty, stav
 
 1. 11. 2026, zdroj <https://www.ceskaposta.cz/ke-stazeni/zakaznicke-vystupy>). U PSČ sdílených více
-   obcemi je uvedena nejčastější obec. Aktualizovaný seznam lze kdykoli naimportovat v administraci.
+       obcemi je uvedena nejčastější obec. Aktualizovaný seznam lze kdykoli naimportovat v administraci.
 
 ### Pro košík (programátorsky)
 
@@ -324,7 +403,10 @@ změnily na starém webu, aktualizuje. Adresa (slug) se při opakovaném importu
 
 ## Barvy značky (Tailwind)
 
-Definované v `src/app/(frontend)/globals.css`, používají se jako třídy Tailwindu:
+Definované v `src/app/(frontend)/globals.css`, používají se jako třídy Tailwindu (další odstíny
+návrhu A: `brand-red-dark`, `brand-brown-light`, `brand-beige-light`, `brand-gold-light`, `ink`,
+`muted`, `line`, `ok`, `night`). Písma Roboto Slab (nadpisy) a Quicksand (text) mají volnou
+licenci (SIL OFL) a web je při sestavení stáhne a servíruje z vlastní domény.
 
 | Token             | Barva     | Příklad třídy          |
 | ----------------- | --------- | ---------------------- |

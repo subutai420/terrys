@@ -4,6 +4,8 @@ import { adminOnly, anyone } from '@/access'
 import { sortOrderField } from '@/fields/common'
 import { slugField } from '@/fields/slug'
 
+import { storefrontRevalidationHooks } from '@/storefront/revalidate'
+
 import { ADMIN_GROUPS } from './adminGroups'
 
 const WEEKDAYS = [
@@ -41,6 +43,8 @@ export const Locations: CollectionConfig = {
     description: 'Prodejna a odběrná místa: adresa, otevírací doba, mapa. Upravuje administrátor.',
   },
   defaultSort: ['sortOrder', 'name'],
+  // Stage 3: clear the storefront cache after every change (src/storefront/revalidate.ts).
+  hooks: { ...storefrontRevalidationHooks },
   access: {
     read: anyone,
     create: adminOnly,
@@ -136,6 +140,18 @@ export const Locations: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
       label: 'Fotka',
+    },
+    {
+      // Stage 3: the store page (Obsah → Stránky) shows this place's address, hours and map.
+      name: 'page',
+      type: 'relationship',
+      relationTo: 'pages',
+      label: 'Stránka prodejny na webu',
+      admin: {
+        description:
+          'Nepovinné. Stránka, na které se ukáže adresa, otevírací doba a „dnes otevřeno“, ' +
+          'např. „Prodejna Terrys Steak Praha“.',
+      },
     },
     slugField({ from: 'name' }),
     sortOrderField(),

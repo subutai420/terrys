@@ -4,10 +4,10 @@ test.describe('Smoke test', () => {
   test('homepage renders in Czech', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page).toHaveTitle(/Terrys\.cz/)
+    await expect(page).toHaveTitle(/Terrys/)
     await expect(page.locator('html')).toHaveAttribute('lang', 'cs')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Terrys.cz')
-    await expect(page.getByText('Nový e-shop se připravuje')).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    await expect(page.getByRole('search').first()).toBeVisible()
   })
 
   test('admin shows the login or create-first-user screen', async ({ page }) => {

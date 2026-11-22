@@ -122,9 +122,11 @@ export interface Config {
   };
   fallbackLocale: null;
   globals: {
+    homepage: Homepage;
     settings: Setting;
   };
   globalsSelect: {
+    homepage: HomepageSelect<false> | HomepageSelect<true>;
     settings: SettingsSelect<false> | SettingsSelect<true>;
   };
   locale: null;
@@ -445,6 +447,10 @@ export interface Origin {
    */
   adjective?: string | null;
   /**
+   * Nepovinné. Kam vede dlaždice země na úvodní stránce, např. „Argentinské hovězí“. Prázdné = výpis všech produktů z této země.
+   */
+  category?: (number | null) | Category;
+  /**
    * Nepovinné. Krátký text, který se může zobrazit u filtru nebo na stránce.
    */
   description?: string | null;
@@ -457,6 +463,114 @@ export interface Origin {
    * Nižší číslo = zobrazí se dříve. Položky se stejným číslem se řadí podle názvu.
    */
   sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Kategorie v menu obchodu. Kategorie může mít nadřazenou kategorii a produkt může být ve více kategoriích najednou.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  title: string;
+  /**
+   * Obrázek kategorie v menu a na dlaždicích.
+   */
+  image?: (number | null) | Media;
+  /**
+   * Krátký text nad seznamem produktů.
+   */
+  intro?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Delší text pod seznamem produktů (pro vyhledávače i zvídavé zákazníky).
+   */
+  bottomText?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Jen pro přehled. Produkt do kategorie zařadíte v detailu produktu (pole Kategorie).
+   */
+  products?: {
+    docs?: (number | Product)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Nepovinné. Když pole necháte prázdná, použije se název a úvodní text stránky.
+   */
+  seo?: {
+    /**
+     * Titulek ve výsledcích vyhledávání, ideálně 50–60 znaků.
+     */
+    title?: string | null;
+    /**
+     * Krátký popis ve výsledcích vyhledávání, ideálně 120–160 znaků.
+     */
+    description?: string | null;
+    /**
+     * Obrázek při sdílení na Facebooku apod. Když chybí, použije se hlavní obrázek.
+     */
+    image?: (number | null) | Media;
+  };
+  /**
+   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
+   */
+  slug?: string | null;
+  /**
+   * Nechte prázdné u hlavních kategorií.
+   */
+  parent?: (number | null) | Category;
+  /**
+   * Ve kterém sloupci rozbalovacího menu se kategorie ukáže. Prázdné = není v menu.
+   */
+  menuColumn?: ('meat-type' | 'cut' | 'origin' | 'standalone') | null;
+  /**
+   * Nižší číslo = výše v menu.
+   */
+  menuOrder?: number | null;
+  /**
+   * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
+   */
+  legacyUrl?: string | null;
+  /**
+   * Vyplňuje import ze starého terrys.cz. Položku, kterou jste po importu upravili, import sám nepřepíše; zaškrtnutím „Nepřepisovat importem“ ji ochráníte natrvalo.
+   */
+  migration?: {
+    locked?: boolean | null;
+    importedAt?: string | null;
+    /**
+     * Technický údaj: podle něj import pozná, že se na starém webu nic nezměnilo.
+     */
+    sourceHash?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -616,114 +730,6 @@ export interface Recipe {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
-}
-/**
- * Kategorie v menu obchodu. Kategorie může mít nadřazenou kategorii a produkt může být ve více kategoriích najednou.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories".
- */
-export interface Category {
-  id: number;
-  title: string;
-  /**
-   * Obrázek kategorie v menu a na dlaždicích.
-   */
-  image?: (number | null) | Media;
-  /**
-   * Krátký text nad seznamem produktů.
-   */
-  intro?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * Delší text pod seznamem produktů (pro vyhledávače i zvídavé zákazníky).
-   */
-  bottomText?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * Jen pro přehled. Produkt do kategorie zařadíte v detailu produktu (pole Kategorie).
-   */
-  products?: {
-    docs?: (number | Product)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  /**
-   * Nepovinné. Když pole necháte prázdná, použije se název a úvodní text stránky.
-   */
-  seo?: {
-    /**
-     * Titulek ve výsledcích vyhledávání, ideálně 50–60 znaků.
-     */
-    title?: string | null;
-    /**
-     * Krátký popis ve výsledcích vyhledávání, ideálně 120–160 znaků.
-     */
-    description?: string | null;
-    /**
-     * Obrázek při sdílení na Facebooku apod. Když chybí, použije se hlavní obrázek.
-     */
-    image?: (number | null) | Media;
-  };
-  /**
-   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
-   */
-  slug?: string | null;
-  /**
-   * Nechte prázdné u hlavních kategorií.
-   */
-  parent?: (number | null) | Category;
-  /**
-   * Ve kterém sloupci rozbalovacího menu se kategorie ukáže. Prázdné = není v menu.
-   */
-  menuColumn?: ('meat-type' | 'cut' | 'origin' | 'standalone') | null;
-  /**
-   * Nižší číslo = výše v menu.
-   */
-  menuOrder?: number | null;
-  /**
-   * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
-   */
-  legacyUrl?: string | null;
-  /**
-   * Vyplňuje import ze starého terrys.cz. Položku, kterou jste po importu upravili, import sám nepřepíše; zaškrtnutím „Nepřepisovat importem“ ji ochráníte natrvalo.
-   */
-  migration?: {
-    locked?: boolean | null;
-    importedAt?: string | null;
-    /**
-     * Technický údaj: podle něj import pozná, že se na starém webu nic nezměnilo.
-     */
-    sourceHash?: string | null;
-  };
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * Články do Magazínu a Terrys Academy. Na webu se ukážou až po publikování.
@@ -974,6 +980,10 @@ export interface Location {
   mapUrl?: string | null;
   parkingNote?: string | null;
   image?: (number | null) | Media;
+  /**
+   * Nepovinné. Stránka, na které se ukáže adresa, otevírací doba a „dnes otevřeno“, např. „Prodejna Terrys Steak Praha“.
+   */
+  page?: (number | null) | Page;
   /**
    * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
    */
@@ -1329,6 +1339,7 @@ export interface CutsSelect<T extends boolean = true> {
 export interface OriginsSelect<T extends boolean = true> {
   name?: T;
   adjective?: T;
+  category?: T;
   description?: T;
   image?: T;
   slug?: T;
@@ -1645,6 +1656,7 @@ export interface LocationsSelect<T extends boolean = true> {
   mapUrl?: T;
   parkingNote?: T;
   image?: T;
+  page?: T;
   slug?: T;
   sortOrder?: T;
   updatedAt?: T;
@@ -1716,6 +1728,95 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * Texty a výběr kategorií a produktů na úvodní stránce obchodu. Nejnovější články, recepty a dlaždice zemí se doplňují samy. Prázdná pole = výchozí text, prázdná sekce se neukáže.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepage".
+ */
+export interface Homepage {
+  id: number;
+  hero?: {
+    heading?: string | null;
+    text?: string | null;
+    /**
+     * Široká fotka (ideálně alespoň 1600 px). Bez fotky se ukáže tmavé pozadí.
+     */
+    image?: (number | null) | Media;
+    primaryLabel?: string | null;
+    /**
+     * Např. „/produkty“.
+     */
+    primaryUrl?: string | null;
+    /**
+     * Nepovinné, např. „Dárkové poukazy“.
+     */
+    secondaryLabel?: string | null;
+    secondaryUrl?: string | null;
+  };
+  /**
+   * Nejvýše 4 krátké body. Ve druhém řádku můžete napsat {doprava} – nahradí se cenou dopravy z Nastavení obchodu. Neuvádějte slevy ani dopravu zdarma.
+   */
+  trustItems?:
+    | {
+        title: string;
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  featuredCategories?: {
+    heading?: string | null;
+    subheading?: string | null;
+    /**
+     * Ideálně 4 kategorie s fotkou. Prázdné = kategorie ze sloupce menu „Podle řezu“.
+     */
+    categories?: (number | Category)[] | null;
+  };
+  /**
+   * Dlaždice se berou z číselníku Země původu (jen země, ze kterých máme produkty). Kam dlaždice vede, nastavíte u země polem „Kategorie země“.
+   */
+  origins?: {
+    heading?: string | null;
+    /**
+     * Nepovinné. Prázdné = všechny země s produkty.
+     */
+    list?: (number | Origin)[] | null;
+  };
+  otherCategories?: {
+    heading?: string | null;
+    /**
+     * Ideálně 6 kategorií. Prázdné = kategorie ze sloupce menu „Podle druhu masa“ a samostatné položky.
+     */
+    categories?: (number | Category)[] | null;
+  };
+  featuredProducts?: {
+    heading?: string | null;
+    /**
+     * Nepovinné. Prázdné = sekce se neukáže.
+     */
+    products?: (number | Product)[] | null;
+  };
+  /**
+   * Ukáže se jen s vyplněným nadpisem a textem.
+   */
+  story?: {
+    heading?: string | null;
+    text?: string | null;
+    image?: (number | null) | Media;
+    linkLabel?: string | null;
+    linkUrl?: string | null;
+  };
+  /**
+   * Nejnovější 3 články a 3 recepty se doplní samy.
+   */
+  magazine?: {
+    heading?: string | null;
+    subheading?: string | null;
+    recipesHeading?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * Základní údaje obchodu. Upravuje jen administrátor.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1764,6 +1865,74 @@ export interface Setting {
   };
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepage_select".
+ */
+export interface HomepageSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        heading?: T;
+        text?: T;
+        image?: T;
+        primaryLabel?: T;
+        primaryUrl?: T;
+        secondaryLabel?: T;
+        secondaryUrl?: T;
+      };
+  trustItems?:
+    | T
+    | {
+        title?: T;
+        text?: T;
+        id?: T;
+      };
+  featuredCategories?:
+    | T
+    | {
+        heading?: T;
+        subheading?: T;
+        categories?: T;
+      };
+  origins?:
+    | T
+    | {
+        heading?: T;
+        list?: T;
+      };
+  otherCategories?:
+    | T
+    | {
+        heading?: T;
+        categories?: T;
+      };
+  featuredProducts?:
+    | T
+    | {
+        heading?: T;
+        products?: T;
+      };
+  story?:
+    | T
+    | {
+        heading?: T;
+        text?: T;
+        image?: T;
+        linkLabel?: T;
+        linkUrl?: T;
+      };
+  magazine?:
+    | T
+    | {
+        heading?: T;
+        subheading?: T;
+        recipesHeading?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

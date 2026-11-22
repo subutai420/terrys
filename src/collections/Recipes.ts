@@ -2,7 +2,10 @@ import type { CollectionConfig } from 'payload'
 
 import { editors, publishedOrLoggedIn } from '@/access'
 import { legacyUrlField, migrationGroup, seoGroup } from '@/fields/common'
+import { previewUrl } from '@/fields/preview'
 import { slugField } from '@/fields/slug'
+
+import { storefrontRevalidationHooks } from '@/storefront/revalidate'
 
 import { ADMIN_GROUPS } from './adminGroups'
 
@@ -19,6 +22,7 @@ export const Recipes: CollectionConfig = {
   admin: {
     group: ADMIN_GROUPS.content,
     useAsTitle: 'title',
+    preview: previewUrl('recipes'),
     defaultColumns: ['title', 'difficulty', 'publishedAt', '_status'],
     description:
       'Recepty. Postupy a teploty uvádějte jen ověřené (od majitele nebo řezníků). ' +
@@ -29,6 +33,8 @@ export const Recipes: CollectionConfig = {
     drafts: true,
     maxPerDoc: 30,
   },
+  // Stage 3: clear the storefront cache after every change (src/storefront/revalidate.ts).
+  hooks: { ...storefrontRevalidationHooks },
   access: {
     read: publishedOrLoggedIn,
     create: editors,

@@ -1,5 +1,6 @@
 # Continuous integration: checks every push and pull request.
-# Steps: install -> lint -> typecheck -> unit + integration tests -> build -> Playwright smoke test.
+# Steps: install -> lint -> typecheck -> unit + integration tests -> migrate + seed -> build ->
+# Playwright e2e tests.
 name: CI
 
 on:
@@ -64,15 +65,21 @@ jobs:
       - name: Unit and integration tests
         run: pnpm test
 
+      # Stage 3: the storefront is pre-rendered at build time from the database, and the e2e tests
+      # need the demo data. Apply the migrations and seed the (empty) CI database first.
+      - name: Prepare database (migrations + seed)
+        run: |
+          pnpm payload migrate
+          pnpm seed
+
       - name: Build
         run: pnpm build
 
       - name: Install Playwright browser
         run: pnpm exec playwright install --with-deps chromium
 
-      # Starts the production server (`pnpm start`); Payload applies migrations
-      # from src/migrations to the empty CI database on startup.
-      - name: Playwright smoke test
+      # Starts the production server (`pnpm start`) against the seeded database.
+      - name: Playwright e2e tests
         run: pnpm test:e2e
 
       - name: Upload Playwright report

@@ -4,6 +4,8 @@ import { fileURLToPath } from 'url'
 
 import { anyone, editors } from '@/access'
 
+import { storefrontRevalidationHooks } from '@/storefront/revalidate'
+
 import { ADMIN_GROUPS } from './adminGroups'
 
 const filename = fileURLToPath(import.meta.url)
@@ -34,6 +36,8 @@ export const Media: CollectionConfig = {
       'Fotky produktů, kategorií a článků. Nahrávejte co největší kvalitní fotky (ideálně ' +
       'alespoň 1600 px na šířku), menší velikosti se vytvoří automaticky.',
   },
+  // Stage 3: clear the storefront cache after every change (src/storefront/revalidate.ts).
+  hooks: { ...storefrontRevalidationHooks },
   access: {
     // Anyone can view uploaded files (they are shown on the public storefront).
     read: anyone,

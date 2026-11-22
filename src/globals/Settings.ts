@@ -3,6 +3,7 @@ import type { GlobalConfig } from 'payload'
 import { adminOnly, anyone } from '@/access'
 import { ADMIN_GROUPS } from '@/collections/adminGroups'
 import { DEFAULT_HORIZON_DAYS } from '@/lib/delivery/constants'
+import { revalidateGlobalAfterChange } from '@/storefront/revalidate'
 
 /** Default storefront notice next to estimated prices (business rule: final price by weight). */
 export const DEFAULT_PRICE_NOTICE =
@@ -23,6 +24,10 @@ export const Settings: GlobalConfig = {
   access: {
     read: anyone,
     update: adminOnly,
+  },
+  // Stage 3: contacts and the delivery price are shown on every storefront page.
+  hooks: {
+    afterChange: [revalidateGlobalAfterChange],
   },
   fields: [
     {

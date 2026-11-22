@@ -2,7 +2,10 @@ import type { CollectionConfig } from 'payload'
 
 import { anyone, editors } from '@/access'
 import { legacyUrlField, migrationGroup, seoGroup } from '@/fields/common'
+import { previewUrl } from '@/fields/preview'
 import { slugField } from '@/fields/slug'
+
+import { storefrontRevalidationHooks } from '@/storefront/revalidate'
 
 import { ADMIN_GROUPS } from './adminGroups'
 
@@ -31,12 +34,15 @@ export const Categories: CollectionConfig = {
   admin: {
     group: ADMIN_GROUPS.catalog,
     useAsTitle: 'title',
+    preview: previewUrl('categories'),
     defaultColumns: ['title', 'parent', 'menuColumn', 'menuOrder', 'slug'],
     description:
       'Kategorie v menu obchodu. Kategorie může mít nadřazenou kategorii a produkt může být ' +
       've více kategoriích najednou.',
   },
   defaultSort: ['menuOrder', 'title'],
+  // Stage 3: clear the storefront cache after every change (src/storefront/revalidate.ts).
+  hooks: { ...storefrontRevalidationHooks },
   access: {
     read: anyone,
     create: editors,

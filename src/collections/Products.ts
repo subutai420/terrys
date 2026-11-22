@@ -2,6 +2,7 @@ import type { CollectionConfig, NumberFieldSingleValidation } from 'payload'
 
 import { editors, publicProductsOrLoggedIn } from '@/access'
 import { legacyUrlField, migrationGroup, seoGroup } from '@/fields/common'
+import { previewUrl } from '@/fields/preview'
 import { slugField } from '@/fields/slug'
 import {
   AVAILABILITY,
@@ -11,6 +12,8 @@ import {
   PRICE_UNITS,
   VAT_RATES,
 } from '@/lib/catalog'
+
+import { storefrontRevalidationHooks } from '@/storefront/revalidate'
 
 import { ADMIN_GROUPS } from './adminGroups'
 
@@ -55,6 +58,7 @@ export const Products: CollectionConfig = {
   admin: {
     group: ADMIN_GROUPS.catalog,
     useAsTitle: 'title',
+    preview: previewUrl('products'),
     defaultColumns: ['title', 'price', 'priceUnit', 'availability', 'origin', '_status'],
     listSearchableFields: ['title', 'slug', 'sku'],
     description:
@@ -66,6 +70,8 @@ export const Products: CollectionConfig = {
     drafts: true,
     maxPerDoc: 30,
   },
+  // Stage 3: clear the storefront cache after every change (src/storefront/revalidate.ts).
+  hooks: { ...storefrontRevalidationHooks },
   access: {
     read: publicProductsOrLoggedIn,
     create: editors,
