@@ -76,6 +76,8 @@ export function useValidatedCart() {
   const hydrated = useHydrated()
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [notices, setNotices] = useState<CartNotice[]>([])
+  // Stage 7: electronic vouchers orderable now? (null = no electronic voucher in the cart)
+  const [vouchers, setVouchers] = useState<{ electronic: boolean; dueHours: number } | null>(null)
   const started = useRef(false)
 
   const validate = useCallback(async () => {
@@ -103,7 +105,10 @@ export function useValidatedCart() {
         }),
       })
       if (!response.ok) throw new Error(String(response.status))
-      const result = (await response.json()) as CartCheckResult
+      const result = (await response.json()) as CartCheckResult & {
+        vouchers?: { electronic: boolean; dueHours: number } | null
+      }
+      setVouchers(result.vouchers ?? null)
       setNotices(applyCartCheck(result))
       setStatus('ready')
     } catch {
@@ -118,7 +123,7 @@ export function useValidatedCart() {
     void validate()
   }, [hydrated, validate])
 
-  return { lines, hydrated, status, notices, setNotices, revalidate: validate }
+  return { lines, hydrated, status, notices, setNotices, revalidate: validate, vouchers }
 }
 
 export type DeliveryState =

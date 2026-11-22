@@ -42,6 +42,11 @@ jobs:
       ORDER_NOTIFICATION_EMAIL: objednavky@example.test
       # Stage 5: Balíkobot in simulation (no credentials in CI, nothing is ever sent to a carrier).
       BALIKOBOT_SIMULATION: '1'
+      # Stage 7: `pnpm seed` creates this admin on the empty CI database, so EVERY e2e test that
+      # needs the admin (fulfilment, vouchers) can log in – before, only the first test that
+      # registered the first user could. CI-only throwaway credentials, not a real account.
+      SEED_ADMIN_EMAIL: e2e-admin@example.test
+      SEED_ADMIN_PASSWORD: ci-only-not-a-real-password-7f3a9c
 
     steps:
       - name: Checkout

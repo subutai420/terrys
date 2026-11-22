@@ -10,6 +10,7 @@ import {
   ORDER_STATUS_LABELS,
   type OrderStatus,
 } from '@/lib/orders/constants'
+import { PAYMENT_STATUS_LABELS, type PaymentStatus } from '@/lib/vouchers/constants'
 import type { Order } from '@/payload-types'
 
 import { getTolerancePercent } from './settings'
@@ -85,6 +86,14 @@ export function auditChanges(before: Order, after: Order): Change[] {
   push('K úhradě při převzetí (Kč)', before.totals?.amountDue, after.totals?.amountDue)
   push('Poukazy', vouchersText(before.voucherRedemptions), vouchersText(after.voucherRedemptions))
   push('Zásilka (ID balíku)', before.shipment?.packageId, after.shipment?.packageId)
+  // Stage 7: bank transfer of electronic vouchers (marked paid / undone by staff).
+  const paymentLabel = (v: unknown) => (v ? (PAYMENT_STATUS_LABELS[v as PaymentStatus] ?? v) : v)
+  push('Platba převodem', paymentLabel(before.payment?.status), paymentLabel(after.payment?.status))
+  push(
+    'Platba přišla (den)',
+    before.payment?.paidOn?.slice(0, 10),
+    after.payment?.paidOn?.slice(0, 10),
+  )
 
   const beforeLines = new Map((before.lines ?? []).map((line) => [line.id, line]))
   for (const line of after.lines ?? []) {

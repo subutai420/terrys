@@ -4,6 +4,8 @@
  */
 export const ADMIN_GROUPS = {
   orders: 'Objednávky',
+  // Stage 7: gift vouchers (custom nav group like orders, see VouchersNavGroup).
+  vouchers: 'Poukazy',
   catalog: 'Katalog',
   codeLists: 'Číselníky',
   content: 'Obsah',

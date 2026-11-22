@@ -10,6 +10,10 @@ type Props = {
   priceNotice: string
   children?: ReactNode
   heading?: string
+  /** Stage 7: `vouchers` = only electronic vouchers (fixed price, no delivery, bank transfer). */
+  variant?: 'goods' | 'vouchers'
+  /** Stage 7: payment due time of electronic vouchers (settings). */
+  dueHours?: number
 }
 
 const percent = Math.round(WEIGHT_TOLERANCE * 100)
@@ -21,8 +25,60 @@ export function OrderSummary({
   priceNotice,
   children,
   heading = 'Souhrn',
+  variant = 'goods',
+  dueHours = 72,
 }: Props) {
   const total = goodsEstimate + (delivery?.price ?? 0)
+  if (variant === 'vouchers') {
+    return (
+      <section
+        className="card h-fit space-y-3"
+        aria-labelledby="summary-heading"
+        data-testid="order-summary"
+      >
+        <h2 id="summary-heading" className="text-xl">
+          {heading}
+        </h2>
+        <dl className="space-y-1.5">
+          <div className="flex justify-between gap-4">
+            <dt>Dárkové poukazy</dt>
+            <dd className="font-semibold" data-testid="summary-goods">
+              {formatCzk(goodsEstimate)}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-4">
+            <dt>Doprava</dt>
+            <dd className="text-right text-muted" data-testid="summary-delivery">
+              není potřeba – posíláme e-mailem
+            </dd>
+          </div>
+          <div className="flex items-baseline justify-between gap-4 border-t border-line pt-2.5">
+            <dt className="font-bold leading-tight">
+              Celkem
+              <span className="block text-sm font-normal text-muted">vč. DPH, převodem předem</span>
+            </dt>
+            <dd
+              className="font-slab text-2xl font-bold whitespace-nowrap text-brand-red"
+              data-testid="summary-total"
+            >
+              {formatCzk(total)}
+            </dd>
+          </div>
+        </dl>
+        <div
+          className="rounded-card bg-brand-beige-light p-3 text-sm"
+          data-testid="voucher-payment-notice"
+        >
+          <p>
+            <strong>Platba převodem do {dueHours} hodin.</strong> Poukaz v PDF vám pošleme e-mailem
+            hned po objednávce, spolu s QR kódem a platebními údaji.
+          </p>
+          <p className="mt-2">Poukaz začne platit, jakmile nám dorazí platba.</p>
+        </div>
+        {children}
+      </section>
+    )
+  }
   return (
     <section
       className="card h-fit space-y-3"

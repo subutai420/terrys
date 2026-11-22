@@ -12,6 +12,8 @@ import {
   type OrderStatus,
 } from '@/lib/orders/constants'
 import { voucherAmountError } from '@/lib/orders/money'
+
+import { VoucherRowCheck } from '../vouchers/VoucherRowCheck'
 import { variableSymbol } from '@/lib/shipping/balikobot'
 
 import { type ApiResponse, postJson, responseText } from './api'
@@ -154,6 +156,13 @@ export function FulfilmentClient({
       finalise ? 'Vyúčtování potvrzeno.' : 'Uloženo.',
     )
 
+  // Stage 7: what this order already redeemed per voucher (counts as available when editing).
+  const savedAmount = (code: string) => {
+    const key = code.toUpperCase().replace(/[^0-9A-Z]/g, '')
+    return order.vouchers
+      .filter((v) => v.code.toUpperCase().replace(/[^0-9A-Z]/g, '') === key)
+      .reduce((sum, v) => sum + v.amount, 0)
+  }
   const setVoucher = (index: number, patch: Partial<Voucher>) =>
     setVouchers((prev) => prev.map((v, i) => (i === index ? { ...v, ...patch } : v)))
 
@@ -192,62 +201,82 @@ export function FulfilmentClient({
               Poukaz je způsob platby (ne sleva): cena ani DPH se nemění, jen se sníží částka k
               úhradě.
               {order.voucherCode
-                ? ` Zákazník zadal kód: ${order.voucherCode} – před zapsáním ho ověřte.`
+                ? ` Zákazník zadal kód: ${order.voucherCode} – stav poukazu se ukáže pod kódem.`
                 : ''}
             </p>
             {vouchers.map((v, i) => (
-              <div className="tf-voucher" key={i} style={{ marginBottom: 8 }}>
-                <div className="tf-field" style={{ margin: 0 }}>
-                  <label htmlFor={`v-code-${i}`}>Kód</label>
-                  <input
-                    data-testid="voucher-code"
+              <div key={i} style={{ marginBottom: 12 }}>
+                <div className="tf-voucher" style={{ marginBottom: 4 }}>
+                  <div className="tf-field" style={{ margin: 0 }}>
+                    <label htmlFor={`v-code-${i}`}>Kód</label>
+                    <input
+                      data-testid="voucher-code"
+                      disabled={closed}
+                      id={`v-code-${i}`}
+                      onChange={(e) => setVoucher(i, { code: e.target.value })}
+                      value={v.code}
+                    />
+                    {errors[`vouchers.${i}.code`] && (
+                      <span className="tf-error">{errors[`vouchers.${i}.code`]}</span>
+                    )}
+                  </div>
+                  <div className="tf-field" style={{ margin: 0 }}>
+                    <label htmlFor={`v-amount-${i}`}>Částka (Kč)</label>
+                    <input
+                      data-testid="voucher-amount"
+                      disabled={closed}
+                      id={`v-amount-${i}`}
+                      inputMode="numeric"
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, '')
+                        setVoucher(i, { amount: digits ? Number(digits) : '' })
+                      }}
+                      value={v.amount}
+                    />
+                    {(errors[`vouchers.${i}.amount`] ||
+                      (v.amount !== '' && voucherAmountError(v.amount))) && (
+                      <span className="tf-error">
+                        {errors[`vouchers.${i}.amount`] ?? voucherAmountError(v.amount)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="tf-field" style={{ margin: 0 }}>
+                    <label htmlFor={`v-note-${i}`}>Poznámka (kdo ověřil…)</label>
+                    <input
+                      disabled={closed}
+                      id={`v-note-${i}`}
+                      onChange={(e) => setVoucher(i, { note: e.target.value })}
+                      value={v.note}
+                    />
+                  </div>
+                  <button
+                    className="tf-btn tf-btn--danger"
                     disabled={closed}
-                    id={`v-code-${i}`}
-                    onChange={(e) => setVoucher(i, { code: e.target.value })}
-                    value={v.code}
-                  />
-                  {errors[`vouchers.${i}.code`] && (
-                    <span className="tf-error">{errors[`vouchers.${i}.code`]}</span>
-                  )}
+                    onClick={() => setVouchers((prev) => prev.filter((_, k) => k !== i))}
+                    style={{ marginTop: 20 }}
+                    type="button"
+                  >
+                    Odebrat
+                  </button>
                 </div>
-                <div className="tf-field" style={{ margin: 0 }}>
-                  <label htmlFor={`v-amount-${i}`}>Částka (Kč)</label>
-                  <input
-                    data-testid="voucher-amount"
-                    disabled={closed}
-                    id={`v-amount-${i}`}
-                    inputMode="numeric"
-                    onChange={(e) => {
-                      const digits = e.target.value.replace(/\D/g, '')
-                      setVoucher(i, { amount: digits ? Number(digits) : '' })
+                {!closed && (
+                  <VoucherRowCheck
+                    code={v.code}
+                    alreadyHere={savedAmount(v.code)}
+                    onUseAmount={(available) => {
+                      const others = vouchers.reduce(
+                        (sum, other, k) =>
+                          sum + (k === i || other.amount === '' ? 0 : other.amount),
+                        0,
+                      )
+                      const rest =
+                        order.totalFinal === null
+                          ? available
+                          : Math.max(0, order.totalFinal - others)
+                      setVoucher(i, { amount: Math.min(available, rest) })
                     }}
-                    value={v.amount}
                   />
-                  {(errors[`vouchers.${i}.amount`] ||
-                    (v.amount !== '' && voucherAmountError(v.amount))) && (
-                    <span className="tf-error">
-                      {errors[`vouchers.${i}.amount`] ?? voucherAmountError(v.amount)}
-                    </span>
-                  )}
-                </div>
-                <div className="tf-field" style={{ margin: 0 }}>
-                  <label htmlFor={`v-note-${i}`}>Poznámka (kdo ověřil…)</label>
-                  <input
-                    disabled={closed}
-                    id={`v-note-${i}`}
-                    onChange={(e) => setVoucher(i, { note: e.target.value })}
-                    value={v.note}
-                  />
-                </div>
-                <button
-                  className="tf-btn tf-btn--danger"
-                  disabled={closed}
-                  onClick={() => setVouchers((prev) => prev.filter((_, k) => k !== i))}
-                  style={{ marginTop: 20 }}
-                  type="button"
-                >
-                  Odebrat
-                </button>
+                )}
               </div>
             ))}
             {!closed && (

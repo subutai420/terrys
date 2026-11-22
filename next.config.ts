@@ -13,6 +13,16 @@ const nextConfig: NextConfig = {
     // cached by older code with a different shape.
     STOREFRONT_CACHE_VERSION: String(Date.now()),
   },
+  // Stage 7 (gift vouchers): `pdfkit` (voucher PDF, src/vouchers/pdf.ts) loads font files and
+  // its own data files from disk at runtime, which breaks when Next.js bundles it. Keeping it
+  // external means it is loaded from node_modules like in plain Node.
+  serverExternalPackages: ['pdfkit'],
+  // The voucher PDF reads its fonts and the logo via fs at runtime (paths from process.cwd()).
+  // Vercel only ships files it can see being imported, so list them explicitly for every
+  // server route ('/**' = all routes; the PDF can be generated from Payload hooks/endpoints).
+  outputFileTracingIncludes: {
+    '/**': ['./src/vouchers/fonts/*.ttf', './public/img/logo-red.svg'],
+  },
   images: {
     localPatterns: [
       {

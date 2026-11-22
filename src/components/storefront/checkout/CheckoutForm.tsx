@@ -26,6 +26,12 @@ import { type FieldErrors, parseCheckoutInput } from '@/lib/orders/checkoutSchem
 import { ORDER_BUTTON_LABEL, THANK_YOU_PATH } from '@/lib/orders/constants'
 import { addressLine, dateMeaning, formatDateLong } from '@/lib/orders/format'
 import { WEIGHT_TOLERANCE } from '@/lib/productView'
+import {
+  cartKind,
+  ELECTRONIC_VARIANT_ID,
+  MIXED_CART_MESSAGE,
+  PRINTED_VARIANT_ID,
+} from '@/lib/vouchers/cart'
 
 import { CartLines } from './CartLines'
 import { DeliveryPicker, methodPriceLabel } from './DeliveryPicker'
@@ -43,6 +49,8 @@ export type CheckoutPageProps = {
   contact: { email: string | null; phone: string | null }
   turnstileSiteKey: string | null
   addressCheckEnabled: boolean
+  /** Stage 7: payment due time of electronic vouchers (settings, hours). */
+  voucherDueHours: number
 }
 
 type FormState = {
@@ -60,6 +68,8 @@ type FormState = {
   note: string
   hasVoucher: boolean
   voucherCode: string
+  recipientName: string
+  voucherMessage: string
   terms: boolean
   newsletter: boolean
   heurekaOptOut: boolean
@@ -81,6 +91,8 @@ const EMPTY: FormState = {
   note: '',
   hasVoucher: false,
   voucherCode: '',
+  recipientName: '',
+  voucherMessage: '',
   terms: false,
   newsletter: false,
   heurekaOptOut: false,
@@ -101,6 +113,8 @@ const ERROR_PATH: Partial<Record<keyof FormState, string>> = {
   postcode: 'address.postcode',
   note: 'note',
   voucherCode: 'voucherCode',
+  recipientName: 'voucherDetails.recipientName',
+  voucherMessage: 'voucherDetails.message',
   terms: 'consents.terms',
 }
 
@@ -120,6 +134,8 @@ const FIELD_ORDER: string[] = [
   'customer.dic',
   'note',
   'voucherCode',
+  'voucherDetails.recipientName',
+  'voucherDetails.message',
   'consents.terms',
 ]
 
@@ -179,9 +195,15 @@ export function CheckoutForm(props: CheckoutPageProps) {
   const options: PublicDeliveryOptions | null =
     delivery.state.status === 'ok' ? delivery.state.data : null
   const method = options?.methods.find((m) => m.id === choice.methodId && m.available) ?? null
-  const needsAddress = method ? method.type !== 'pickup' : true
+  // Stage 7: only electronic vouchers → no delivery, no address, bank transfer in advance.
+  const vo = cartKind(lines) === 'electronic-vouchers'
+  const mixed = cartKind(lines) === 'mixed-electronic'
+  const hasVoucherLines = lines.some(
+    (line) => line.variantId === ELECTRONIC_VARIANT_ID || line.variantId === PRINTED_VARIANT_ID,
+  )
+  const needsAddress = vo ? false : method ? method.type !== 'pickup' : true
   const goodsEstimate = lines.reduce((sum, line) => sum + (lineTotal(line) ?? 0), 0)
-  const total = goodsEstimate + (method?.price ?? 0)
+  const total = goodsEstimate + (vo ? 0 : (method?.price ?? 0))
   // The picker is open while there is no usable choice, or when the customer wants to change it.
   const deliveryOpen = editDelivery || !method || !choice.date
 
@@ -219,11 +241,13 @@ export function CheckoutForm(props: CheckoutPageProps) {
         variantId: line.variantId,
         quantity: line.quantity,
       })),
-      delivery: {
-        postcode: choice.postcode,
-        methodId: choice.methodId ?? 0,
-        date: choice.date ?? '',
-      },
+      delivery: vo
+        ? undefined
+        : {
+            postcode: choice.postcode,
+            methodId: choice.methodId ?? 0,
+            date: choice.date ?? '',
+          },
       customer: {
         firstName: form.firstName,
         lastName: form.lastName,
@@ -237,7 +261,10 @@ export function CheckoutForm(props: CheckoutPageProps) {
         ? { street: form.street, city: form.city, postcode: form.postcode }
         : undefined,
       note: form.note,
-      voucherCode: form.hasVoucher ? form.voucherCode : undefined,
+      voucherCode: form.hasVoucher && !vo ? form.voucherCode : undefined,
+      voucherDetails: hasVoucherLines
+        ? { recipientName: form.recipientName, message: form.voucherMessage }
+        : undefined,
       consents: {
         terms: form.terms,
         newsletter: form.newsletter,
@@ -251,6 +278,7 @@ export function CheckoutForm(props: CheckoutPageProps) {
   const validateAll = (): FieldErrors => {
     const result = parseCheckoutInput(buildInput(), needsAddress)
     const found: FieldErrors = result.ok ? {} : { ...result.errors }
+    if (vo) return found
     if (!method) found['delivery.methodId'] = 'Vyberte způsob dopravy.'
     else if (!choice.date) found['delivery.date'] = 'Vyberte termín.'
     return found
@@ -344,7 +372,11 @@ export function CheckoutForm(props: CheckoutPageProps) {
         return
       }
       setFormMessage(body.message ?? 'Objednávku se nepodařilo odeslat. Zkuste to prosím znovu.')
-      if (body.error === 'cart-changed' || body.error === 'prices-changed') {
+      if (
+        body.error === 'cart-changed' ||
+        body.error === 'prices-changed' ||
+        body.error === 'mixed-vouchers'
+      ) {
         if (body.cart) setNotices(applyCartCheck(body.cart as CartCheckResult))
         window.scrollTo({ top: 0, behavior: 'smooth' })
       } else if (body.error === 'delivery-unavailable') {
@@ -433,65 +465,96 @@ export function CheckoutForm(props: CheckoutPageProps) {
           ) : null}
         </div>
 
-        {/* 1. Delivery */}
-        <section className="card scroll-mt-4" id="doprava" aria-labelledby="h-delivery">
-          <StepHeading id="h-delivery" number={1}>
-            Doprava a termín
-          </StepHeading>
-          {!deliveryOpen && method && choice.date ? (
-            <div
-              className="flex flex-wrap items-start justify-between gap-3"
-              data-testid="delivery-summary"
-            >
-              <div>
-                <p className="font-bold">
-                  {method.name} – {methodPriceLabel(method)}
-                </p>
-                <p>
-                  {dateMeaning(method.type)}: <strong>{formatDateLong(choice.date)}</strong>
-                </p>
-                {pickup ? (
-                  <p className="text-sm text-muted">
-                    {[pickup.name, addressLine(pickup)].filter(Boolean).join(', ')}
+        {mixed ? (
+          <div className="card border-2 border-brand-red" role="alert" data-testid="checkout-mixed">
+            <p className="font-semibold">{MIXED_CART_MESSAGE}</p>
+            <Link href="/kosik" className="btn mt-3">
+              Upravit košík
+            </Link>
+          </div>
+        ) : null}
+
+        {/* 1. Delivery (stage 7: electronic vouchers have none) */}
+        {vo ? (
+          <section
+            className="card"
+            aria-labelledby="h-delivery"
+            data-testid="voucher-delivery-info"
+          >
+            <StepHeading id="h-delivery" number={1}>
+              Doručení a platba
+            </StepHeading>
+            <p>
+              <strong>
+                Elektronický poukaz (PDF) pošleme e-mailem hned po odeslání objednávky.
+              </strong>{' '}
+              Doprava ani termín nejsou potřeba.
+            </p>
+            <p className="mt-2">
+              Platíte <strong>bankovním převodem do {props.voucherDueHours} hodin</strong> – QR kód
+              a platební údaje najdete v e-mailu. Poukaz začne platit, jakmile nám dorazí platba.
+            </p>
+          </section>
+        ) : (
+          <section className="card scroll-mt-4" id="doprava" aria-labelledby="h-delivery">
+            <StepHeading id="h-delivery" number={1}>
+              Doprava a termín
+            </StepHeading>
+            {!deliveryOpen && method && choice.date ? (
+              <div
+                className="flex flex-wrap items-start justify-between gap-3"
+                data-testid="delivery-summary"
+              >
+                <div>
+                  <p className="font-bold">
+                    {method.name} – {methodPriceLabel(method)}
                   </p>
-                ) : (
-                  <p className="text-sm text-muted">PSČ {formatPostcode(choice.postcode)}</p>
-                )}
+                  <p>
+                    {dateMeaning(method.type)}: <strong>{formatDateLong(choice.date)}</strong>
+                  </p>
+                  {pickup ? (
+                    <p className="text-sm text-muted">
+                      {[pickup.name, addressLine(pickup)].filter(Boolean).join(', ')}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted">PSČ {formatPostcode(choice.postcode)}</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="text-brand-red underline"
+                  onClick={() => setEditDelivery(true)}
+                >
+                  Změnit
+                </button>
               </div>
+            ) : (
+              <DeliveryPicker
+                choice={choice}
+                onChange={(next) => {
+                  updateChoice(next)
+                  setDeliveryMessage(null)
+                }}
+                state={delivery.state}
+                message={deliveryMessage}
+              />
+            )}
+            {shownErrors['delivery.methodId'] || shownErrors['delivery.date'] ? (
+              <p className="mt-2 text-sm font-semibold text-brand-red">
+                {shownErrors['delivery.methodId'] ?? shownErrors['delivery.date']}
+              </p>
+            ) : null}
+            {deliveryOpen && method && choice.date ? (
               <button
                 type="button"
-                className="text-brand-red underline"
-                onClick={() => setEditDelivery(true)}
+                className="btn btn-ghost mt-4"
+                onClick={() => setEditDelivery(false)}
               >
-                Změnit
+                Hotovo
               </button>
-            </div>
-          ) : (
-            <DeliveryPicker
-              choice={choice}
-              onChange={(next) => {
-                updateChoice(next)
-                setDeliveryMessage(null)
-              }}
-              state={delivery.state}
-              message={deliveryMessage}
-            />
-          )}
-          {shownErrors['delivery.methodId'] || shownErrors['delivery.date'] ? (
-            <p className="mt-2 text-sm font-semibold text-brand-red">
-              {shownErrors['delivery.methodId'] ?? shownErrors['delivery.date']}
-            </p>
-          ) : null}
-          {deliveryOpen && method && choice.date ? (
-            <button
-              type="button"
-              className="btn btn-ghost mt-4"
-              onClick={() => setEditDelivery(false)}
-            >
-              Hotovo
-            </button>
-          ) : null}
-        </section>
+            ) : null}
+          </section>
+        )}
 
         {/* 2. Contact */}
         <section className="card" aria-labelledby="h-contact">
@@ -507,7 +570,11 @@ export function CheckoutForm(props: CheckoutPageProps) {
               inputMode="email"
               autoComplete="email"
               required
-              help="Pošleme na něj potvrzení objednávky."
+              help={
+                vo
+                  ? 'Pošleme na něj poukaz (PDF) a platební údaje.'
+                  : 'Pošleme na něj potvrzení objednávky.'
+              }
               {...field('email')}
             />
             <Field
@@ -516,7 +583,11 @@ export function CheckoutForm(props: CheckoutPageProps) {
               inputMode="tel"
               autoComplete="tel"
               required
-              help="Řidič nebo řezník vám zavolá, kdyby bylo potřeba."
+              help={
+                vo
+                  ? 'Zavoláme jen v případě potíží s objednávkou.'
+                  : 'Řidič nebo řezník vám zavolá, kdyby bylo potřeba.'
+              }
               {...field('phone')}
             />
           </div>
@@ -525,9 +596,14 @@ export function CheckoutForm(props: CheckoutPageProps) {
         {/* 3. Address or pickup */}
         <section className="card" aria-labelledby="h-address">
           <StepHeading id="h-address" number={3}>
-            {needsAddress ? 'Doručovací adresa' : 'Vyzvednutí'}
+            {vo ? 'Nákup na firmu' : needsAddress ? 'Doručovací adresa' : 'Vyzvednutí'}
           </StepHeading>
-          {needsAddress ? (
+          {vo ? (
+            <p className="text-muted">
+              Adresu nepotřebujeme. Kupujete poukazy pro zaměstnance nebo obchodní partnery? Zadejte
+              údaje firmy – doklad vystavíme na ni.
+            </p>
+          ) : needsAddress ? (
             <div className="grid gap-4 sm:grid-cols-[2fr_1.4fr_1fr]">
               <Field
                 label="Ulice a číslo domu"
@@ -632,10 +708,29 @@ export function CheckoutForm(props: CheckoutPageProps) {
         {/* 4. Note and voucher */}
         <section className="card" aria-labelledby="h-note">
           <StepHeading id="h-note" number={4}>
-            Poznámka a dárkový poukaz
+            {vo ? 'Věnování a poznámka' : 'Poznámka a dárkový poukaz'}
           </StepHeading>
+          {hasVoucherLines ? (
+            <div className="mb-5 grid gap-4 sm:grid-cols-2" data-testid="voucher-details">
+              <Field
+                label="Pro koho je poukaz"
+                optional
+                maxLength={60}
+                help="Vytiskneme na poukaz („Pro: …“). Platí pro všechny poukazy v objednávce."
+                {...field('recipientName')}
+              />
+              <Field
+                label="Věnování"
+                optional
+                maxLength={160}
+                help="Krátký vzkaz na poukaz, např. Všechno nejlepší!"
+                {...field('voucherMessage')}
+              />
+            </div>
+          ) : null}
           <label htmlFor="f-note" className="mb-1 block font-semibold">
-            Poznámka pro řezníka <span className="font-normal text-muted">(nepovinné)</span>
+            {vo ? 'Poznámka k objednávce' : 'Poznámka pro řezníka'}{' '}
+            <span className="font-normal text-muted">(nepovinné)</span>
           </label>
           <textarea
             id="f-note"
@@ -645,9 +740,13 @@ export function CheckoutForm(props: CheckoutPageProps) {
             value={form.note}
             onChange={(event) => set('note', event.target.value)}
             className="input"
-            placeholder="Např. silnější plátky, nepřekročit 3 000 Kč, zazvonit u vrátnice…"
+            placeholder={
+              vo
+                ? 'Např. text na fakturu, interní číslo objednávky firmy…'
+                : 'Např. silnější plátky, nepřekročit 3 000 Kč, zazvonit u vrátnice…'
+            }
           />
-          <div className="mt-4">
+          <div className={vo ? 'hidden' : 'mt-4'}>
             <label className="flex items-center gap-2.5">
               <input
                 type="checkbox"
@@ -662,7 +761,7 @@ export function CheckoutForm(props: CheckoutPageProps) {
                 <Field
                   label="Číslo dárkového poukazu"
                   autoComplete="off"
-                  help="Poukaz ověříme ručně a jeho hodnotu odečteme při vážení objednávky. Odhad ceny výše ho zatím nezahrnuje."
+                  help="Poukaz ověříme a jeho hodnotu odečteme při vyúčtování objednávky (poukaz je platidlo – cena se nemění, jen méně zaplatíte). Odhad ceny výše ho zatím nezahrnuje."
                   {...field('voucherCode')}
                 />
               </div>
@@ -690,54 +789,101 @@ export function CheckoutForm(props: CheckoutPageProps) {
           <h2 id="h-summary" className="text-xl">
             Shrnutí objednávky
           </h2>
-          <dl className="space-y-1.5">
-            <div className="flex justify-between gap-4">
-              <dt>Odhad za zboží</dt>
-              <dd className="font-semibold" data-testid="summary-goods">
-                ≈ {formatCzk(goodsEstimate)}
-              </dd>
-            </div>
-            <div className="flex justify-between gap-4">
-              <dt>{method ? method.name : 'Doprava'}</dt>
-              <dd className="text-right font-semibold" data-testid="summary-delivery">
-                {method ? (
-                  methodPriceLabel(method)
-                ) : (
-                  <span className="font-normal text-muted">vyberte dopravu</span>
-                )}
-              </dd>
-            </div>
-            <div className="flex items-baseline justify-between gap-4 border-t border-line pt-2.5">
-              <dt className="font-bold leading-tight">
-                Odhad celkem
-                <span className="block text-sm font-normal text-muted">
-                  vč. DPH, platíte při převzetí
-                </span>
-              </dt>
-              <dd
-                className="font-slab text-2xl font-bold whitespace-nowrap text-brand-red"
-                data-testid="summary-total"
-              >
-                ≈ {formatCzk(total)}
-              </dd>
-            </div>
-          </dl>
+          {vo ? (
+            <dl className="space-y-1.5">
+              <div className="flex justify-between gap-4">
+                <dt>Dárkové poukazy</dt>
+                <dd className="font-semibold" data-testid="summary-goods">
+                  {formatCzk(goodsEstimate)}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt>Doprava</dt>
+                <dd className="text-right text-muted" data-testid="summary-delivery">
+                  není potřeba (e-mailem)
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 border-t border-line pt-2.5">
+                <dt className="font-bold leading-tight">
+                  Celkem
+                  <span className="block text-sm font-normal text-muted">
+                    vč. DPH, převodem předem
+                  </span>
+                </dt>
+                <dd
+                  className="font-slab text-2xl font-bold whitespace-nowrap text-brand-red"
+                  data-testid="summary-total"
+                >
+                  {formatCzk(total)}
+                </dd>
+              </div>
+            </dl>
+          ) : (
+            <dl className="space-y-1.5">
+              <div className="flex justify-between gap-4">
+                <dt>Odhad za zboží</dt>
+                <dd className="font-semibold" data-testid="summary-goods">
+                  ≈ {formatCzk(goodsEstimate)}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt>{method ? method.name : 'Doprava'}</dt>
+                <dd className="text-right font-semibold" data-testid="summary-delivery">
+                  {method ? (
+                    methodPriceLabel(method)
+                  ) : (
+                    <span className="font-normal text-muted">vyberte dopravu</span>
+                  )}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 border-t border-line pt-2.5">
+                <dt className="font-bold leading-tight">
+                  Odhad celkem
+                  <span className="block text-sm font-normal text-muted">
+                    vč. DPH, platíte při převzetí
+                  </span>
+                </dt>
+                <dd
+                  className="font-slab text-2xl font-bold whitespace-nowrap text-brand-red"
+                  data-testid="summary-total"
+                >
+                  ≈ {formatCzk(total)}
+                </dd>
+              </div>
+            </dl>
+          )}
 
           <div
             className="space-y-2 rounded-card bg-brand-beige-light p-3 text-sm"
             data-testid="precontract-info"
           >
-            <p>
+            {vo ? (
+              <>
+                <p>
+                  <strong>Cena:</strong> pevná, rovná hodnotě poukazu ({formatCzk(total)} vč. DPH).
+                </p>
+                <p>
+                  <strong>Platba:</strong> bankovním převodem předem, splatnost{' '}
+                  {props.voucherDueHours} hodin od objednávky. Číslo účtu, variabilní symbol a QR
+                  kód vám pošleme e-mailem hned po odeslání objednávky.
+                </p>
+                <p>
+                  <strong>Dodání:</strong> elektronicky – poukaz v PDF přijde e-mailem ihned. Poukaz
+                  lze uplatnit od přijetí platby do data platnosti uvedeného na poukazu.
+                </p>
+              </>
+            ) : null}
+            <p className={vo ? 'hidden' : undefined}>
               <strong>Cena:</strong> uvedené částky jsou odhad podle průměrné hmotnosti. Řezník
               objednávku zváží a zaplatíte cenu podle skutečné hmotnosti – obvykle se liší do ±
               {percent} %. {props.priceNotice.includes(`${percent}`) ? '' : props.priceNotice}
             </p>
-            <p>
+            <p className={vo ? 'hidden' : undefined}>
               <strong>Platba:</strong> až při převzetí, hotově nebo kartou
               {method?.type === 'pickup' ? ' na výdejním místě' : ' řidiči'}
               {method?.customerNote ? ` (${method.customerNote})` : ''}. Online neplatíte nic.
             </p>
-            {method && choice.date ? (
+            {!vo && method && choice.date ? (
               <p>
                 <strong>{dateMeaning(method.type)}:</strong> {formatDateLong(choice.date)},{' '}
                 {method.price > 0 ? `doprava ${formatCzk(method.price)}` : 'osobní odběr zdarma'}.
@@ -873,14 +1019,15 @@ export function CheckoutForm(props: CheckoutPageProps) {
           <button
             type="submit"
             className="btn w-full text-[1.0625rem]"
-            disabled={submitting}
+            disabled={submitting || mixed}
             data-testid="place-order"
           >
             {submitting ? 'Odesíláme objednávku…' : ORDER_BUTTON_LABEL}
           </button>
           <p className="text-center text-sm text-muted">
-            Odesláním se zavazujete zaplatit při převzetí cenu podle skutečné hmotnosti (odhad ≈{' '}
-            {formatCzk(total)}).
+            {vo
+              ? `Odesláním se zavazujete zaplatit ${formatCzk(total)} bankovním převodem do ${props.voucherDueHours} hodin.`
+              : `Odesláním se zavazujete zaplatit při převzetí cenu podle skutečné hmotnosti (odhad ≈ ${formatCzk(total)}).`}
           </p>
         </section>
       </div>

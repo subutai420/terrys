@@ -123,11 +123,20 @@ export function orderEmailData(order: Order, settings: Setting): OrderEmailData 
 
 export type SendResult = { status: EmailStatus; error: string | null; at: string | null }
 
+/** Stage 7: e-mail attachment (PDF voucher, QR image). `cid` = inline image referenced as `cid:…`. */
+export type EmailAttachment = {
+  filename: string
+  content: Buffer
+  contentType: string
+  cid?: string
+}
+
 export async function send(
   payload: Payload,
   to: string | null,
   email: RenderedEmail,
   replyTo?: string | null,
+  attachments?: EmailAttachment[],
 ): Promise<SendResult> {
   if (!to) return { status: 'skipped', error: null, at: null }
   try {
@@ -137,6 +146,7 @@ export async function send(
       html: email.html,
       text: email.text,
       ...(replyTo ? { replyTo } : {}),
+      ...(attachments?.length ? { attachments } : {}),
     })
     const outbox = payload.email?.name === OUTBOX_ADAPTER_NAME
     return { status: outbox ? 'outbox' : 'sent', error: null, at: new Date().toISOString() }
@@ -151,6 +161,8 @@ export async function sendOrderEmails(
   payload: Payload,
   order: Order,
   accessToken: string,
+  /** Stage 7: voucher orders get their own customer e-mail (src/vouchers/emails.ts). */
+  { customer: sendCustomer = true }: { customer?: boolean } = {},
 ): Promise<{ customer: SendResult; shop: SendResult }> {
   const settings = await payload.findGlobal({ slug: 'settings', depth: 0 })
   const data = orderEmailData(order, settings)
@@ -160,12 +172,14 @@ export async function sendOrderEmails(
   })
   const internalEmail = orderInternalEmail(data)
 
-  const customer = await send(
-    payload,
-    order.customer.email,
-    customerEmail,
-    process.env.EMAIL_REPLY_TO || data.shop.contactEmail,
-  )
+  const customer: SendResult = sendCustomer
+    ? await send(
+        payload,
+        order.customer.email,
+        customerEmail,
+        process.env.EMAIL_REPLY_TO || data.shop.contactEmail,
+      )
+    : { status: 'pending', error: null, at: null }
   const shop = await send(payload, internalRecipient(settings), internalEmail, order.customer.email)
 
   try {
@@ -174,9 +188,13 @@ export async function sendOrderEmails(
       id: order.id,
       data: {
         emails: {
-          customerStatus: customer.status,
-          customerError: customer.error,
-          customerSentAt: customer.at,
+          ...(sendCustomer
+            ? {
+                customerStatus: customer.status,
+                customerError: customer.error,
+                customerSentAt: customer.at,
+              }
+            : {}),
           shopStatus: shop.status,
           shopError: shop.error,
           shopSentAt: shop.at,

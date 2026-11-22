@@ -10,7 +10,15 @@ import {
   readDeliveryChoice,
   saveDeliveryChoice,
 } from '@/lib/cart/checkoutState'
+import { getCartStore } from '@/lib/cart/store'
 import { CHECKOUT_PATH } from '@/lib/orders/constants'
+import {
+  cartKind,
+  isElectronicVoucherLine,
+  MIXED_CART_MESSAGE,
+  PRINTED_VARIANT_ID,
+} from '@/lib/vouchers/cart'
+import { VOUCHER_FORMAT_LABELS } from '@/lib/vouchers/constants'
 
 import { CartLines } from './CartLines'
 import { DeliveryPicker } from './DeliveryPicker'
@@ -26,7 +34,7 @@ type Props = { priceNotice: string; deliveryInfoHref: string | null }
  */
 export function CartView({ priceNotice, deliveryInfoHref }: Props) {
   const router = useRouter()
-  const { lines, hydrated, status, notices } = useValidatedCart()
+  const { lines, hydrated, status, notices, vouchers, revalidate } = useValidatedCart()
   // Read once in the browser; nothing is rendered from it before hydration (see below).
   const [choice, setChoice] = useState<DeliveryChoice>(() => readDeliveryChoice())
   const [continueError, setContinueError] = useState<string | null>(null)
@@ -77,6 +85,107 @@ export function CartView({ priceNotice, deliveryInfoHref }: Props) {
   }
 
   const goodsEstimate = lines.reduce((sum, line) => sum + (lineTotal(line) ?? 0), 0)
+  // Stage 7: electronic vouchers only → no delivery step; mixed with goods → not allowed.
+  const kind = cartKind(lines)
+  if (kind === 'electronic-vouchers' || kind === 'mixed-electronic') {
+    const unavailable = vouchers !== null && !vouchers.electronic
+    const switchToPrinted = () => {
+      const store = getCartStore()
+      for (const line of store.getLines().filter(isElectronicVoucherLine)) {
+        store.remove(line.productId, line.variantId)
+        store.add({
+          ...line,
+          variantId: PRINTED_VARIANT_ID,
+          variantLabel: VOUCHER_FORMAT_LABELS.printed,
+        })
+      }
+      void revalidate()
+    }
+    const blocked = kind === 'mixed-electronic' || unavailable
+    return (
+      <div className="grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
+        <div className="space-y-6">
+          <Notices notices={notices} />
+          {blocked ? (
+            <div
+              className="card border-2 border-brand-red"
+              role="alert"
+              data-testid="voucher-cart-blocked"
+            >
+              <p className="font-semibold">
+                {kind === 'mixed-electronic'
+                  ? MIXED_CART_MESSAGE
+                  : 'Elektronické poukazy teď bohužel nejde objednat online. Můžete koupit tištěný poukaz (přibalíme ho k zásilce nebo k vyzvednutí), nebo nám zavolejte.'}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={switchToPrinted}
+                  data-testid="voucher-switch-printed"
+                >
+                  Změnit na tištěný poukaz
+                </button>
+              </div>
+            </div>
+          ) : null}
+          <section className="card" aria-labelledby="cart-items-heading">
+            <h2 id="cart-items-heading" className="mb-4 text-xl">
+              {kind === 'electronic-vouchers' ? 'Dárkové poukazy v košíku' : 'Zboží v košíku'}
+            </h2>
+            {status === 'loading' ? (
+              <p className="mb-3 text-sm text-muted" role="status">
+                Ověřujeme aktuální ceny a dostupnost…
+              </p>
+            ) : null}
+            <CartLines lines={lines} />
+          </section>
+          {kind === 'electronic-vouchers' ? (
+            <section
+              className="card"
+              aria-labelledby="voucher-delivery-heading"
+              data-testid="voucher-no-delivery"
+            >
+              <h2 id="voucher-delivery-heading" className="mb-2 text-xl">
+                Doručení a platba
+              </h2>
+              <ul className="list-disc space-y-1.5 pl-5">
+                <li>
+                  <strong>Bez dopravy a bez čekání:</strong> poukaz v PDF vám přijde e-mailem hned
+                  po odeslání objednávky. Můžete ho vytisknout nebo přeposlat.
+                </li>
+                <li>
+                  <strong>Platba převodem</strong> do {vouchers?.dueHours ?? 72} hodin – v e-mailu
+                  najdete QR kód a platební údaje.
+                </li>
+                <li>Poukaz začne platit, jakmile nám dorazí platba.</li>
+              </ul>
+            </section>
+          ) : null}
+        </div>
+        <div className="lg:sticky lg:top-4">
+          <OrderSummary
+            goodsEstimate={goodsEstimate}
+            delivery={null}
+            priceNotice={priceNotice}
+            variant="vouchers"
+            dueHours={vouchers?.dueHours ?? 72}
+          >
+            <button
+              type="button"
+              className="btn w-full"
+              disabled={blocked}
+              onClick={() => router.push(CHECKOUT_PATH)}
+              data-testid="cart-continue"
+            >
+              Pokračovat k objednávce
+            </button>
+            <p className="text-center text-sm text-muted">Další krok: kontaktní údaje.</p>
+          </OrderSummary>
+        </div>
+      </div>
+    )
+  }
   const options = delivery.state.status === 'ok' ? delivery.state.data : null
   const method = options?.methods.find((m) => m.id === choice.methodId && m.available) ?? null
   const ready = Boolean(method && choice.date && method.dates.includes(choice.date))

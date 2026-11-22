@@ -9,7 +9,7 @@ Nový e-shop řeznictví **Terrys.cz** (prémiové maso a steaky). Jedna aplikac
 Projekt vzniká po etapách (0–9). Hotové jsou **etapa 0 – základ projektu**, **etapa 1 – katalog
 a obsah v administraci** (produkty, kategorie, číselníky, články, recepty, stránky, nastavení)
 **etapa 2 – doručování** (způsoby dopravy, PSČ, rozvozové oblasti, kalendář výjimek a svátků,
-výpočet termínů doručení) **etapa 3 – obchod pro zákazníky**, **etapa 4 – košík a objednávky** a **etapa 5 – vážení a expedice objednávek** (viz níže). Z etapy 8 (migrace) je hotová první část: **přenos katalogu a obsahu
+výpočet termínů doručení) **etapa 3 – obchod pro zákazníky**, **etapa 4 – košík a objednávky**, **etapa 5 – vážení a expedice objednávek**, **etapa 6 – měření a feedy** a **etapa 7 – prodej dárkových poukazů** (viz níže). Z etapy 8 (migrace) je hotová první část: **přenos katalogu a obsahu
 ze starého webu** (viz níže). Navazují další etapy (měření a marketing, dárkové
 poukazy, spuštění). Pravidla pro vývoj a obchodní pravidla jsou v souboru [`CLAUDE.md`](./CLAUDE.md).
 
@@ -139,6 +139,7 @@ nad prázdnou databází, do které jste pustili `pnpm payload migrate` a `pnpm 
 | Skupina v menu | Co obsahuje                                                                             |
 | -------------- | --------------------------------------------------------------------------------------- |
 | **Objednávky** | Expedice (vážení, vyúčtování, štítky), Objednávky, Odstoupení od smlouvy, Historie změn |
+| **Poukazy**    | Poukazy – platby (párování plateb, hledání kódu, staré poukazy), Dárkové poukazy, Šarže |
 | **Katalog**    | Produkty (cena, varianty, fotky, vlastnosti) a Kategorie (strom kategorií, menu)        |
 | **Číselníky**  | Řezy, Země původu, Druhy masa, Hodí se na, Trvanlivost a skladování                     |
 | **Obsah**      | Články (Magazín, Terrys Academy), Recepty, Stránky, Obrázky                             |
@@ -689,6 +690,136 @@ produktu (obyčejný odkaz `wa.me`, žádný skript třetí strany). Prázdné p
   klíč měření konverzí do GTM, zkontrolovat párování kategorií.
 - **Zboží.cz:** nová adresa feedu, kategorie, měřicí kód (SEM nebo rc.js) v GTM.
 - **Ecomail:** API klíč a ID seznamu do env, potvrzovací e-mail double opt-in v nastavení seznamu.
+
+## Dárkové poukazy (etapa 7)
+
+Poukazy se prodávají jako dosud ve dvou provedeních. Zákazník na stránce poukazu vybere hodnotu
+(500 / 1 000 / 2 000 / 5 000 Kč) a provedení:
+
+| Provedení        | Jak ho zákazník dostane                                             | Jak platí                                                | Kdy poukaz platí           |
+| ---------------- | ------------------------------------------------------------------- | -------------------------------------------------------- | -------------------------- |
+| **Elektronický** | PDF e-mailem **hned po objednávce**, bez dopravy a bez termínu      | **převodem do 72 hodin** (QR kód a údaje jsou v e-mailu) | až když dorazí platba      |
+| **Tištěný**      | přibalíme k objednávce masa (doprava 229 Kč) nebo k osobnímu odběru | při převzetí, stejně jako maso                           | až po převzetí a zaplacení |
+
+- **Elektronický poukaz nejde koupit v jedné objednávce s masem** (jako na starém webu – každá
+  část se platí jinak). Košík to zákazníkovi vysvětlí a nabídne „Změnit na tištěný poukaz“.
+- Více kusů = více kódů. Firmy vyplní IČO/DIČ v objednávce. Zákazník může dopsat „Pro koho“
+  a krátké věnování – vytisknou se na poukaz.
+- Poukaz je **platidlo, ne sleva**: při uplatnění se cena masa ani DPH nemění, jen zákazník méně
+  doplácí. Poukaz lze čerpat **postupně** (zůstatek zůstává na poukazu) až do data platnosti.
+
+V administraci je nová skupina **Poukazy**: **Poukazy – platby** (denní práce), **Dárkové
+poukazy** (všechny poukazy) a **Šarže poukazů**. Řezník poukazy nevidí.
+
+![Poukazy – platby](docs/screenshots/etapa-7/poukazy-platby.png)
+
+### Než začnete prodávat (jednou)
+
+1. **Nastavení → Nastavení obchodu → záložka Dárkové poukazy → Bankovní účet**: zadejte číslo
+   účtu (např. `123456789/0800`) nebo IBAN. Překlep se neuloží (kontroluje se kontrolní součet).
+   **Bez účtu obchod elektronické poukazy nenabídne** (v administraci svítí červené upozornění).
+   Tamtéž: splatnost (výchozí 72 hodin) a co dělat s nezaplacenými poukazy (viz níže).
+2. **Poukazy → Šarže poukazů → Vytvořit**: písmeno šarže, datum „Platnost poukazů do“,
+   zaškrtnout **Aktivní**. Bez aktivní šarže se elektronické poukazy také neprodávají.
+3. U produktů „Dárkový poukaz …“ je v bočním panelu zaškrtnuto **„Tento produkt je dárkový
+   poukaz“**, hodnota a provedení (elektronický / tištěný). Cena se nastaví sama podle hodnoty.
+   **Sazbu DPH poukazů určí účetní** (viz otázky níže) – nastavuje se u produktu.
+
+### Každý den: párování plateb (Poukazy → Poukazy – platby)
+
+1. Otevřete **Poukazy – platby**. V tabulce **Čekají na platbu** je každá objednávka
+   elektronického poukazu: **VS (obj.)** = variabilní symbol = číslo objednávky, částka, zákazník,
+   kdy objednal a do kdy má zaplatit. **Červený řádek = po splatnosti.**
+2. V internetovém bankovnictví najděte příchozí platbu a porovnejte **variabilní symbol**
+   a **částku**.
+3. U objednávky nastavte den, kdy platba přišla (výchozí dnes), a klikněte **„✓ Zaplaceno“**.
+   Poukazy se tím stanou platnými a zákazník dostane krátký e-mail „Platba přijata – poukaz je
+   platný“ (jen jednou, i když kliknete dvakrát).
+4. **Spletla jsem se?** V části „Zaplaceno za posledních 14 dní“ je u objednávky **„Vrátit
+   (omyl)“** – jde to, dokud poukaz nikdo nepoužil. Vše se zapisuje do historie (kdo a kdy).
+5. Když zákazník nezaplatí: **„Připomenout“** pošle e-mail s platebními údaji a QR kódem znovu.
+   **„Zrušit…“** zruší objednávku i poukazy (napište důvod).
+
+Na úvodní stránce administrace (rámeček **Dnes**) vidíte, kolik poukazů čeká na platbu a kolik je
+po splatnosti.
+
+**Nezaplacený poukaz po 72 hodinách** (nastavení „Když poukaz není včas zaplacený“): výchozí je
+**označit k řešení + poslat jednu připomínku**. Automatické zrušení se zapne jen volbou „… po
+dalších dnech automaticky zrušit“ (výchozí 14 dní po splatnosti). Proč tak opatrně: poukaz už
+zákazník má v e-mailu a často ho dal jako dárek – platba může přijít i pozdě a zrušení by
+obdarovaného nepříjemně překvapilo; poukaz ale nikdy neplatí, dokud nezaplatíte „Zaplaceno“.
+
+### Uplatnění poukazu (stránka „Vyřízení objednávky“)
+
+1. Zákazník kód poukazu napíše do objednávky (pole „Dárkový poukaz“), nebo ho ukáže v prodejně.
+2. Po zvážení otevřete objednávku v **Expedici → Vyřídit**. V části **Úhrada dárkovým poukazem**
+   klikněte **„+ Přidat poukaz“** – kód zákazníka se předvyplní (mezery, pomlčky ani malá písmena
+   nevadí).
+3. Pod kódem se hned ukáže stav: **✓ platný, zbývá … Kč, platí do …**, nebo proč ho nelze použít
+   (nezaplacený, vyčerpaný, propadlý, zrušený). Tlačítko **„Použít až … Kč“** vyplní částku (nejvýš
+   tolik, kolik stojí objednávka).
+4. **„Potvrdit vyúčtování“** – zůstatek poukazu se sníží ve stejném okamžiku, kdy se uloží
+   objednávka (dvě obsluhy nemohou jeden poukaz utratit dvakrát). Na poukazu je vidět, v které
+   objednávce a kolik se z něj zaplatilo. Odebrání poukazu z objednávky (nebo zrušení objednávky)
+   částku na poukaz vrátí.
+5. **Najít poukaz:** dole na stránce Poukazy – platby je **„Najít poukaz podle kódu“** – ukáže
+   stav, hodnotu, zůstatek, platnost, kde se použil a historii.
+
+### Tištěné poukazy
+
+V objednávce s tištěným poukazem je na stránce Vyřízení rámeček **Tištěné dárkové poukazy**:
+**„Vystavit kódy“** vytvoří kód(y) z aktivní šarže, **„Tisk poukazů (PDF)“** je vytiskne (nebo
+kód opište na předtištěný poukaz) a přibalte k objednávce. Poukazy začnou platit, když objednávku
+označíte **Doručeno / Vyzvednuto** (zákazník zaplatil při převzetí). Tisk 3 poukazů na A4 a
+správa předtištěných poukazů přijdou po spuštění webu.
+
+### Poukazy ze starého e-shopu
+
+Staré poukazy v oběhu platí do svého data platnosti. Nový web je nezná, dokud je nezapíšete:
+
+- **Jeden poukaz:** na stránce Vyřízení (když kód nenajde, nabídne **„Zapsat starý poukaz“**) nebo
+  v Poukazy – platby → „+ Zapsat starý poukaz“: kód přesně z poukazu, hodnota, kolik zbývá (prázdné
+  = celá hodnota), platnost do, poznámka. Poukaz se zapíše jako zaplacený.
+- **Hromadně:** Poukazy – platby → „Hromadně nahrát staré poukazy (CSV)“. Soubor se sloupci
+  `kod;hodnota;zbyva;platnost_do;poznamka` (datum `2027-12-31` nebo `31. 12. 2027`). Kódy, které
+  už v evidenci jsou, se přeskočí.
+- **Co potřebujeme ze starého systému:** seznam prodaných a ještě platných poukazů – kód, hodnota,
+  datum platnosti, zda je zaplacený a kolik z něj už bylo vyčerpáno (případně číslo objednávky
+  a datum prodeje). Nejlépe jako export do Excelu/CSV od dodavatele starého webu (EasyWeb).
+
+### Nový rok = nová šarže
+
+Každý poukaz má v kódu písmeno šarže (`XXXX-XXXX-XX`**`K`**`-XXX`) a všechny poukazy jedné šarže
+platí do stejného dne. Před koncem platnosti (administrace upozorní 60 dní předem):
+
+1. **Poukazy → Šarže poukazů → Vytvořit**: nové písmeno (např. další v abecedě), nové datum
+   „Platnost poukazů do“, zaškrtněte **Aktivní**, uložte.
+2. Předchozí šarže se sama vypne (už vydané poukazy dál platí do svého data). Platnost už vydaných
+   poukazů lze jen **prodloužit**, ne zkrátit.
+
+### Pro marketing
+
+- Nákup poukazu se v měření (dataLayer `purchase`, Meta CAPI) zaznamená při objednávce jako
+  každý jiný nákup – doprava 0, bez `shipping_tier`, nikdy `coupon`/`discount`. Uplatnění poukazu
+  hodnotu objednávky nemění.
+- Do produktových feedů poukazy **nejdou** (Nastavení → Marketing → Dárkové poukazy → „Zařadit
+  dárkové poukazy do feedů“). Po zapnutí jde do feedů jen tištěný poukaz (s dopravou) v kategorii
+  Google 53 „Dárkové certifikáty“, Heureka „… | Originální dárky | Dárkové poukazy“, Zboží
+  „… | Oslavy a dárky | Dárkové poukazy“.
+- Heureka „Ověřeno zákazníky“ se u objednávek jen s poukazy neposílá (lze zapnout tamtéž).
+
+### Otázky pro majitele a účetní
+
+- **Účetní – DPH poukazů:** víceúčelový poukaz se obvykle při prodeji nedaní a daní se až při
+  uplatnění (zboží v objednávce má svou DPH); jednoúčelový se daní už při prodeji. Sazba se
+  nastavuje u produktu poukazu (12 / 21 / 0 %). **Importované poukazy mají ze starého webu 12 %**
+  – nechali jsme je beze změny, rozhodne účetní. Pozor: kdyby se poukaz zdanil při prodeji
+  i u uplatnění, bylo by to dvakrát.
+- **Majitel:** elektronický poukaz odchází **před zaplacením** (tak to zadání chce a tak to bylo
+  i dosud) – v e-mailu i na webu je napsáno, že platí až po přijetí platby. Souhlasí?
+- **Majitel:** text podmínek na poukazu (krátké podmínky v PDF) – zkontrolujte, případně upravte
+  v kódu (`VOUCHER_TERMS` v `src/vouchers/pdf.ts`).
+- **Majitel:** bankovní účet pro platby poukazů (zatím prázdný).
 
 ## Doručování (etapa 2)
 

@@ -28,6 +28,10 @@ import { productAnalytics } from '@/storefront/analytics'
 import { ViewItemEvent } from '../AnalyticsEvents'
 import { Breadcrumbs, type Crumb } from '../Breadcrumbs'
 import { BuyBox } from '../BuyBox'
+import { VoucherBuyBox } from '../VoucherBuyBox'
+import { formatIsoDay } from '@/lib/vouchers/balance'
+import { isVoucherFormat, type VoucherFormat } from '@/lib/vouchers/constants'
+import { getActiveVoucherExpiry, getVoucherProducts } from '@/storefront/data'
 import { RecipeCard } from '../Cards'
 import { Gallery, type GalleryImage } from '../Gallery'
 import { JsonLd } from '../JsonLd'
@@ -128,6 +132,21 @@ export async function ProductView({ product }: { product: Product }) {
     shelfLife ? { label: 'Trvanlivost', value: shelfLife.name } : null,
   ].filter((p): p is { label: string; value: string } => Boolean(p))
 
+  // Stage 7: gift voucher product → own buy box (value chips, electronic / printed, validity).
+  let voucher: {
+    formats: VoucherFormat[]
+    values: { id: number; value: number; url: string; current: boolean }[]
+    validUntil: string | null
+  } | null = null
+  if (product.voucher?.enabled) {
+    const [siblings, expiry] = await Promise.all([getVoucherProducts(), getActiveVoucherExpiry()])
+    voucher = {
+      formats: (product.voucher.formats ?? []).filter(isVoucherFormat),
+      values: siblings.map((s) => ({ ...s, current: s.id === product.id })),
+      validUntil: expiry ? formatIsoDay(expiry) : null,
+    }
+  }
+
   const firstImage = images[0]
   const analytics = await productAnalytics(product)
   const cartInfo = {
@@ -192,24 +211,38 @@ export async function ProductView({ product }: { product: Product }) {
             </dd>
           </dl>
 
-          <BuyBox
-            product={cartInfo}
-            options={options}
-            defaultIndex={defaultVariantIndex(options)}
-            mode={mode}
-            weightPriced={weightPriced}
-            priceNotice={priceNotice}
-            soldOut={product.availability === 'sold-out'}
-          />
+          {voucher ? (
+            <VoucherBuyBox
+              product={cartInfo}
+              formats={voucher.formats}
+              values={voucher.values}
+              validUntil={voucher.validUntil}
+              deliveryPrice={deliveryPrice}
+              dueHours={settings.vouchers?.paymentDueHours ?? 72}
+              soldOut={product.availability === 'sold-out'}
+            />
+          ) : (
+            <BuyBox
+              product={cartInfo}
+              options={options}
+              defaultIndex={defaultVariantIndex(options)}
+              mode={mode}
+              weightPriced={weightPriced}
+              priceNotice={priceNotice}
+              soldOut={product.availability === 'sold-out'}
+            />
+          )}
           {product.availability === 'sold-out' ? (
             <p className="mt-3 text-sm font-semibold text-brand-brown">
               Produkt je momentálně vyprodaný. Podívejte se na podobné kusy níže.
             </p>
           ) : null}
-          <p className="mt-3 text-sm text-muted">
-            Chlazený rozvoz za {formatCzk(deliveryPrice)} bez ohledu na hodnotu objednávky, nebo
-            osobní odběr. Platíte až při převzetí.
-          </p>
+          {voucher ? null : (
+            <p className="mt-3 text-sm text-muted">
+              Chlazený rozvoz za {formatCzk(deliveryPrice)} bez ohledu na hodnotu objednávky, nebo
+              osobní odběr. Platíte až při převzetí.
+            </p>
+          )}
         </div>
       </div>
 
@@ -229,18 +262,36 @@ export async function ProductView({ product }: { product: Product }) {
             aria-labelledby="doprava"
           >
             <h2 id="doprava" className="mb-2 text-lg">
-              Doprava a platba
+              {voucher ? 'Jak poukaz funguje' : 'Doprava a platba'}
             </h2>
-            <ul className="space-y-2">
-              <li>
-                Chlazený rozvoz: {formatCzk(deliveryPrice)}, bez ohledu na hodnotu objednávky.
-              </li>
-              <li>Osobní odběr na prodejně nebo výdejním místě zdarma.</li>
-              <li>Platíte až při převzetí, žádné placení předem přes internet.</li>
-              {weightPriced ? (
-                <li>Každý kus zvážíme. Výsledná cena se řídí skutečnou hmotností.</li>
-              ) : null}
-            </ul>
+            {voucher ? (
+              <ul className="space-y-2" data-testid="voucher-how">
+                <li>
+                  Poukaz je platidlo: obdarovaný zadá kód při objednávce na terrys.cz nebo ho ukáže
+                  v prodejně a hodnotu odečteme z ceny nákupu.
+                </li>
+                <li>Lze ho čerpat postupně ve více nákupech až do data platnosti.</li>
+                {voucher.validUntil ? <li>Platí do {voucher.validUntil}.</li> : null}
+                <li>
+                  Elektronický: PDF e-mailem hned, platba převodem. Tištěný: s objednávkou masa nebo
+                  k vyzvednutí, platba při převzetí.
+                </li>
+                <li>
+                  Nakupujete pro firmu? V objednávce vyplňte IČO a DIČ – můžete koupit více kusů.
+                </li>
+              </ul>
+            ) : (
+              <ul className="space-y-2">
+                <li>
+                  Chlazený rozvoz: {formatCzk(deliveryPrice)}, bez ohledu na hodnotu objednávky.
+                </li>
+                <li>Osobní odběr na prodejně nebo výdejním místě zdarma.</li>
+                <li>Platíte až při převzetí, žádné placení předem přes internet.</li>
+                {weightPriced ? (
+                  <li>Každý kus zvážíme. Výsledná cena se řídí skutečnou hmotností.</li>
+                ) : null}
+              </ul>
+            )}
             {whatsapp ? (
               <p className="mt-3">
                 Dotaz k masu?{' '}

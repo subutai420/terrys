@@ -50,6 +50,13 @@ export type FeedProductInput = {
   categories: { google: string | null; heureka: string | null; zbozi: string | null }
   excluded: boolean
   categoryExcluded: boolean
+  /**
+   * Stage 7: gift voucher product. `included` = Marketing → Dárkové poukazy → feeds switch
+   * (default off). Only the PRINTED format goes to feeds: it ships like goods, so the feeds'
+   * shipping (229 Kč / pickup) is true for it; an electronic voucher has no shipping at all,
+   * which the per-shop shipping of the feeds cannot express. The landing page offers both.
+   */
+  voucher?: { included: boolean; formats: string[] } | null
 }
 
 export type FeedItem = {
@@ -128,6 +135,29 @@ export function buildFeedItems(
       priceUnit: product.priceUnit,
       unitPrice: product.price,
       pricePerKg: pricePerKg({ unitPrice: product.price, priceUnit: product.priceUnit }),
+    }
+    if (product.voucher) {
+      if (!product.voucher.included) {
+        skip('dárkový poukaz – do feedů se nezařazuje (Nastavení → Marketing)')
+        continue
+      }
+      if (!product.voucher.formats.includes('printed')) {
+        skip('poukaz jen elektronický – ve feedech je jen tištěný')
+        continue
+      }
+      items.push({
+        ...base,
+        pricePerKg: null,
+        id: itemId(product.id, 'printed'),
+        groupId: null,
+        title: feedTitle(product.title, 'tištěný'),
+        variantLabel: 'Tištěný',
+        link: variantUrl(productUrl, 'printed'),
+        price: Math.round(product.price),
+        availability: product.availability,
+        weightGrams: null,
+      })
+      continue
     }
     const options = variantOptions(product)
     if (options.length === 0) {

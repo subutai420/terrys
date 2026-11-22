@@ -1,10 +1,23 @@
-import type { GlobalConfig } from 'payload'
+import type { GlobalConfig, TextFieldSingleValidation } from 'payload'
 
 import { adminOnly, anyone } from '@/access'
 import { ADMIN_GROUPS } from '@/collections/adminGroups'
 import { DEFAULT_HORIZON_DAYS } from '@/lib/delivery/constants'
 import { DEFAULT_WEIGHT_TOLERANCE_PERCENT } from '@/lib/orders/constants'
+import {
+  DEFAULT_PAYMENT_DUE_HOURS,
+  OVERDUE_ACTION_LABELS,
+  OVERDUE_ACTIONS,
+} from '@/lib/vouchers/constants'
+import { parseBankAccount } from '@/lib/vouchers/spayd'
 import { revalidateGlobalAfterChange } from '@/storefront/revalidate'
+
+/** Stage 7: empty is allowed (vouchers then cannot be bought); anything else must be valid. */
+const validateBankAccount: TextFieldSingleValidation = (value) => {
+  if (!value || !String(value).trim()) return true
+  const parsed = parseBankAccount(String(value))
+  return parsed.ok ? true : parsed.error
+}
 
 /** Default storefront notice next to estimated prices (business rule: final price by weight). */
 export const DEFAULT_PRICE_NOTICE =
@@ -141,6 +154,83 @@ export const Settings: GlobalConfig = {
                         step: 50,
                         description:
                           'Termobox, chladicí vložky… Přičte se k masu u zásilky kurýrem.',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          // Stage 7: gift vouchers (src/vouchers). Bank transfer only for ELECTRONIC vouchers.
+          label: 'Dárkové poukazy',
+          fields: [
+            {
+              name: 'vouchers',
+              type: 'group',
+              label: 'Dárkové poukazy',
+              admin: {
+                description:
+                  'Elektronické poukazy se platí převodem předem: e-mail s poukazem a QR kódem ' +
+                  'pro platbu odchází hned po objednávce. Bez vyplněného účtu nelze elektronické ' +
+                  'poukazy objednat (obchod je nenabídne).',
+              },
+              fields: [
+                {
+                  name: 'bankAccount',
+                  type: 'text',
+                  label: 'Bankovní účet pro platby poukazů',
+                  validate: validateBankAccount,
+                  admin: {
+                    description:
+                      'Číslo účtu ve tvaru 123456789/0800 (případně s předčíslím 19-123456789/0800) ' +
+                      'nebo IBAN (CZ…). Uvede se v e-mailu a v QR kódu pro platbu. Zkontroluje se ' +
+                      'kontrolní součet – překlep se neuloží.',
+                  },
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'paymentDueHours',
+                      type: 'number',
+                      label: 'Splatnost (hodin od objednávky)',
+                      required: true,
+                      defaultValue: DEFAULT_PAYMENT_DUE_HOURS,
+                      min: 1,
+                      max: 24 * 30,
+                      admin: { width: '33%', step: 1 },
+                    },
+                    {
+                      name: 'overdueAction',
+                      type: 'select',
+                      label: 'Když poukaz není včas zaplacený',
+                      required: true,
+                      defaultValue: 'flag-remind',
+                      options: OVERDUE_ACTIONS.map((value) => ({
+                        value,
+                        label: OVERDUE_ACTION_LABELS[value],
+                      })),
+                      admin: {
+                        width: '42%',
+                        description:
+                          'Objednávka se vždy objeví v „Poukazy – platby“ jako po splatnosti. ' +
+                          'Automatické zrušení jen když ho výslovně zvolíte.',
+                      },
+                    },
+                    {
+                      name: 'autoCancelAfterDays',
+                      type: 'number',
+                      label: 'Zrušit po (dnech po splatnosti)',
+                      defaultValue: 14,
+                      min: 1,
+                      max: 365,
+                      admin: {
+                        width: '25%',
+                        step: 1,
+                        condition: (_data, sibling) =>
+                          sibling?.overdueAction === 'flag-remind-cancel',
                       },
                     },
                   ],

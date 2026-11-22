@@ -48,6 +48,8 @@ read it: the bundled Next.js docs in `node_modules/next/dist/docs/` match the in
   `src/components/admin/fulfilment`. See "Fulfilment (stage 5)".
 - `src/integrations` (Meta CAPI / Heureka / Ecomail outbox), `src/feeds` (feed generation),
   `src/lib/measurement`, `src/lib/feeds`, `src/lib/consent` – stage 6, see "Measurement…".
+- `src/vouchers` + `src/lib/vouchers` + `src/components/admin/vouchers` – stage 7 gift vouchers,
+  see "Gift vouchers (stage 7)".
 - `src/delivery` – Payload glue of the delivery module (loading rules, endpoints, CSV import);
   the pure logic is in `src/lib/delivery`. `src/components/admin` – custom admin components.
 - `tests/e2e` – Playwright tests (`*.e2e.spec.ts`).
@@ -319,6 +321,12 @@ Code in `src/migration`, outputs in `migration/` (committed: `url-inventory.csv`
 - Stage 5 (fulfilment, Balíkobot) is done, see "Fulfilment (stage 5)" below.
 - Stage 6 (measurement, consent, feeds, Meta CAPI, Heureka, Ecomail) is done, see
   "Measurement, consent, feeds, integrations (stage 6)" below (notes for stages 7 and 9 there).
+- Stage 7 (gift vouchers) is done, see "Gift vouchers (stage 7)" below. Stage 8 redirects: the
+  four imported voucher products keep their legacy URLs (nothing to redirect); old voucher codes in
+  circulation must be entered as legacy vouchers (README). Stage 9: bank account in settings,
+  a real batch, CRON_SECRET (overdue job), Resend with attachments tested on a real inbox
+  (Gmail/Outlook/Apple Mail: inline QR shows), owner/accountant answers (VAT of vouchers, voucher
+  sent before payment).
 
 ## Orders (stage 4)
 
@@ -960,6 +968,183 @@ all verified in the official trees 2026-11). Cached with `unstable_cache` (store
   Vercel preview domain unless added on purpose).
 - Lawyer: cookie texts, attribution under analytics, "basic" vs "advanced" Consent Mode,
   Heureka questionnaire legal basis (opt-out checkbox).
+
+## Gift vouchers (stage 7)
+
+Colleague-facing guide (payment pairing, redemption, old vouchers, new batch) is in README
+"Dárkové poukazy". Migration `20261122_214659_vouchers`.
+
+### Module boundaries
+
+| Where                                                       | What                                                                                                  |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `src/lib/vouchers/constants.ts`                             | formats, types, statuses, events, payment methods/statuses, overdue actions (+ Czech labels)          |
+| `src/lib/vouchers/code.ts`                                  | code generator / normaliser / display (pure, tested)                                                  |
+| `src/lib/vouchers/balance.ts`                               | redemption check + balance maths, effective status (expired), pure, tested                            |
+| `src/lib/vouchers/cart.ts`                                  | `cartKind()` (goods / electronic-vouchers / mixed-electronic), mixed-cart message                     |
+| `src/lib/vouchers/spayd.ts`                                 | SPAYD / QR Platba builder, IBAN + CZ account validation and conversion (pure, tested)                 |
+| `src/vouchers/{qr,pdf}.ts`                                  | QR PNG (`qrcode`, ECC M) and voucher PDF (`pdfkit`, embedded Quicksand/Roboto Slab, vector logo)      |
+| `src/vouchers/issue.ts`                                     | active batch lookup, `issueVouchers()` (unique-index retry), `voucherSpecsForOrder()`                 |
+| `src/vouchers/service.ts`                                   | mark paid / undo / cancel / remind / overdue job, printed vouchers, lookup, legacy + CSV, redemptions |
+| `src/vouchers/emails.ts`, `src/email/templates/vouchers.ts` | voucher e-mails (issued with PDF + inline QR, paid, reminder), recorded in `orders.sentEmails`        |
+| `src/vouchers/transaction.ts`                               | `withTransaction()` (Payload `initTransaction`/`commitTransaction` on a req) + row locks `FOR UPDATE` |
+| `src/vouchers/endpoints.ts`                                 | `/api/gift-vouchers/*` (NOT `/api/vouchers/*`: that prefix belongs to the collection's REST API)      |
+| `src/vouchers/queries.ts`, `availability.ts`                | payments overview, dashboard counts, "can electronic vouchers be sold now"                            |
+| `src/components/admin/vouchers/*`                           | "Poukazy – platby" view, nav group, live code check on Vyřízení, legacy form, printed issue button    |
+| `src/components/storefront/VoucherBuyBox.tsx`               | voucher product page buy box (value chips, electronic vs printed, validity)                           |
+
+### Model
+
+- `products.voucher` {`enabled`, `value`, `formats[]` electronic|printed}. A `beforeValidate`
+  hook forces `price = value`, `priceUnit = piece`, no variants (never a discounted voucher).
+  `vatRate` stays a per-product setting (0 % available) – **accountant decides**, the importer's
+  12 % on the four old products was left untouched.
+- **The chosen format travels as the cart/order line `variantId`** (`'electronic'` / `'printed'`;
+  real variant row ids are 24 hex chars, no collision). Cart identity, `itemId()` (`<id>-electronic`),
+  order snapshots and analytics therefore needed no new fields. `checkCartLines` validates it
+  against `product.voucher.formats` and labels it (`VOUCHER_FORMAT_LABELS`).
+- `voucher-batches` {`letter` (unique, alphabet without I/L/O), `expiresOn`, `active`, `note`,
+  join `vouchers`}. Exactly one active (activating deactivates the others). Letter immutable and
+  expiry only extendable once vouchers exist (extension is copied to the vouchers). Read/write
+  admin+staff, delete admin and only without vouchers. Changing a batch revalidates the storefront
+  (product pages show the validity of the active batch).
+- `vouchers` {`code` (display), `codeNormalized` (unique; uppercase A–Z0–9 only – lookups are
+  tolerant of spaces/dashes/case), `value`, `balance`, `expiresOn` (copied from the batch),
+  `type` electronic|printed|legacy, `status`, `batch`, `order` + `orderNumber` (purchase),
+  `recipientName`, `message`, `paidAt`, `paidBy`, `redemptions[]` {`redeemedIn` (not `order`:
+  arrays have an `_order` column → index-name clash), `orderNumber`, `amount`, `at`, `by`},
+  `history[]` {`event`, `at`, `by`, `note`}, `note`}. Access read/create/update admin+staff,
+  delete admin; butcher and public none. Every field except `note` has field access
+  `update: false` (code/value/balance/expiry writable on CREATE only, for legacy vouchers), so the
+  balance only changes through the services (overrideAccess). A voucher created by a person in the
+  admin is forced to a paid **legacy** voucher by a `beforeValidate` hook.
+- Orders: `kind` `voucher` = ONLY electronic vouchers (no delivery, bank transfer); everything
+  shipped (meat, printed vouchers) stays `goods`. New `payment` group {method on-delivery|
+  bank-transfer, status awaiting|paid|cancelled, amount, variableSymbol (= order number), account
+  (snapshot of the display form), dueAt, paidOn, markedPaidAt/By, reminderSentAt},
+  `voucherDetails` {recipientName, message}, `issuedVouchers` join, `voucherRedemptions[].voucher`
+  relation. Settings tab "Dárkové poukazy" {bankAccount (validated by `parseBankAccount`),
+  paymentDueHours 72, overdueAction, autoCancelAfterDays 14}. Marketing group `vouchers`
+  {includeInFeeds false, heurekaCategory, zboziCategory, heurekaForVoucherOrders false}.
+  `sentEmails.kind` gained voucher-issued / voucher-paid / voucher-reminder (`SENT_EMAIL_KINDS`).
+
+### Lifecycle
+
+`issued` (vystaven, NOT valid) → `paid` (valid) → `partially-redeemed` → `redeemed`; `cancelled`
+(unpaid order cancelled). `expired` is not stored: `effectiveVoucherStatus()` derives it from
+`expiresOn` (inclusive, Prague day), so nothing depends on a cron. Electronic: paid by "Zaplaceno"
+(order → `delivered` = vyřízeno, payment `paid`; undo allowed while no voucher of the order was
+redeemed). Printed: issued by staff on Vyřízení ("Vystavit kódy"), `paid` when the goods order
+becomes delivered/picked-up (`activatePrintedVouchers` in `changeStatus`). Legacy: created paid
+(balance as typed).
+
+**Partial redemption (decision):** allowed – a voucher keeps a balance. Meat is weighed, the
+customer cannot hit the voucher value exactly, the stage 5 payment rows already take any amount
+≤ total. Expiry is checked against the ORDER date (code typed before expiry, billed after = OK);
+an unchanged existing payment row stays valid.
+
+### Issuing flow (electronic)
+
+`placeOrder` → `cartKind`: `mixed-electronic` → 409 `mixed-vouchers`; `electronic-vouchers` →
+`placeVoucherOrder`: requires a valid bank account in settings AND an active non-expired batch,
+otherwise 409 `vouchers-unavailable` with a safe customer message, error log, red banner in the
+admin (dashboard + payments view) and **no order saved** – never an e-mail without payment details,
+never a voucher without expiry. Then: totals with delivery 0 (lines resolved `piece`, final =
+estimate), `payment` (due = now + `paymentDueHours`), order saved, vouchers issued (failure →
+`needsReview`), e-mail `voucher-issued` (PDF attachment + QR PNG as `cid:` inline image + all
+payment details as text + "platí až po přijetí platby") instead of the goods confirmation, internal
+copy as usual, integrations (Heureka skipped for voucher orders unless the Marketing setting).
+`/api/checkout/validate-cart` also returns `vouchers: {electronic, dueHours}` so the cart can
+offer "switch to printed" when electronic vouchers cannot be sold. Thank-you page: payment box
+with QR (data URL – fine on a web page), PDF link `/api/gift-vouchers/pdf/<accessToken>` (public,
+token only, never by order number). The checkout input's `delivery` is optional only for
+voucher-only carts (`parseCheckoutInput`).
+
+Codes: `XXXX-XXXX-XX[B]-XXX`, alphabet `23456789ABCDEFGHJKMNPQRSTUVWXYZ` (31, no 0/O/1/I/L),
+batch letter at index 10 of the normalised code, Web Crypto + rejection sampling (uniform), 31^13
+≈ 2.5·10^19; uniqueness by the DB index, `issueVouchers` retries a clash up to 5×.
+
+### Redemption (stage 5 billing)
+
+`saveBilling` → after the cap check, inside `withTransaction`: `applyOrderRedemptions()` resolves
+every row by normalised code, locks all involved vouchers (`SELECT … FOR UPDATE`, sorted ids),
+re-reads them, validates with `checkRedemption` (counting what this order already redeemed), then
+applies the per-voucher difference (new − old) to `balance`/`status`, rewrites the voucher's
+redemption row for this order, appends history, and the order is saved in the SAME transaction.
+Unknown code → field error pointing to "Zapsat starý poukaz"; pre-stage-7 rows without a voucher
+relation are kept if unchanged. `changeStatus(→ cancelled)` releases redeemed amounts
+(`releaseOrderRedemptions`) in the same transaction; cancelling a `voucher` order goes through
+`cancelVoucherOrder` (vouchers cancelled too). The Vyřízení screen shows a live check under each
+code (`GET /api/gift-vouchers/search`) and the legacy form when not found.
+
+### SPAYD module
+
+`buildSpayd()` – spec https://qr-platba.cz/pro-vyvojare/specifikace-formatu/ (read 2026-11-22):
+key order ACC, AM, CC, DT, RN, MSG, X-VS, X-SS, X-KS (reproduces the official example byte for
+byte), IBAN validated (mod 97 + CZ mod 11), amount `toFixed(2)` > 0, symbols digits ≤ 10, MSG ≤ 60
+/ RN ≤ 35 after encoding, diacritics stripped in MSG/RN (banks show non-ASCII inconsistently),
+`*` → `%2A`, `%` → `%25`. Message = `Darkovy poukaz Terrys <orderNumber>`, DT = due day. QR: ECC M,
+360 px PNG. Tests decode the PNG (jsqr) and assert equality with the SPAYD string.
+
+### Overdue (setting `overdueAction`, decision)
+
+Default `flag-remind`: after the due time the order gets `needsReview` + reason, ONE reminder
+e-mail; `flag` = only flag; `flag-remind-cancel` = also cancel `autoCancelAfterDays` after the due
+time. Conservative because the customer already holds the PDF (often already given as a gift) and
+late transfers are common; the voucher is never valid until "Zaplaceno" anyway. Runs from cron
+`GET /api/gift-vouchers/overdue` (Bearer `CRON_SECRET`, daily 08:00 UTC in `vercel.json`); the
+payments view and dashboard compute "overdue" live from `dueAt`.
+
+### Measurement / feeds
+
+Voucher-only `purchase`: `shipping: 0`, no `shipping_tier`, no `delivery_type`, never
+coupon/discount; fires on the thank-you page like any order (value conventions unchanged).
+Feeds: vouchers excluded by default (`marketing.vouchers.includeInFeeds`); when included only the
+PRINTED format (item id `<id>-printed`, `?varianta=printed`) – it ships like goods so the feed
+shipping is true; an electronic voucher has no shipping, which per-shop feed shipping cannot
+express. Categories: Google 53 "Dárkové certifikáty", Heureka "Heureka.cz | Hobby | Zábava |
+Originální dárky | Dárkové poukazy", Zboží "Kultura a zábava | Volný čas | Oslavy a dárky |
+Dárkové poukazy" (all three verified in the official trees 2026-11).
+
+### E-mail transport
+
+`@payloadcms/email-resend` 3.94 drops the attachment content id, so e-mails WITH attachments go
+through `sendViaResendWithAttachments` (Resend REST, `content_id` for inline images, Base64
+content); the outbox adapter saves attachments next to the e-mail and rewrites `cid:` to the file
+(open the `.html` in a browser). **Not tested against the real Resend API.**
+
+### Imported data (terrys_migration)
+
+Category "Dárkové poukazy + set" (+ "Dárkové poukazy a krabičky") holds 4 voucher products
+(Dárkový poukaz 500 / 1 000 / 2 000 / 5 000 Kč, piece price = value, VAT 12 %, no variants: the
+old site's "Elektronický v PDF / Tištěný poukaz" choice was not imported) and two gift boxes
+(40 Kč, goods). `pnpm seed --only=vouchers` maps the four (by title) onto `products.voucher`
+(both formats), without duplicating and without touching VAT; the boxes stay goods. The old shop
+text matches the new rules (PDF within minutes, QR payment, valid after payment, electronic not
+combinable with goods).
+
+### Seed and tests
+
+Seed part `vouchers`: mapping (always), and outside production: 4 demo voucher products (VAT 0 %
+= demo only), active demo batch `T` (end of next year), the FAKE test account
+`CZ9106000000000000000123` (QR Platba spec example) only when the setting is empty, 2 demo voucher
+records ("UKÁZKOVÝ"). Tests: `src/lib/vouchers/{vouchers,spayd}.test.ts`, `src/vouchers/{qr,pdf}.test.ts`,
+`src/email/templates/vouchers.test.ts` (templates, Resend attachments, cart check, purchase without
+shipping tier, feeds), `tests/int/vouchers.int.test.ts` (issuing, refusals, parallel codes + forced
+clash, paid-once, undo, redemption incl. two parallel billings, expiry, legacy, access, overdue,
+printed), `tests/e2e/vouchers.e2e.spec.ts` (phone purchase → e-mail QR/PDF decoded → staff
+"Zaplaceno" → redemption on a meat order; `SCREENSHOTS=1` → `docs/screenshots/etapa-7`). CI sets
+`SEED_ADMIN_EMAIL/PASSWORD` so every admin e2e test can log in. Note: something loaded with Payload
+adds an enumerable `Array.prototype.random`; PDF.js refuses to run with it, so the int test hides
+it while extracting PDF text.
+
+### Post-launch (not built)
+
+Batch management beyond the basics (print sheets 3 per A4, pre-printed stock with codes), bank
+statement import (FIO/ČSOB API or CSV/GPC) for automatic pairing by VS + amount, "send the voucher
+to the recipient on date X" (left out to keep it simple: it needs a scheduled job and a second
+recipient), invoices for company purchases (accounting software as today), customer-facing
+balance check page.
 
 ## Business rules – never violate these
 

@@ -23,6 +23,8 @@ import { Products } from './collections/Products'
 import { Recipes } from './collections/Recipes'
 import { ShippingMethods } from './collections/ShippingMethods'
 import { Users } from './collections/Users'
+import { VoucherBatches } from './collections/VoucherBatches'
+import { Vouchers } from './collections/Vouchers'
 import { Withdrawals } from './collections/Withdrawals'
 import { deliveryOptionsEndpoint } from './delivery/optionsEndpoint'
 import { createEmailAdapter } from './email/adapter'
@@ -33,6 +35,7 @@ import { Settings } from './globals/Settings'
 import { integrationEndpoints } from './integrations/endpoints'
 import { migrations } from './migrations'
 import { checkoutEndpoints } from './orders/endpoints'
+import { voucherEndpoints } from './vouchers/endpoints'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -67,10 +70,18 @@ export default buildConfig({
           Component: '/components/admin/fulfilment/OrderFulfilmentView#OrderFulfilmentView',
           path: '/vyrizeni/:id',
         },
+        // Stage 7: pairing bank payments of electronic vouchers, voucher lookup, old vouchers.
+        voucherPayments: {
+          Component: '/components/admin/vouchers/VoucherPaymentsView#VoucherPaymentsView',
+          path: '/poukazy-platby',
+        },
       },
       // Stage 5: own "Objednávky" nav group (Expedice + the order collections, which have
       // `admin.group: false`) and the "Dnes" panel on the admin home.
-      beforeNavLinks: ['/components/admin/fulfilment/OrdersNavGroup#OrdersNavGroup'],
+      beforeNavLinks: [
+        '/components/admin/fulfilment/OrdersNavGroup#OrdersNavGroup',
+        '/components/admin/vouchers/VouchersNavGroup#VouchersNavGroup',
+      ],
       beforeDashboard: ['/components/admin/fulfilment/TodayPanel#TodayPanel'],
       afterNavLinks: ['/components/admin/DeliveryCalendarNavLink#DeliveryCalendarNavLink'],
     },
@@ -89,6 +100,9 @@ export default buildConfig({
     Orders,
     Withdrawals,
     OrderAuditLog,
+    // Poukazy (stage 7; custom nav group VouchersNavGroup)
+    Vouchers,
+    VoucherBatches,
     // Katalog
     Products,
     Categories,
@@ -126,6 +140,8 @@ export default buildConfig({
     ...checkoutEndpoints,
     ...fulfilmentEndpoints,
     ...integrationEndpoints,
+    // Stage 7: /api/gift-vouchers/* (payments, redemption lookups, PDFs, overdue cron).
+    ...voucherEndpoints,
   ],
   // Stage 4: Resend when RESEND_API_KEY is set, otherwise e-mails are only saved to .emails/.
   email: createEmailAdapter(),

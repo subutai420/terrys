@@ -29,10 +29,12 @@ import { MarketingStatus as MarketingStatus_595c27ce6320bc74f532e0d0e2b3f12a } f
 import { DeliveryCalendarNavLink as DeliveryCalendarNavLink_04760a1349c828d07719fd0aa1dcfaf3 } from '../../../components/admin/DeliveryCalendarNavLink'
 import { TodayPanel as TodayPanel_1cd8c464698bc037fd660dbeaf1e6b26 } from '../../../components/admin/fulfilment/TodayPanel'
 import { OrdersNavGroup as OrdersNavGroup_d06b0f700e9919ded5046c52887cb2d9 } from '../../../components/admin/fulfilment/OrdersNavGroup'
+import { VouchersNavGroup as VouchersNavGroup_4be680ec18060fe8fa11cac6eb55e9b6 } from '../../../components/admin/vouchers/VouchersNavGroup'
 import { DeliveryCalendarView as DeliveryCalendarView_2d9d0603bf30bb5239acde9e3ea4064f } from '../../../components/admin/DeliveryCalendarView'
 import { ExpediceView as ExpediceView_4b02343d3dbafc169e7f682ad4494972 } from '../../../components/admin/fulfilment/ExpediceView'
 import { WeighView as WeighView_014d778e68abe9e164c90b80e48de296 } from '../../../components/admin/fulfilment/WeighView'
 import { OrderFulfilmentView as OrderFulfilmentView_6ea8b08e1fa939f0b9334d370c220e85 } from '../../../components/admin/fulfilment/OrderFulfilmentView'
+import { VoucherPaymentsView as VoucherPaymentsView_e38b8beaef84a418c3cfff3b35bd71e9 } from '../../../components/admin/vouchers/VoucherPaymentsView'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
@@ -68,9 +70,11 @@ export const importMap = {
   "/components/admin/DeliveryCalendarNavLink#DeliveryCalendarNavLink": DeliveryCalendarNavLink_04760a1349c828d07719fd0aa1dcfaf3,
   "/components/admin/fulfilment/TodayPanel#TodayPanel": TodayPanel_1cd8c464698bc037fd660dbeaf1e6b26,
   "/components/admin/fulfilment/OrdersNavGroup#OrdersNavGroup": OrdersNavGroup_d06b0f700e9919ded5046c52887cb2d9,
+  "/components/admin/vouchers/VouchersNavGroup#VouchersNavGroup": VouchersNavGroup_4be680ec18060fe8fa11cac6eb55e9b6,
   "/components/admin/DeliveryCalendarView#DeliveryCalendarView": DeliveryCalendarView_2d9d0603bf30bb5239acde9e3ea4064f,
   "/components/admin/fulfilment/ExpediceView#ExpediceView": ExpediceView_4b02343d3dbafc169e7f682ad4494972,
   "/components/admin/fulfilment/WeighView#WeighView": WeighView_014d778e68abe9e164c90b80e48de296,
   "/components/admin/fulfilment/OrderFulfilmentView#OrderFulfilmentView": OrderFulfilmentView_6ea8b08e1fa939f0b9334d370c220e85,
+  "/components/admin/vouchers/VoucherPaymentsView#VoucherPaymentsView": VoucherPaymentsView_e38b8beaef84a418c3cfff3b35bd71e9,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

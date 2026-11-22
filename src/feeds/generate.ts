@@ -85,6 +85,7 @@ async function load(payload: Payload, now: Date): Promise<Loaded> {
         gallery: true,
         categories: true,
         feeds: true,
+        voucher: true,
       },
       populate: {
         media: { url: true, filename: true, mimeType: true, sizes: true },
@@ -158,6 +159,20 @@ async function load(payload: Payload, now: Date): Promise<Loaded> {
       },
       excluded: Boolean(doc.feeds?.exclude),
       categoryExcluded: chain.some((c) => c?.feeds?.exclude),
+      ...(doc.voucher?.enabled
+        ? {
+            // Stage 7: vouchers get their own categories (Google 53 = Dárkové certifikáty).
+            categories: {
+              google: '53',
+              heureka: marketing.vouchers?.heurekaCategory || null,
+              zbozi: marketing.vouchers?.zboziCategory || null,
+            },
+            voucher: {
+              included: Boolean(marketing.vouchers?.includeInFeeds),
+              formats: doc.voucher.formats ?? [],
+            },
+          }
+        : {}),
     }
   })
 

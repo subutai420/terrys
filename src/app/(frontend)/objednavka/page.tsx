@@ -59,6 +59,7 @@ export default async function CheckoutPage() {
           turnstileEnabled() ? (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? null) : null
         }
         addressCheckEnabled={foxentryEnabled()}
+        voucherDueHours={settings.vouchers?.paymentDueHours ?? 72}
       />
     </div>
   )

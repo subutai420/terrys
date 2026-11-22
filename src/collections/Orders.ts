@@ -9,15 +9,21 @@ import {
   ADDRESS_CHECK_STATUSES,
   EMAIL_STATUS_LABELS,
   EMAIL_STATUSES,
-  FULFILMENT_EMAIL_KINDS,
-  FULFILMENT_EMAIL_LABELS,
   LINE_RESOLUTION_LABELS,
   LINE_RESOLUTIONS,
   ORDER_KIND_LABELS,
   ORDER_KINDS,
   ORDER_STATUS_LABELS,
   ORDER_STATUSES,
+  SENT_EMAIL_KINDS,
+  SENT_EMAIL_LABELS,
 } from '@/lib/orders/constants'
+import {
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_METHODS,
+  PAYMENT_STATUS_LABELS,
+  PAYMENT_STATUSES,
+} from '@/lib/vouchers/constants'
 
 /**
  * Orders (stage 4). Created ONLY by the server (`src/orders/placeOrder.ts`, local API with
@@ -526,6 +532,15 @@ export const Orders: CollectionConfig = {
                       admin: { width: '30%' },
                     },
                     {
+                      // Stage 7: the voucher record this payment row redeems (null only for
+                      // rows recorded before stage 7).
+                      name: 'voucher',
+                      type: 'relationship',
+                      relationTo: 'vouchers',
+                      label: 'Poukaz',
+                      admin: { width: '20%' },
+                    },
+                    {
                       name: 'amount',
                       type: 'number',
                       label: 'Uhrazeno (Kč)',
@@ -562,8 +577,166 @@ export const Orders: CollectionConfig = {
               admin: {
                 ...readOnly,
                 description:
-                  'NEOVĚŘENO. Poukaz zkontrolujte ručně a jeho hodnotu odečtěte při vážení.',
+                  'Zákazník ho zadal v objednávce. Ověří se, až ho obsluha zapíše v „Vyřízení ' +
+                  'objednávky“ (kód, zaplacení, platnost, zůstatek).',
               },
+            },
+            {
+              // Stage 7: vouchers BOUGHT in this order (electronic: issued at placement,
+              // printed: issued by staff on the order screen).
+              name: 'issuedVouchers',
+              type: 'join',
+              collection: 'vouchers',
+              on: 'order',
+              label: 'Poukazy koupené v této objednávce',
+              admin: {
+                defaultColumns: ['code', 'value', 'type', 'status', 'expiresOn'],
+                allowCreate: false,
+              },
+            },
+            {
+              name: 'voucherDetails',
+              type: 'group',
+              label: 'Údaje na poukaz (od zákazníka)',
+              admin: {
+                condition: (data) =>
+                  Boolean(data?.voucherDetails?.recipientName || data?.voucherDetails?.message),
+              },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'recipientName',
+                      type: 'text',
+                      label: 'Pro koho',
+                      admin: { ...readOnly, width: '40%' },
+                    },
+                    {
+                      name: 'message',
+                      type: 'text',
+                      label: 'Věnování',
+                      admin: { ...readOnly, width: '60%' },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        // ---------------------------------------------------------------- payment (stage 7)
+        {
+          label: 'Platba',
+          fields: [
+            {
+              name: 'payment',
+              type: 'group',
+              label: 'Platba',
+              admin: {
+                description:
+                  'Zboží se platí při převzetí. Elektronické poukazy převodem předem – platbu ' +
+                  'páruje obsluha v „Poukazy – platby“ (variabilní symbol = číslo objednávky).',
+              },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'method',
+                      type: 'select',
+                      label: 'Způsob platby',
+                      defaultValue: 'on-delivery',
+                      options: options(PAYMENT_METHODS, PAYMENT_METHOD_LABELS),
+                      admin: { ...readOnly, width: '33%' },
+                    },
+                    {
+                      name: 'status',
+                      type: 'select',
+                      label: 'Stav platby',
+                      index: true,
+                      options: options(PAYMENT_STATUSES, PAYMENT_STATUS_LABELS),
+                      admin: { ...readOnly, width: '33%' },
+                    },
+                    {
+                      name: 'amount',
+                      type: 'number',
+                      label: 'Částka k úhradě převodem (Kč)',
+                      admin: { ...readOnly, width: '34%' },
+                    },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'variableSymbol',
+                      type: 'text',
+                      label: 'Variabilní symbol',
+                      index: true,
+                      admin: { ...readOnly, width: '25%' },
+                    },
+                    {
+                      name: 'account',
+                      type: 'text',
+                      label: 'Na účet',
+                      admin: { ...readOnly, width: '35%' },
+                    },
+                    {
+                      name: 'dueAt',
+                      type: 'date',
+                      label: 'Splatnost',
+                      index: true,
+                      admin: {
+                        ...readOnly,
+                        width: '40%',
+                        date: { pickerAppearance: 'dayAndTime' },
+                      },
+                    },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'paidOn',
+                      type: 'date',
+                      label: 'Platba přišla (den)',
+                      admin: {
+                        ...readOnly,
+                        width: '25%',
+                        date: { pickerAppearance: 'dayOnly', displayFormat: 'd. M. yyyy' },
+                      },
+                    },
+                    {
+                      name: 'markedPaidAt',
+                      type: 'date',
+                      label: 'Označeno jako zaplacené',
+                      admin: {
+                        ...readOnly,
+                        width: '25%',
+                        date: { pickerAppearance: 'dayAndTime' },
+                      },
+                    },
+                    {
+                      name: 'markedPaidBy',
+                      type: 'relationship',
+                      relationTo: 'users',
+                      label: 'Označil(a)',
+                      admin: { ...readOnly, width: '25%' },
+                    },
+                    {
+                      name: 'reminderSentAt',
+                      type: 'date',
+                      label: 'Připomínka platby odeslána',
+                      admin: {
+                        ...readOnly,
+                        width: '25%',
+                        date: { pickerAppearance: 'dayAndTime' },
+                      },
+                    },
+                  ],
+                },
+              ],
             },
           ],
         },
@@ -1067,7 +1240,7 @@ export const Orders: CollectionConfig = {
                       name: 'kind',
                       type: 'select',
                       label: 'Druh',
-                      options: options(FULFILMENT_EMAIL_KINDS, FULFILMENT_EMAIL_LABELS),
+                      options: options(SENT_EMAIL_KINDS, SENT_EMAIL_LABELS),
                       admin: { width: '30%' },
                     },
                     {

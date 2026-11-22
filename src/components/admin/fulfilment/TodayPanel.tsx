@@ -4,6 +4,7 @@ import React from 'react'
 
 import { formatDateLong } from '@/lib/orders/format'
 import { todaySummary } from '@/fulfilment/queries'
+import { AVAILABILITY_PROBLEM_TEXT, voucherDashboardCounts } from '@/vouchers/queries'
 
 /**
  * "Dnes" panel on the admin home (stage 5): what needs doing today, with links. Deliberately
@@ -19,6 +20,8 @@ export async function TodayPanel({
   if (!user || !['admin', 'staff', 'butcher'].includes(user.role ?? '')) return null
   const s = await todaySummary(payload)
   const isEditor = user.role !== 'butcher'
+  // Stage 7: electronic vouchers waiting for the bank transfer (staff pairs them).
+  const v = isEditor ? await voucherDashboardCounts(payload) : null
   const tile = (href: string, value: number, label: string, warn = false, testId?: string) => (
     <a
       className={`tf-stat${warn && value > 0 ? ' tf-stat--warn' : ''}`}
@@ -74,7 +77,29 @@ export async function TodayPanel({
             'odstoupení od smlouvy',
             true,
           )}
+        {v &&
+          tile(
+            '/admin/poukazy-platby',
+            v.awaiting,
+            'poukazy čekají na platbu',
+            false,
+            'today-vouchers',
+          )}
+        {v &&
+          v.overdue > 0 &&
+          tile(
+            '/admin/poukazy-platby',
+            v.overdue,
+            'poukazy po splatnosti',
+            true,
+            'today-vouchers-overdue',
+          )}
       </div>
+      {v?.availability.problem ? (
+        <p className="tf-banner tf-banner--err" style={{ marginTop: 12 }}>
+          {AVAILABILITY_PROBLEM_TEXT[v.availability.problem]}
+        </p>
+      ) : null}
     </section>
   )
 }

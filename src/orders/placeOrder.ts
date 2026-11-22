@@ -14,6 +14,11 @@ import { hasMarketingConsent, readCookie } from '@/lib/measurement/consent'
 import { computeTotals, lineWeightGrams } from '@/lib/orders/money'
 import type { Order } from '@/payload-types'
 
+import { cartKind, MIXED_CART_MESSAGE } from '@/lib/vouchers/cart'
+import { sendVoucherEmail } from '@/vouchers/emails'
+import { findActiveBatch, issueVouchers, voucherSpecsForOrder } from '@/vouchers/issue'
+import { getVoucherSettings } from '@/vouchers/settings'
+
 import { checkCart } from './catalog'
 import { enqueueOrderIntegrations } from '@/integrations/order'
 
@@ -62,6 +67,8 @@ export type PlaceOrderErrorCode =
   | 'cart-changed'
   | 'delivery-unavailable'
   | 'prices-changed'
+  | 'mixed-vouchers'
+  | 'vouchers-unavailable'
   | 'server-error'
 
 export type PlaceOrderResult =
@@ -189,8 +196,27 @@ export async function placeOrder(
     }
   }
 
+  // Stage 7: which flow? Electronic vouchers never mix with goods; voucher-only = own flow.
+  const flow = cartKind(cart.lines)
+  if (flow === 'mixed-electronic') {
+    return { ok: false, status: 409, error: 'mixed-vouchers', message: MIXED_CART_MESSAGE, cart }
+  }
+  if (flow === 'electronic-vouchers') {
+    return placeVoucherOrder(payload, input, cart, now, context)
+  }
+  if (!input.delivery) {
+    return {
+      ok: false,
+      status: 422,
+      error: 'invalid-input',
+      message: 'Vyberte prosím způsob dopravy a termín.',
+      fieldErrors: { 'delivery.methodId': 'Vyberte způsob dopravy a termín (v košíku).' },
+    }
+  }
+  const delivery = input.delivery
+
   // 5. Delivery: re-run the engine now (cut-off!).
-  const options = await getDeliveryOptionsForPostcode(payload, input.delivery.postcode, { now })
+  const options = await getDeliveryOptionsForPostcode(payload, delivery.postcode, { now })
   if (!options.ok) {
     return {
       ok: false,
@@ -200,8 +226,8 @@ export async function placeOrder(
       fieldErrors: { 'delivery.postcode': options.message },
     }
   }
-  const method = options.data.methods.find((item) => item.id === input.delivery.methodId)
-  if (!method || !method.available || !method.dates.includes(input.delivery.date)) {
+  const method = options.data.methods.find((item) => item.id === delivery.methodId)
+  if (!method || !method.available || !method.dates.includes(delivery.date)) {
     return {
       ok: false,
       status: 409,
@@ -277,7 +303,7 @@ export async function placeOrder(
         customerName: `${customer.firstName} ${customer.lastName}`,
         contactEmail: customer.email,
         contactPhone: customer.phone,
-        scheduledDate: input.delivery.date,
+        scheduledDate: delivery.date,
         shippingLabel: method.name,
         totalEstimate: totals.totalEstimate,
         lines: cart.lines.map((line) => ({
@@ -300,6 +326,8 @@ export async function placeOrder(
           vat: totals.vat,
         },
         voucherCode: input.voucherCode ?? null,
+        voucherDetails: input.voucherDetails ?? {},
+        payment: { method: 'on-delivery' },
         customer: {
           firstName: customer.firstName,
           lastName: customer.lastName,
@@ -324,8 +352,8 @@ export async function placeOrder(
           methodName: method.name,
           methodType: method.type,
           price: method.price,
-          date: input.delivery.date,
-          postcode: input.delivery.postcode,
+          date: delivery.date,
+          postcode: delivery.postcode,
           pickupLocation: location
             ? {
                 name: location.name,
@@ -370,6 +398,206 @@ export async function placeOrder(
   await sendOrderEmails(payload, order, accessToken)
 
   // Stage 6: Meta CAPI / Heureka / Ecomail – queued, sent after the response; never blocks.
+  try {
+    const cookies = context.cookieHeader ?? null
+    const marketingConsent = hasMarketingConsent(cookies)
+    await enqueueOrderIntegrations(payload, order, {
+      marketingConsent,
+      ip: marketingConsent && context.ip && context.ip !== 'unknown' ? context.ip : null,
+      userAgent: marketingConsent ? (context.userAgent ?? null) : null,
+      fbp: marketingConsent ? readCookie(cookies, '_fbp') : null,
+      fbc: marketingConsent ? readCookie(cookies, '_fbc') : null,
+      mode: context.integrations,
+    })
+  } catch (error) {
+    payload.logger.error(`[orders] marketing integrations not queued: ${String(error)}`)
+  }
+
+  return { ok: true, orderNumber: order.orderNumber, accessToken, duplicate: false }
+}
+
+const VOUCHERS_UNAVAILABLE_MESSAGE =
+  'Elektronické poukazy teď bohužel nejde objednat online. Zkuste to prosím později, kupte ' +
+  'tištěný poukaz, nebo nám zavolejte – rádi ho připravíme.'
+
+/**
+ * Stage 7: an order with ONLY electronic vouchers. No postcode, no delivery, no date, no
+ * shipping price. Paid by bank transfer in advance (variable symbol = order number, due in
+ * `paymentDueHours`); the vouchers are issued from the active batch and e-mailed immediately with
+ * the PDF and a QR payment code (`src/vouchers`). Refused (409, no order saved) when the bank
+ * account is missing/invalid or no valid batch is active – never an e-mail without payment
+ * details, never a voucher without an expiry date.
+ */
+async function placeVoucherOrder(
+  payload: Payload,
+  input: CheckoutInput,
+  cart: CartCheckResult,
+  now: Date,
+  context: PlaceOrderContext,
+): Promise<PlaceOrderResult> {
+  const settings = await getVoucherSettings(payload)
+  const { batch, problem } = await findActiveBatch(payload, undefined, now)
+  if (!settings.account || !batch) {
+    payload.logger.error(
+      `[vouchers] electronic voucher order refused: ${!settings.account ? 'no valid bank account in settings' : `no active batch (${problem})`}`,
+    )
+    return {
+      ok: false,
+      status: 409,
+      error: 'vouchers-unavailable',
+      message: VOUCHERS_UNAVAILABLE_MESSAGE,
+    }
+  }
+
+  const totals = computeTotals(
+    cart.lines.map((line) => ({
+      unitPrice: line.unitPrice,
+      priceUnit: line.priceUnit,
+      weightGrams: line.weightGrams,
+      quantity: line.quantity,
+      vatRate: line.vatRate,
+    })),
+    0,
+  )
+  if (input.expectedTotal !== undefined && input.expectedTotal !== totals.totalEstimate) {
+    return {
+      ok: false,
+      status: 409,
+      error: 'prices-changed',
+      message: 'Cena se mezitím změnila. Zkontrolujte ji prosím a odešlete objednávku znovu.',
+      cart,
+      totalEstimate: totals.totalEstimate,
+    }
+  }
+
+  const [orderNumber, termsUpdatedAt] = await Promise.all([
+    nextOrderNumber(payload),
+    termsPageUpdatedAt(payload),
+  ])
+  const accessToken = randomBytes(24).toString('base64url')
+  const timestamp = now.toISOString()
+  const { customer } = input
+  const dueAt = new Date(now.getTime() + settings.dueHours * 3_600_000).toISOString()
+
+  let order: Order
+  try {
+    order = (await payload.create({
+      collection: 'orders',
+      overrideAccess: true,
+      depth: 0,
+      context: { disableRevalidate: true },
+      data: {
+        orderNumber,
+        status: 'received',
+        kind: 'voucher',
+        customerName: `${customer.firstName} ${customer.lastName}`,
+        contactEmail: customer.email,
+        contactPhone: customer.phone,
+        scheduledDate: null,
+        shippingLabel: 'Elektronický poukaz (e-mailem)',
+        totalEstimate: totals.totalEstimate,
+        amountDue: totals.totalEstimate,
+        lines: cart.lines.map((line) => ({
+          product: line.productId,
+          productTitle: line.title,
+          variantId: line.variantId,
+          variantLabel: line.variantLabel,
+          sku: line.sku,
+          quantity: line.quantity,
+          unitPrice: line.unitPrice,
+          priceUnit: line.priceUnit,
+          vatRate: line.vatRate as '12' | '21' | '0',
+          estimatedWeightGrams: null,
+          estimatedPrice: line.lineEstimate,
+          resolution: 'piece',
+          finalPrice: line.lineEstimate,
+        })),
+        totals: {
+          goodsEstimate: totals.goodsEstimate,
+          deliveryPrice: 0,
+          totalEstimate: totals.totalEstimate,
+          vat: totals.vat,
+          // Fixed prices: nothing to weigh, the final price is known now.
+          goodsFinal: totals.goodsEstimate,
+          totalFinal: totals.totalEstimate,
+          vatFinal: totals.vat,
+          voucherTotal: 0,
+          amountDue: totals.totalEstimate,
+        },
+        voucherCode: null,
+        voucherDetails: input.voucherDetails ?? {},
+        payment: {
+          method: 'bank-transfer',
+          status: 'awaiting',
+          amount: totals.totalEstimate,
+          variableSymbol: orderNumber,
+          account: settings.account.display,
+          dueAt,
+        },
+        customer: {
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          email: customer.email,
+          phone: customer.phone,
+          companyName: customer.companyName ?? null,
+          ico: customer.ico ?? null,
+          dic: customer.dic ?? null,
+        },
+        shippingAddress: {},
+        delivery: {},
+        customerNote: input.note ?? null,
+        consents: {
+          termsAcceptedAt: timestamp,
+          termsPageUpdatedAt: termsUpdatedAt,
+          privacyNoticeAt: timestamp,
+          newsletter: input.consents.newsletter,
+          newsletterAt: input.consents.newsletter ? timestamp : null,
+          heurekaOptOut: input.consents.heurekaOptOut,
+        },
+        attribution: input.attribution ?? {},
+        eventId: randomUUID(),
+        emails: { customerStatus: 'pending', shopStatus: 'pending' },
+        accessToken,
+        idempotencyKey: input.checkoutId,
+      },
+    })) as Order
+  } catch (error) {
+    const winner = await findByIdempotencyKey(payload, input.checkoutId)
+    if (winner) return success(winner, true)
+    payload.logger.error(`[orders] could not save voucher order: ${String(error)}`)
+    return {
+      ok: false,
+      status: 500,
+      error: 'server-error',
+      message:
+        'Objednávku se nepodařilo uložit. Zkuste to prosím znovu, nebo nám zavolejte – omlouváme se.',
+    }
+  }
+
+  // Vouchers from the active batch (checked above). A failure here is logged and flagged for
+  // staff (they can re-issue on the order screen); the customer still gets the payment details.
+  try {
+    await issueVouchers(payload, order, voucherSpecsForOrder(order, 'electronic'), { now })
+  } catch (error) {
+    payload.logger.error(`[vouchers] issuing failed for ${orderNumber}: ${String(error)}`)
+    order = await payload.update({
+      collection: 'orders',
+      id: order.id,
+      overrideAccess: true,
+      depth: 0,
+      context: { disableRevalidate: true },
+      data: {
+        needsReview: true,
+        reviewReasons:
+          'Poukazy se nepodařilo vystavit – zkontrolujte šarži a kontaktujte zákazníka.',
+      },
+    })
+  }
+
+  // The customer e-mail = vouchers (PDF) + payment details (QR); the shop gets the usual copy.
+  await sendVoucherEmail(payload, order, 'voucher-issued')
+  await sendOrderEmails(payload, order, accessToken, { customer: false })
+
   try {
     const cookies = context.cookieHeader ?? null
     const marketingConsent = hasMarketingConsent(cookies)

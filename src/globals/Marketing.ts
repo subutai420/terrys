@@ -130,6 +130,58 @@ export const Marketing: GlobalConfig = {
                 },
               ],
             },
+            {
+              // Stage 7: gift vouchers in feeds and in Heureka "Ověřeno zákazníky".
+              name: 'vouchers',
+              type: 'group',
+              label: 'Dárkové poukazy',
+              fields: [
+                {
+                  name: 'includeInFeeds',
+                  type: 'checkbox',
+                  label: 'Zařadit dárkové poukazy do produktových feedů',
+                  defaultValue: false,
+                  admin: {
+                    description:
+                      'Výchozí vypnuto: feedy nabízejí maso. Po zapnutí jdou poukazy do feedů jako ' +
+                      'kusové zboží s kategorií Google 53 „Dárkové poukazy“ (Heureka/Zboží: ' +
+                      'kategorie níže). Elektronický poukaz bez dopravy, tištěný s dopravou.',
+                  },
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'heurekaCategory',
+                      type: 'text',
+                      label: 'Kategorie Heureka pro poukazy',
+                      defaultValue:
+                        'Heureka.cz | Hobby | Zábava | Originální dárky | Dárkové poukazy',
+                      admin: { width: '50%' },
+                    },
+                    {
+                      name: 'zboziCategory',
+                      type: 'text',
+                      label: 'Kategorie Zboží.cz pro poukazy',
+                      defaultValue:
+                        'Kultura a zábava | Volný čas | Oslavy a dárky | Dárkové poukazy',
+                      admin: { width: '50%' },
+                    },
+                  ],
+                },
+                {
+                  name: 'heurekaForVoucherOrders',
+                  type: 'checkbox',
+                  label: 'Posílat Heurece „Ověřeno zákazníky“ i objednávky jen s poukazy',
+                  defaultValue: false,
+                  admin: {
+                    description:
+                      'Výchozí vypnuto: objednávka elektronického poukazu nemá doručení, dotazník ' +
+                      'by hodnotil něco, co zákazník ještě nezažil.',
+                  },
+                },
+              ],
+            },
           ],
         },
       ],

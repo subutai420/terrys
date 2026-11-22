@@ -7,6 +7,7 @@ import { slugify } from '@/lib/slugify'
 
 import { seedDelivery } from './delivery'
 import { seedDemoOrders } from './orders'
+import { seedVouchers } from './vouchers'
 
 import {
   categories,
@@ -62,6 +63,7 @@ export const SEED_PARTS = [
   'locations',
   'settings',
   'delivery', // needs locations (pickup methods point to them)
+  'vouchers', // stage 7: maps imported voucher products; demo batch/account/vouchers outside production
   'orders', // stage 5: demo orders in different states (never in production); needs catalog + delivery
 ] as const
 export type SeedPart = (typeof SEED_PARTS)[number]
@@ -343,6 +345,11 @@ export async function seed(
   if (runs('delivery')) {
     // ---------------------------------------------------------------- delivery (stage 2)
     await seedDelivery(payload, stats, log)
+  }
+
+  if (runs('vouchers')) {
+    // ---------------------------------------------------------------- vouchers (stage 7)
+    await seedVouchers(payload, stats, log)
   }
 
   if (runs('orders')) {

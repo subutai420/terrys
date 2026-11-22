@@ -5,8 +5,10 @@ import { getPayload, type Payload, type Where } from 'payload'
 import { cache } from 'react'
 
 import { descendantIds } from '@/lib/categoryTree'
+import { toShopDate } from '@/lib/delivery/calendar'
+import { findActiveBatch } from '@/vouchers/issue'
 import { buildOriginTiles, type OriginTile } from '@/lib/originTiles'
-import { GLOSSARY_PREFIX, normalizeLegacyPath } from '@/lib/urls'
+import { getPublicPath, GLOSSARY_PREFIX, normalizeLegacyPath } from '@/lib/urls'
 import type {
   Article,
   Category,
@@ -619,3 +621,51 @@ export async function getSitemapDocs(
 export function lookupPath(path: string): string {
   return normalizeLegacyPath(path) ?? path
 }
+
+// ----------------------------------------------------------------------------- vouchers (stage 7)
+
+export type VoucherChoice = {
+  id: number
+  title: string
+  value: number
+  url: string
+  current?: boolean
+}
+
+/** All public gift voucher products (value chips on a voucher product page), cheapest first. */
+export const getVoucherProducts = loader(
+  'voucher-products',
+  async (draft): Promise<Omit<VoucherChoice, 'current'>[]> => {
+    const payload = await getPayloadClient()
+    const result = await payload.find({
+      collection: 'products',
+      where: {
+        and: [
+          { 'voucher.enabled': { equals: true } },
+          { availability: { in: ['in-stock', 'in-transit'] } },
+        ],
+      },
+      sort: 'price',
+      depth: 0,
+      limit: 20,
+      select: { title: true, slug: true, legacyUrl: true, price: true, voucher: true },
+      ...access(draft),
+    })
+    return result.docs.map((doc) => ({
+      id: doc.id,
+      title: doc.title,
+      value: doc.voucher?.value ?? doc.price,
+      url: getPublicPath('products', doc),
+    }))
+  },
+)
+
+/**
+ * Expiry (YYYY-MM-DD) of the active voucher batch – what a voucher bought today will say. The
+ * batches are not public, so this reads them on the server; null when no valid batch is active.
+ */
+export const getActiveVoucherExpiry = loader('voucher-expiry', async (): Promise<string | null> => {
+  const payload = await getPayloadClient()
+  const { batch } = await findActiveBatch(payload)
+  return batch ? toShopDate(batch.expiresOn) : null
+})

@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { isIsoDate } from '../delivery/calendar'
 import { isValidPostcode, normalizePostcode } from '../delivery/constants'
 
+import { cartKind } from '../vouchers/cart'
+
 import { MAX_LINE_QUANTITY, MAX_ORDER_LINES } from './constants'
 import { isValidEmail, normalizeDic, normalizeIco, normalizePhone } from './validators'
 
@@ -68,11 +70,17 @@ export const checkoutInputSchema = z.object({
     .array(cartLineInputSchema)
     .min(1, 'Košík je prázdný.')
     .max(MAX_ORDER_LINES, 'V košíku je příliš mnoho položek.'),
-  delivery: z.object({
-    postcode,
-    methodId: z.number({ error: 'Vyberte způsob dopravy.' }).int().positive(),
-    date: z.string().refine((value) => isIsoDate(value), 'Vyberte termín.'),
-  }),
+  /**
+   * Required for goods (checked in `parseCheckoutInput`); absent for a cart with only ELECTRONIC
+   * vouchers (stage 7: no shipping, no date).
+   */
+  delivery: z
+    .object({
+      postcode,
+      methodId: z.number({ error: 'Vyberte způsob dopravy.' }).int().positive(),
+      date: z.string().refine((value) => isIsoDate(value), 'Vyberte termín.'),
+    })
+    .optional(),
   customer: z.object({
     firstName: required(100, 'Vyplňte jméno.'),
     lastName: required(100, 'Vyplňte příjmení.'),
@@ -108,6 +116,13 @@ export const checkoutInputSchema = z.object({
     .optional(),
   note: optionalText(1000),
   voucherCode: optionalText(100),
+  /** Stage 7: optional name + message printed on the bought vouchers. */
+  voucherDetails: z
+    .object({
+      recipientName: optionalText(60),
+      message: optionalText(160),
+    })
+    .optional(),
   consents: z.object({
     terms: z.literal(true, {
       error: 'Pro odeslání objednávky potřebujeme váš souhlas s obchodními podmínkami.',
@@ -157,6 +172,10 @@ export type ParseResult =
 export function parseCheckoutInput(raw: unknown, needsAddress: boolean): ParseResult {
   const parsed = checkoutInputSchema.safeParse(raw)
   const errors: FieldErrors = parsed.success ? {} : issuesToFieldErrors(parsed.error.issues)
+  // Mixed carts (electronic voucher + goods) are refused by the server with their own message.
+  if (parsed.success && !parsed.data.delivery && cartKind(parsed.data.lines) === 'goods') {
+    errors['delivery.methodId'] = 'Vyberte způsob dopravy a termín (v košíku).'
+  }
 
   let address: AddressInput | null = null
   if (needsAddress) {
@@ -171,7 +190,7 @@ export function parseCheckoutInput(raw: unknown, needsAddress: boolean): ParseRe
     } else {
       address = addressResult.data
       const deliveryPostcode = parsed.success
-        ? parsed.data.delivery.postcode
+        ? parsed.data.delivery?.postcode
         : normalizePostcode(
             String((raw as { delivery?: { postcode?: unknown } })?.delivery?.postcode ?? ''),
           )

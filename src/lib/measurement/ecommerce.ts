@@ -244,7 +244,8 @@ export function purchase(input: PurchaseInput): EcommercePush {
       value: input.goodsEstimate,
       tax,
       shipping: input.deliveryPrice,
-      shipping_tier: input.shippingTier,
+      // Stage 7: an electronic voucher order has no delivery → no shipping_tier (shipping 0).
+      ...(input.shippingTier ? { shipping_tier: input.shippingTier } : {}),
       items: input.items,
     },
     extra,

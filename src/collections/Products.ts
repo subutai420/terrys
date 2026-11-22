@@ -14,6 +14,7 @@ import {
   VAT_RATES,
 } from '@/lib/catalog'
 
+import { VOUCHER_FORMAT_LABELS, VOUCHER_FORMATS } from '@/lib/vouchers/constants'
 import { storefrontRevalidationHooks } from '@/storefront/revalidate'
 
 import { ADMIN_GROUPS } from './adminGroups'
@@ -72,7 +73,22 @@ export const Products: CollectionConfig = {
     maxPerDoc: 30,
   },
   // Stage 3: clear the storefront cache after every change (src/storefront/revalidate.ts).
-  hooks: { ...storefrontRevalidationHooks },
+  hooks: {
+    ...storefrontRevalidationHooks,
+    // Stage 7: a voucher always costs exactly its value, per piece, without weight variants
+    // (business rule 1: no discounted vouchers). Set here so nobody has to remember it.
+    beforeValidate: [
+      ({ data }) => {
+        const voucher = data?.voucher as { enabled?: boolean; value?: number } | undefined
+        if (data && voucher?.enabled && typeof voucher.value === 'number') {
+          data.price = voucher.value
+          data.priceUnit = 'piece'
+          data.variants = []
+        }
+        return data
+      },
+    ],
+  },
   access: {
     read: publicProductsOrLoggedIn,
     create: editors,
@@ -399,6 +415,67 @@ export const Products: CollectionConfig = {
         position: 'sidebar',
         description: 'Nepovinné. Interní kód (např. z pokladny nebo od dodavatele).',
       },
+    },
+    // Stage 7: a product becomes a gift voucher here (src/vouchers, CLAUDE.md "Vouchers").
+    {
+      name: 'voucher',
+      type: 'group',
+      label: 'Dárkový poukaz',
+      admin: {
+        position: 'sidebar',
+        description:
+          'Zaškrtněte jen u produktů „Dárkový poukaz“. Cena se pak sama nastaví na hodnotu ' +
+          'poukazu (poukazy se nikdy neprodávají se slevou). Sazbu DPH poukazu určí účetní.',
+      },
+      fields: [
+        {
+          name: 'enabled',
+          type: 'checkbox',
+          label: 'Tento produkt je dárkový poukaz',
+          defaultValue: false,
+          index: true,
+        },
+        {
+          name: 'value',
+          type: 'number',
+          label: 'Hodnota poukazu (Kč)',
+          min: 100,
+          max: 100000,
+          admin: {
+            step: 100,
+            condition: (_data, sibling) => Boolean(sibling?.enabled),
+            description: 'Např. 500, 1 000, 2 000, 5 000.',
+          },
+          validate: (value: unknown, { siblingData }: { siblingData: unknown }) => {
+            const enabled = (siblingData as { enabled?: boolean } | undefined)?.enabled
+            if (!enabled) return true
+            return typeof value === 'number' && Number.isInteger(value) && value > 0
+              ? true
+              : 'Zadejte hodnotu poukazu v celých Kč.'
+          },
+        },
+        {
+          name: 'formats',
+          type: 'select',
+          hasMany: true,
+          label: 'Jak ho lze koupit',
+          defaultValue: [...VOUCHER_FORMATS],
+          options: VOUCHER_FORMATS.map((value) => ({ value, label: VOUCHER_FORMAT_LABELS[value] })),
+          admin: {
+            condition: (_data, sibling) => Boolean(sibling?.enabled),
+            description:
+              'Elektronický: PDF e-mailem hned po objednávce, platba převodem do 72 h. Tištěný: ' +
+              'přibalíme k zásilce nebo k vyzvednutí, platí se při převzetí.',
+          },
+          validate: (value: unknown, { siblingData }: { siblingData: unknown }) => {
+            const enabled = (siblingData as { enabled?: boolean } | undefined)?.enabled
+            if (!enabled) return true
+            return Array.isArray(value) && value.length > 0
+              ? true
+              : 'Vyberte aspoň jeden způsob (elektronický / tištěný).'
+          },
+        },
+      ],
     },
     // Stage 6: per-product switch for the product feeds (src/feeds).
     productFeedsGroup,

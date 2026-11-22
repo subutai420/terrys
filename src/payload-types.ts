@@ -70,6 +70,8 @@ export interface Config {
     orders: Order;
     withdrawals: Withdrawal;
     'order-audit-log': OrderAuditLog;
+    vouchers: Voucher;
+    'voucher-batches': VoucherBatch;
     products: Product;
     categories: Category;
     cuts: Cut;
@@ -95,7 +97,11 @@ export interface Config {
   };
   collectionsJoins: {
     orders: {
+      issuedVouchers: 'vouchers';
       withdrawals: 'withdrawals';
+    };
+    'voucher-batches': {
+      vouchers: 'vouchers';
     };
     categories: {
       products: 'products';
@@ -105,6 +111,8 @@ export interface Config {
     orders: OrdersSelect<false> | OrdersSelect<true>;
     withdrawals: WithdrawalsSelect<false> | WithdrawalsSelect<true>;
     'order-audit-log': OrderAuditLogSelect<false> | OrderAuditLogSelect<true>;
+    vouchers: VouchersSelect<false> | VouchersSelect<true>;
+    'voucher-batches': VoucherBatchesSelect<false> | VoucherBatchesSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     cuts: CutsSelect<false> | CutsSelect<true>;
@@ -261,6 +269,7 @@ export interface Order {
   voucherRedemptions?:
     | {
         code: string;
+        voucher?: (number | null) | Voucher;
         amount: number;
         note?: string | null;
         recordedBy?: (number | null) | User;
@@ -269,9 +278,33 @@ export interface Order {
       }[]
     | null;
   /**
-   * NEOVĚŘENO. Poukaz zkontrolujte ručně a jeho hodnotu odečtěte při vážení.
+   * Zákazník ho zadal v objednávce. Ověří se, až ho obsluha zapíše v „Vyřízení objednávky“ (kód, zaplacení, platnost, zůstatek).
    */
   voucherCode?: string | null;
+  issuedVouchers?: {
+    docs?: (number | Voucher)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  voucherDetails?: {
+    recipientName?: string | null;
+    message?: string | null;
+  };
+  /**
+   * Zboží se platí při převzetí. Elektronické poukazy převodem předem – platbu páruje obsluha v „Poukazy – platby“ (variabilní symbol = číslo objednávky).
+   */
+  payment?: {
+    method?: ('on-delivery' | 'bank-transfer') | null;
+    status?: ('awaiting' | 'paid' | 'cancelled') | null;
+    amount?: number | null;
+    variableSymbol?: string | null;
+    account?: string | null;
+    dueAt?: string | null;
+    paidOn?: string | null;
+    markedPaidAt?: string | null;
+    markedPaidBy?: (number | null) | User;
+    reminderSentAt?: string | null;
+  };
   customer: {
     firstName: string;
     lastName: string;
@@ -356,7 +389,17 @@ export interface Order {
     | null;
   sentEmails?:
     | {
-        kind?: ('final-price' | 'shipped' | 'ready-for-pickup' | 'cancelled') | null;
+        kind?:
+          | (
+              | 'final-price'
+              | 'shipped'
+              | 'ready-for-pickup'
+              | 'cancelled'
+              | 'voucher-issued'
+              | 'voucher-paid'
+              | 'voucher-reminder'
+            )
+          | null;
         status?: ('pending' | 'sent' | 'outbox' | 'failed' | 'skipped') | null;
         at?: string | null;
         by?: (number | null) | User;
@@ -576,6 +619,20 @@ export interface Product {
    * Nepovinné. Interní kód (např. z pokladny nebo od dodavatele).
    */
   sku?: string | null;
+  /**
+   * Zaškrtněte jen u produktů „Dárkový poukaz“. Cena se pak sama nastaví na hodnotu poukazu (poukazy se nikdy neprodávají se slevou). Sazbu DPH poukazu určí účetní.
+   */
+  voucher?: {
+    enabled?: boolean | null;
+    /**
+     * Např. 500, 1 000, 2 000, 5 000.
+     */
+    value?: number | null;
+    /**
+     * Elektronický: PDF e-mailem hned po objednávce, platba převodem do 72 h. Tištěný: přibalíme k zásilce nebo k vyzvednutí, platí se při převzetí.
+     */
+    formats?: ('electronic' | 'printed')[] | null;
+  };
   feeds?: {
     /**
      * Produkt zůstane v obchodě, jen se nepošle do Google, Meta, Heureky a Zboží.
@@ -1031,6 +1088,121 @@ export interface Recipe {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * Všechny poukazy. Hledat lze kódem (stačí část, bez pomlček). Platby a uplatnění se dělají v „Poukazy – platby“ a na stránce „Vyřízení objednávky“. Tlačítkem „Vytvořit“ zapíšete STARÝ poukaz ze starého e-shopu.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "vouchers".
+ */
+export interface Voucher {
+  id: number;
+  /**
+   * U starého poukazu opište kód přesně z poukazu (mezery a pomlčky nevadí).
+   */
+  code: string;
+  value: number;
+  /**
+   * U starého poukazu: kolik na něm ještě zbývá (prázdné = celá hodnota).
+   */
+  balance?: number | null;
+  expiresOn: string;
+  codeNormalized?: string | null;
+  type: 'electronic' | 'printed' | 'legacy';
+  status: 'issued' | 'paid' | 'partially-redeemed' | 'redeemed' | 'cancelled';
+  batch?: (number | null) | VoucherBatch;
+  order?: (number | null) | Order;
+  orderNumber?: string | null;
+  recipientName?: string | null;
+  message?: string | null;
+  paidAt?: string | null;
+  paidBy?: (number | null) | User;
+  redemptions?:
+    | {
+        redeemedIn?: (number | null) | Order;
+        orderNumber?: string | null;
+        amount?: number | null;
+        at?: string | null;
+        by?: (number | null) | User;
+        id?: string | null;
+      }[]
+    | null;
+  history?:
+    | {
+        event?:
+          | (
+              | 'issued'
+              | 'paid'
+              | 'payment-undone'
+              | 'redeemed'
+              | 'redemption-changed'
+              | 'reminder-sent'
+              | 'cancelled'
+              | 'note'
+            )
+          | null;
+        at?: string | null;
+        by?: (number | null) | User;
+        note?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Interní, zákazník ji nevidí (např. odkud starý poukaz je).
+   */
+  note?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Každý nový poukaz dostane písmeno a datum platnosti AKTIVNÍ šarže. Na nový rok založte novou šarži (nové písmeno, nové datum) a zaškrtněte „Aktivní“ – předchozí se sama vypne.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "voucher-batches".
+ */
+export interface VoucherBatch {
+  id: number;
+  title?: string | null;
+  /**
+   * Bude v každém kódu poukazu na 11. místě. Bez I, L, O (zaměnitelná).
+   */
+  letter:
+    | 'A'
+    | 'B'
+    | 'C'
+    | 'D'
+    | 'E'
+    | 'F'
+    | 'G'
+    | 'H'
+    | 'J'
+    | 'K'
+    | 'M'
+    | 'N'
+    | 'P'
+    | 'Q'
+    | 'R'
+    | 'S'
+    | 'T'
+    | 'U'
+    | 'V'
+    | 'W'
+    | 'X'
+    | 'Y'
+    | 'Z';
+  /**
+   * Včetně tohoto dne. Vytiskne se na každý poukaz.
+   */
+  expiresOn: string;
+  active?: boolean | null;
+  note?: string | null;
+  vouchers?: {
+    docs?: (number | Voucher)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Lidé, kteří se mohou přihlásit do administrace. Spravuje jen administrátor.
@@ -1525,6 +1697,14 @@ export interface PayloadLockedDocument {
         value: number | OrderAuditLog;
       } | null)
     | ({
+        relationTo: 'vouchers';
+        value: number | Voucher;
+      } | null)
+    | ({
+        relationTo: 'voucher-batches';
+        value: number | VoucherBatch;
+      } | null)
+    | ({
         relationTo: 'products';
         value: number | Product;
       } | null)
@@ -1711,6 +1891,7 @@ export interface OrdersSelect<T extends boolean = true> {
     | T
     | {
         code?: T;
+        voucher?: T;
         amount?: T;
         note?: T;
         recordedBy?: T;
@@ -1718,6 +1899,27 @@ export interface OrdersSelect<T extends boolean = true> {
         id?: T;
       };
   voucherCode?: T;
+  issuedVouchers?: T;
+  voucherDetails?:
+    | T
+    | {
+        recipientName?: T;
+        message?: T;
+      };
+  payment?:
+    | T
+    | {
+        method?: T;
+        status?: T;
+        amount?: T;
+        variableSymbol?: T;
+        account?: T;
+        dueAt?: T;
+        paidOn?: T;
+        markedPaidAt?: T;
+        markedPaidBy?: T;
+        reminderSentAt?: T;
+      };
   customer?:
     | T
     | {
@@ -1908,6 +2110,62 @@ export interface OrderAuditLogSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "vouchers_select".
+ */
+export interface VouchersSelect<T extends boolean = true> {
+  code?: T;
+  value?: T;
+  balance?: T;
+  expiresOn?: T;
+  codeNormalized?: T;
+  type?: T;
+  status?: T;
+  batch?: T;
+  order?: T;
+  orderNumber?: T;
+  recipientName?: T;
+  message?: T;
+  paidAt?: T;
+  paidBy?: T;
+  redemptions?:
+    | T
+    | {
+        redeemedIn?: T;
+        orderNumber?: T;
+        amount?: T;
+        at?: T;
+        by?: T;
+        id?: T;
+      };
+  history?:
+    | T
+    | {
+        event?: T;
+        at?: T;
+        by?: T;
+        note?: T;
+        id?: T;
+      };
+  note?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "voucher-batches_select".
+ */
+export interface VoucherBatchesSelect<T extends boolean = true> {
+  title?: T;
+  letter?: T;
+  expiresOn?: T;
+  active?: T;
+  note?: T;
+  vouchers?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products_select".
  */
 export interface ProductsSelect<T extends boolean = true> {
@@ -1950,6 +2208,13 @@ export interface ProductsSelect<T extends boolean = true> {
   availability?: T;
   categories?: T;
   sku?: T;
+  voucher?:
+    | T
+    | {
+        enabled?: T;
+        value?: T;
+        formats?: T;
+      };
   feeds?:
     | T
     | {
@@ -2557,6 +2822,21 @@ export interface Setting {
      */
     packagingWeightGrams: number;
   };
+  /**
+   * Elektronické poukazy se platí převodem předem: e-mail s poukazem a QR kódem pro platbu odchází hned po objednávce. Bez vyplněného účtu nelze elektronické poukazy objednat (obchod je nenabídne).
+   */
+  vouchers: {
+    /**
+     * Číslo účtu ve tvaru 123456789/0800 (případně s předčíslím 19-123456789/0800) nebo IBAN (CZ…). Uvede se v e-mailu a v QR kódu pro platbu. Zkontroluje se kontrolní součet – překlep se neuloží.
+     */
+    bankAccount?: string | null;
+    paymentDueHours: number;
+    /**
+     * Objednávka se vždy objeví v „Poukazy – platby“ jako po splatnosti. Automatické zrušení jen když ho výslovně zvolíte.
+     */
+    overdueAction: 'flag' | 'flag-remind' | 'flag-remind-cancel';
+    autoCancelAfterDays?: number | null;
+  };
   contact?: {
     email?: string | null;
     phone?: string | null;
@@ -2617,6 +2897,18 @@ export interface Marketing {
      * Heureka/Zboží DELIVERY_DATE a datum dostupnosti v Google feedu (backorder).
      */
     inTransitDeliveryDays?: number | null;
+  };
+  vouchers?: {
+    /**
+     * Výchozí vypnuto: feedy nabízejí maso. Po zapnutí jdou poukazy do feedů jako kusové zboží s kategorií Google 53 „Dárkové poukazy“ (Heureka/Zboží: kategorie níže). Elektronický poukaz bez dopravy, tištěný s dopravou.
+     */
+    includeInFeeds?: boolean | null;
+    heurekaCategory?: string | null;
+    zboziCategory?: string | null;
+    /**
+     * Výchozí vypnuto: objednávka elektronického poukazu nemá doručení, dotazník by hodnotil něco, co zákazník ještě nezažil.
+     */
+    heurekaForVoucherOrders?: boolean | null;
   };
   feedStats?:
     | {
@@ -2713,6 +3005,14 @@ export interface SettingsSelect<T extends boolean = true> {
         weightTolerancePercent?: T;
         packagingWeightGrams?: T;
       };
+  vouchers?:
+    | T
+    | {
+        bankAccount?: T;
+        paymentDueHours?: T;
+        overdueAction?: T;
+        autoCancelAfterDays?: T;
+      };
   contact?:
     | T
     | {
@@ -2755,6 +3055,14 @@ export interface MarketingSelect<T extends boolean = true> {
         zboziCategory?: T;
         inStockDeliveryDays?: T;
         inTransitDeliveryDays?: T;
+      };
+  vouchers?:
+    | T
+    | {
+        includeInFeeds?: T;
+        heurekaCategory?: T;
+        zboziCategory?: T;
+        heurekaForVoucherOrders?: T;
       };
   feedStats?: T;
   updatedAt?: T;

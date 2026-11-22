@@ -32,6 +32,15 @@ import { formatCzk } from '@/lib/format'
 import type { Order } from '@/payload-types'
 import { type CarrierService, getCarrierService } from '@/shipping/carrier'
 
+import { normalizeVoucherCode } from '@/lib/vouchers/code'
+import {
+  activatePrintedVouchers,
+  applyOrderRedemptions,
+  cancelVoucherOrder,
+  releaseOrderRedemptions,
+} from '@/vouchers/service'
+import { withTransaction } from '@/vouchers/transaction'
+
 import { alreadySent, sendFulfilmentEmail } from './emails'
 import { STATUS_CHECKED } from './hooks'
 import { getFulfilmentSettings } from './settings'
@@ -391,11 +400,12 @@ export async function saveBilling(
       code,
       amount: v.amount,
       note: v.note?.trim().slice(0, 300) || null,
+      voucher: (typeof kept?.voucher === 'object' ? kept?.voucher?.id : kept?.voucher) ?? null,
       recordedBy: kept?.recordedBy ?? actor.id,
       recordedAt: kept?.recordedAt ?? now.toISOString(),
     }
   })
-  const codes = vouchers.map((v) => v.code.toLowerCase())
+  const codes = vouchers.map((v) => normalizeVoucherCode(v.code))
   codes.forEach((code, i) => {
     if (code && codes.indexOf(code) !== i)
       fieldErrors[`vouchers.${i}.code`] = 'Tento poukaz je zapsaný dvakrát.'
@@ -478,7 +488,36 @@ export async function saveBilling(
     messages.push('Částka se změnila – vyúčtování je potřeba znovu potvrdit.')
   }
 
-  let saved = await save(payload, actor, order.id, data, options)
+  // Stage 7: every voucher row must match a voucher record (paid, valid, enough balance); the
+  // balances change in the SAME transaction as the order (row locks: two parallel billings can
+  // never overspend one voucher).
+  const vouchersChanged =
+    JSON.stringify(vouchers.map((v) => [v.code, v.amount])) !==
+    JSON.stringify((order.voucherRedemptions ?? []).map((v) => [v.code, v.amount]))
+  let outcome: { saved: Order } | { fieldErrors: Record<string, string> }
+  try {
+    outcome = await withTransaction(payload, actor, options.req, async (req) => {
+      if (vouchersChanged) {
+        const applied = await applyOrderRedemptions(payload, actor, order, vouchers, req, now)
+        if (!applied.ok) return { fieldErrors: applied.fieldErrors }
+        data.voucherRedemptions = applied.rows.map((row, i) => ({
+          ...vouchers[i],
+          code: row.code,
+          voucher: row.voucher,
+        }))
+      }
+      return { saved: await save(payload, actor, order.id, data, { ...options, req }) }
+    })
+  } catch (error) {
+    payload.logger.error(`[fulfilment] billing save failed: ${String(error)}`)
+    return fail(500, 'Vyúčtování se nepodařilo uložit. Zkuste to prosím znovu.')
+  }
+  if ('fieldErrors' in outcome) {
+    return fail(422, 'Poukaz nejde uplatnit – viz zvýrazněný řádek.', {
+      fieldErrors: outcome.fieldErrors,
+    })
+  }
+  let saved = outcome.saved
   if (finaliseNow) {
     if (alreadySent(saved, 'final-price')) {
       messages.push(
@@ -529,6 +568,18 @@ export async function changeStatus(
   if (!order) return fail(404, 'Objednávka neexistuje.')
   if (input.to === 'weighed') {
     return weighOrder(payload, actor, id, { lines: [], markWeighed: true }, options)
+  }
+  // Stage 7: an electronic voucher order is cancelled together with its vouchers.
+  if (order.kind === 'voucher' && input.to === 'cancelled') {
+    if (!can(actor, 'admin', 'staff')) return fail(403, 'Rušit může jen obsluha.')
+    const result = await cancelVoucherOrder(
+      payload,
+      actor,
+      order.id,
+      { reason: input.reason ?? '' },
+      { req: options.req, now: options.now },
+    )
+    return result.ok ? { ok: true, order: result.order, messages: result.messages } : result
   }
   const { tolerancePercent } = await getFulfilmentSettings(payload, options.req)
   const check = checkTransition({
@@ -590,8 +641,17 @@ export async function changeStatus(
       cancelledBy: actor.id,
     }
   }
-  let saved = await save(payload, actor, order.id, data, options)
+  // Stage 7: cancelling returns redeemed voucher amounts (same transaction as the status).
+  let saved = await withTransaction(payload, actor, options.req, async (req) => {
+    if (input.to === 'cancelled') await releaseOrderRedemptions(payload, actor, order, req, now)
+    return save(payload, actor, order.id, data, { ...options, req })
+  })
   const messages: string[] = []
+  // Stage 7: printed vouchers are paid with the order on delivery → valid from now on.
+  if (input.to === 'delivered' || input.to === 'picked-up') {
+    const activated = await activatePrintedVouchers(payload, actor, saved, options.req, now)
+    if (activated) messages.push(`Tištěné poukazy (${activated} ks) jsou zaplacené a platné.`)
+  }
   const kind = STATUS_EMAIL[input.to]
   if (kind) {
     const outcome = await sendFulfilmentEmail(payload, saved, kind, {

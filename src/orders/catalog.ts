@@ -8,6 +8,7 @@ import {
   type RequestedLine,
 } from '@/lib/orders/cartCheck'
 import { getPublicPath } from '@/lib/urls'
+import { isVoucherFormat } from '@/lib/vouchers/constants'
 import type { Media, Product } from '@/payload-types'
 
 /**
@@ -37,6 +38,12 @@ export function toCatalogProduct(doc: Product): CatalogProduct {
     sku: doc.sku ?? null,
     url: getPublicPath('products', doc),
     imageUrl: thumbnailUrl(doc.mainImage),
+    voucher: doc.voucher?.enabled
+      ? {
+          value: doc.voucher.value ?? doc.price,
+          formats: (doc.voucher.formats ?? []).filter(isVoucherFormat),
+        }
+      : null,
     variants: (doc.variants ?? []).map((variant) => ({
       id: variant.id ?? null,
       label: variant.label,
@@ -74,6 +81,7 @@ export async function loadCatalogProducts(
       variants: true,
       mainImage: true,
       sku: true,
+      voucher: true,
     },
     populate: { media: { url: true, sizes: true } },
   })

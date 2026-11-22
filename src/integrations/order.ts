@@ -7,6 +7,19 @@ import { getSiteUrl } from '@/lib/urls'
 import type { Order } from '@/payload-types'
 
 import { ecomailConfig, heurekaConfig, metaCapiConfig } from './config'
+
+async function heurekaForVoucherOrders(payload: Payload): Promise<boolean> {
+  try {
+    const marketing = await payload.findGlobal({
+      slug: 'marketing',
+      depth: 0,
+      overrideAccess: true,
+    })
+    return Boolean(marketing.vouchers?.heurekaForVoucherOrders)
+  } catch {
+    return false
+  }
+}
 import { enqueue, processJobs, runAfterResponse, setOrderIntegration } from './jobs'
 import type { EcomailJobPayload, HeurekaJobPayload, MetaJobPayload } from './senders'
 
@@ -92,6 +105,10 @@ export async function enqueueOrderIntegrations(
   // Heureka Ověřeno zákazníky
   if (order.consents?.heurekaOptOut)
     await record('heureka', 'skipped', 'Zákazník nesouhlasí s dotazníkem.')
+  // Stage 7: voucher-only orders (no delivery experience yet) are skipped unless the setting
+  // Marketing → Dárkové poukazy → "Posílat Heurece … i objednávky jen s poukazy" is on.
+  else if (order.kind === 'voucher' && !(await heurekaForVoucherOrders(payload)))
+    await record('heureka', 'skipped', 'Objednávka jen s dárkovými poukazy (nastavení).')
   else if (!heurekaConfig()) await record('heureka', 'disabled', 'Chybí HEUREKA_OVERENO_API_KEY.')
   else {
     const job: HeurekaJobPayload = {

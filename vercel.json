@@ -4,6 +4,10 @@
     {
       "path": "/api/integrations/retry",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/gift-vouchers/overdue",
+      "schedule": "0 8 * * *"
     }
   ]
 }

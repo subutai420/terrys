@@ -4,6 +4,7 @@ import { formatWeight, isWeightPriced, purchaseMode, variantOptions } from '../p
 
 import { MAX_LINE_QUANTITY } from './constants'
 import { lineEstimate } from './money'
+import { isVoucherFormat, VOUCHER_FORMAT_LABELS, type VoucherFormat } from '../vouchers/constants'
 
 /**
  * Re-validation of cart lines against the CURRENT catalog (pure; the Payload glue in
@@ -21,6 +22,8 @@ export type CatalogProduct = {
   sku: string | null
   url: string
   imageUrl: string | null
+  /** Stage 7: set when the product is a gift voucher (value + offered formats). */
+  voucher?: { value: number; formats: VoucherFormat[] } | null
   variants: {
     id: string | null
     label: string
@@ -136,7 +139,23 @@ export function checkCartLines(
     let variantLabel: string | null = null
     let weightGrams: number | null = null
 
-    if (line.variantId === null) {
+    if (product.voucher) {
+      // Stage 7: a voucher line carries its format (electronic / printed) as the variant id.
+      const format = line.variantId
+      if (!isVoucherFormat(format) || !product.voucher.formats.includes(format)) {
+        problem(
+          'variant-gone',
+          `U poukazu ${product.title} vyberte prosím znovu, zda chcete elektronický, nebo tištěný.`,
+          product.title,
+        )
+        continue
+      }
+      if (product.availability === 'sold-out') {
+        problem('sold-out', `Poukaz ${product.title} teď nelze koupit.`, product.title)
+        continue
+      }
+      variantLabel = VOUCHER_FORMAT_LABELS[format]
+    } else if (line.variantId === null) {
       if (product.variants.length > 0 || mode !== 'single') {
         problem(
           product.availability === 'sold-out' ? 'sold-out' : 'variant-gone',

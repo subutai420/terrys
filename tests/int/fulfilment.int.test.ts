@@ -15,6 +15,7 @@ import {
 import { computeTotals } from '@/lib/orders/money'
 import type { Order } from '@/payload-types'
 import { balikobotCarrier } from '@/shipping/carrier'
+import { createLegacyVoucher } from '@/vouchers/service'
 import addError from '@/lib/shipping/fixtures/add-error.json'
 
 import { createUser, getTestPayload, type TestUser } from './helpers'
@@ -408,6 +409,18 @@ describe('billing (staff)', () => {
     })
     expect(tooMuch.ok).toBe(false)
     if (!tooMuch.ok) expect(tooMuch.fieldErrors?.vouchers).toMatch(/víc než cena/)
+
+    // Stage 7: a voucher must exist in the records (here an old-shop voucher entered by staff).
+    const unknown = await saveBilling(payload, staff, order.id, {
+      vouchers: [{ code: 'DAR-1', amount: 500 }],
+    })
+    expect(unknown.ok).toBe(false)
+    const legacy = await createLegacyVoucher(payload, staff, {
+      code: 'DAR-1',
+      value: 5000,
+      expiresOn: '2030-12-31',
+    })
+    expect(legacy.ok).toBe(true)
 
     const saved = await saveBilling(payload, staff, order.id, {
       vouchers: [{ code: 'DAR-1', amount: 500, note: 'ověřila Blanka' }],

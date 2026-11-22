@@ -227,7 +227,20 @@ test.describe('Fulfilment (stage 5)', () => {
       await s.getByTestId('voucher-add').click()
       await expect(s.getByTestId('voucher-code')).toBeVisible({ timeout: 1_000 })
     }).toPass({ timeout: 30_000 })
-    await s.getByTestId('voucher-code').fill('DAREK-E2E')
+    // Stage 7: the code is checked against the voucher records; an old-shop voucher that is not
+    // there yet is recorded right on this screen ("Zapsat starý poukaz").
+    const oldCode = `DAREK-E2E-${Date.now()}`
+    await s.getByTestId('voucher-code').fill(oldCode)
+    await expect(s.getByTestId('voucher-check')).toHaveAttribute('data-state', 'missing', {
+      timeout: 15_000,
+    })
+    await s.getByTestId('legacy-open').click()
+    await s.getByTestId('legacy-value').fill('500')
+    await s.getByTestId('legacy-expires').fill('2030-12-31')
+    await s.getByTestId('legacy-save').click()
+    await expect(s.getByTestId('voucher-check')).toHaveAttribute('data-state', 'ok', {
+      timeout: 15_000,
+    })
     await s.getByTestId('voucher-amount').fill('200')
     await expect(s.getByTestId('amount-due')).toHaveText(/547\sKč/)
     await s.getByTestId('billing-finalise').click()

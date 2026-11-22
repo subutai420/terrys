@@ -76,6 +76,18 @@ export const FULFILMENT_EMAIL_LABELS: Record<FulfilmentEmailKind, string> = {
   cancelled: 'Zrušení objednávky',
 }
 
+/** Stage 7: voucher e-mails, recorded in `orders.sentEmails` next to the fulfilment ones. */
+export const VOUCHER_EMAIL_KINDS = ['voucher-issued', 'voucher-paid', 'voucher-reminder'] as const
+export type VoucherEmailKind = (typeof VOUCHER_EMAIL_KINDS)[number]
+export const SENT_EMAIL_KINDS = [...FULFILMENT_EMAIL_KINDS, ...VOUCHER_EMAIL_KINDS] as const
+export type SentEmailKind = (typeof SENT_EMAIL_KINDS)[number]
+export const SENT_EMAIL_LABELS: Record<SentEmailKind, string> = {
+  ...FULFILMENT_EMAIL_LABELS,
+  'voucher-issued': 'Dárkový poukaz + platební údaje',
+  'voucher-paid': 'Poukaz zaplacen – je platný',
+  'voucher-reminder': 'Připomínka platby poukazu',
+}
+
 /** Default allowed deviation of the weighed amount from the estimate (settings override it). */
 export const DEFAULT_WEIGHT_TOLERANCE_PERCENT = 15
 

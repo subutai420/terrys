@@ -5,6 +5,8 @@ import { cartLineInputSchema } from '@/lib/orders/checkoutSchema'
 import { MAX_ORDER_LINES } from '@/lib/orders/constants'
 import { clientIp } from '@/lib/orders/rateLimit'
 
+import { electronicVoucherAvailability } from '@/vouchers/availability'
+
 import { checkCart } from './catalog'
 import { checkAddress, foxentryEnabled } from './foxentry'
 import { FORBIDDEN_ORIGIN, isAllowedOrigin, json, rateLimited, readJson, TOO_MANY } from './http'
@@ -59,7 +61,11 @@ export const checkoutEndpoints: Endpoint[] = [
       const parsed = cartBody.safeParse(await readJson(req))
       if (!parsed.success) return json({ ok: false, error: 'invalid-input' }, 400)
       const result = await checkCart(req.payload, parsed.data.lines)
-      return json({ ok: true, ...result })
+      // Stage 7: can electronic vouchers be ordered right now (bank account + active batch)?
+      const vouchers = parsed.data.lines.some((line) => line.variantId === 'electronic')
+        ? await electronicVoucherAvailability(req.payload)
+        : null
+      return json({ ok: true, ...result, vouchers })
     },
   },
   {

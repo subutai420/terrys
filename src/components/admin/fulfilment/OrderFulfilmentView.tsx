@@ -1,4 +1,5 @@
 import type { AdminViewServerProps } from 'payload'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import React from 'react'
 
@@ -8,7 +9,8 @@ import { formatCzk, formatUnitPrice } from '@/lib/format'
 import {
   EMAIL_STATUS_LABELS,
   type EmailStatus,
-  FULFILMENT_EMAIL_LABELS,
+  SENT_EMAIL_LABELS,
+  type SentEmailKind,
   type FulfilmentEmailKind,
   LINE_RESOLUTION_LABELS,
   type LineResolution,
@@ -28,6 +30,10 @@ import { formatWeight } from '@/lib/productView'
 import { carrierMode } from '@/shipping/carrier'
 import { getFulfilmentSettings } from '@/fulfilment/settings'
 import { loadOrder } from '@/fulfilment/service'
+import { PRINTED_VARIANT_ID } from '@/lib/vouchers/cart'
+import { orderVouchers } from '@/vouchers/emails'
+
+import { IssuePrintedButton } from '../vouchers/IssuePrintedButton'
 
 import { AdminPage, idFromSegments } from './AdminPage'
 import { FulfilmentClient } from './FulfilmentClient'
@@ -91,6 +97,14 @@ export async function OrderFulfilmentView(props: AdminViewServerProps) {
     overrideAccess: true,
     req,
   })
+  // Stage 7: printed vouchers bought in this order (issued here by staff).
+  const printedWanted = (order.lines ?? [])
+    .filter((line) => line.variantId === PRINTED_VARIANT_ID)
+    .reduce((sum, line) => sum + line.quantity, 0)
+  const printed =
+    printedWanted > 0
+      ? (await orderVouchers(req.payload, order.id, req)).filter((v) => v.type === 'printed')
+      : []
   const statuses = nextStatuses({
     from: order.status as OrderStatus,
     role: user.role as 'admin' | 'staff',
@@ -325,6 +339,52 @@ export async function OrderFulfilmentView(props: AdminViewServerProps) {
         )}
       </div>
 
+      {order.kind === 'voucher' ? (
+        <div className="tf-banner tf-banner--warn">
+          Objednávka elektronických poukazů – platí se převodem předem. Platbu označte v{' '}
+          <Link href="/admin/poukazy-platby" prefetch={false}>
+            Poukazy – platby
+          </Link>
+          .
+        </div>
+      ) : null}
+
+      {printedWanted > 0 ? (
+        <div className="tf-card" data-testid="printed-vouchers">
+          <h3>Tištěné dárkové poukazy ({printedWanted} ks)</h3>
+          <p className="tf-small tf-muted" style={{ marginTop: 0 }}>
+            Vystavte kódy, napište je na tištěné poukazy (nebo vytiskněte PDF) a přibalte k
+            objednávce. Poukazy začnou platit, až zákazník objednávku převezme a zaplatí (stav
+            Doručeno / Vyzvednuto).
+          </p>
+          {printed.length > 0 ? (
+            <ul>
+              {printed.map((v) => (
+                <li key={v.id}>
+                  <strong style={{ letterSpacing: 1 }}>{v.code}</strong> – {formatCzk(v.value)} (
+                  {v.status === 'issued' ? 'čeká na zaplacení s objednávkou' : 'zaplacen, platný'})
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {printed.length > 0 ? (
+            <p>
+              <a
+                className="tf-btn"
+                href={`/api/gift-vouchers/orders/${order.id}/pdf`}
+                target="_blank"
+                rel="noopener"
+              >
+                Tisk poukazů (PDF)
+              </a>
+            </p>
+          ) : null}
+          {printed.length < printedWanted && order.status !== 'cancelled' ? (
+            <IssuePrintedButton orderId={order.id} missing={printedWanted - printed.length} />
+          ) : null}
+        </div>
+      ) : null}
+
       <FulfilmentClient
         order={{
           id: order.id,
@@ -354,7 +414,7 @@ export async function OrderFulfilmentView(props: AdminViewServerProps) {
           },
           sentEmails: (order.sentEmails ?? []).map((row) => ({
             kind: row.kind as FulfilmentEmailKind,
-            label: FULFILMENT_EMAIL_LABELS[row.kind as FulfilmentEmailKind] ?? row.kind ?? '',
+            label: SENT_EMAIL_LABELS[row.kind as SentEmailKind] ?? row.kind ?? '',
             status: EMAIL_STATUS_LABELS[row.status as EmailStatus] ?? row.status ?? '',
             failed: row.status === 'failed',
             at: when(row.at),

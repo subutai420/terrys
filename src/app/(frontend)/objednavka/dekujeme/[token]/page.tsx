@@ -22,6 +22,9 @@ import { WEIGHT_TOLERANCE } from '@/lib/productView'
 import type { Order } from '@/payload-types'
 import { categoryNodes } from '@/storefront/analytics'
 import { getPayloadClient, getSettings } from '@/storefront/data'
+import { formatDueAt } from '@/email/templates/vouchers'
+import { orderSpayd, VOUCHER_PDF_PATH } from '@/vouchers/emails'
+import { spaydQrPng } from '@/vouchers/qr'
 
 /**
  * Thank-you page (stage 4): `/objednavka/dekujeme/<token>`. The token is a random 32-character
@@ -110,8 +113,9 @@ async function purchaseMessage(order: Order) {
     deliveryPrice: order.totals.deliveryPrice,
     totalEstimate: order.totals.totalEstimate,
     vat: order.totals.vat ?? [],
+    // Stage 7: voucher-only orders have no delivery → shipping 0, no tier, no delivery type.
     shippingTier: order.delivery?.methodName ?? '',
-    deliveryType: orderDeliveryId(order.delivery?.methodType),
+    deliveryType: order.delivery?.methodType ? orderDeliveryId(order.delivery.methodType) : null,
   })
   const userData = buildUserData({
     email: order.customer.email,
@@ -138,6 +142,123 @@ export default async function ThankYouPage({ params }: { params: Promise<{ token
   const lines = order.lines ?? []
 
   const { message, userData } = await purchaseMessage(order)
+
+  // Stage 7: electronic voucher order – vouchers e-mailed, payment by bank transfer.
+  if (order.kind === 'voucher') {
+    const spayd = orderSpayd(order)
+    const qr = spayd
+      ? `data:image/png;base64,${(await spaydQrPng(spayd)).toString('base64')}`
+      : null
+    const paid = order.payment?.status === 'paid'
+    const many = lines.reduce((sum, line) => sum + line.quantity, 0) > 1
+    const account = order.payment?.account ?? ''
+    return (
+      <div className="wrap max-w-3xl pb-16 pt-8">
+        <PurchaseEvent message={message} userData={userData} token={token} />
+        <div className="card text-center">
+          <p
+            aria-hidden="true"
+            className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-ok text-3xl text-white"
+          >
+            ✓
+          </p>
+          <h1 className="text-[1.75rem] sm:text-[2.25rem]" data-testid="thank-you-heading">
+            Děkujeme, objednávku č.&nbsp;<span data-testid="order-number">{order.orderNumber}</span>{' '}
+            jsme přijali
+          </h1>
+          <p className="mt-3 text-muted">
+            {many ? 'Dárkové poukazy' : 'Dárkový poukaz'} (PDF) a platební údaje jsme poslali na{' '}
+            <strong className="text-ink">{order.customer.email}</strong>. Pokud e-mail do pár minut
+            nedorazí, podívejte se do složky s hromadnou poštou nebo spamem.
+          </p>
+          <p className="mt-4">
+            <a href={`${VOUCHER_PDF_PATH}/${token}`} className="btn" data-testid="voucher-pdf-link">
+              {many ? 'Stáhnout poukazy (PDF)' : 'Stáhnout poukaz (PDF)'}
+            </a>
+          </p>
+        </div>
+
+        <section className="card mt-6" aria-labelledby="pay-heading" data-testid="voucher-payment">
+          <h2 id="pay-heading" className="mb-3 text-xl">
+            {paid ? (many ? 'Zaplaceno – poukazy platí' : 'Zaplaceno – poukaz platí') : 'Platba převodem'}
+          </h2>
+          {paid ? (
+            <p>Platbu jsme přijali, děkujeme. Poukazy můžete uplatnit.</p>
+          ) : (
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+              {qr ? (
+                // eslint-disable-next-line @next/next/no-img-element -- generated data URL
+                <img
+                  src={qr}
+                  width={180}
+                  height={180}
+                  alt="QR kód pro platbu"
+                  className="mx-auto h-[180px] w-[180px] sm:mx-0"
+                  data-testid="voucher-qr"
+                />
+              ) : null}
+              <dl className="grid flex-1 grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
+                <dt className="text-muted">Částka</dt>
+                <dd className="font-bold text-brand-red">
+                  {formatCzk(order.payment?.amount ?? 0)}
+                </dd>
+                <dt className="text-muted">Účet</dt>
+                <dd className="font-semibold">{account}</dd>
+                <dt className="text-muted">Variabilní symbol</dt>
+                <dd className="font-semibold">{order.payment?.variableSymbol}</dd>
+                <dt className="text-muted">Zaplaťte do</dt>
+                <dd className="font-semibold">
+                  {order.payment?.dueAt ? formatDueAt(order.payment.dueAt) : ''}
+                </dd>
+              </dl>
+            </div>
+          )}
+          {!paid ? (
+            <p className="mt-4 text-sm text-muted">
+              Poukaz začne platit, jakmile nám dorazí platba. Pak vám pošleme potvrzení e-mailem.
+            </p>
+          ) : null}
+        </section>
+
+        <section className="card mt-6" aria-labelledby="summary-heading">
+          <h2 id="summary-heading" className="mb-3 text-xl">
+            Shrnutí
+          </h2>
+          <ul className="divide-y divide-line">
+            {lines.map((line) => (
+              <li key={line.id ?? line.productTitle} className="flex justify-between gap-4 py-2.5">
+                <span>
+                  <span className="font-semibold">{line.productTitle}</span>
+                  {line.variantLabel ? ` – ${line.variantLabel}` : ''}
+                  <span className="block text-sm text-muted">{line.quantity}×</span>
+                </span>
+                <span className="whitespace-nowrap font-semibold">
+                  {formatCzk(line.estimatedPrice)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-3 flex justify-between border-t border-line pt-3 text-lg font-bold">
+            <span>Celkem vč. DPH</span>
+            <span className="text-brand-red" data-testid="thank-you-total">
+              {formatCzk(order.totals.totalEstimate)}
+            </span>
+          </div>
+          {phone || email ? (
+            <p className="mt-4 text-sm text-muted">
+              Dotazy: {[phone, email].filter(Boolean).join(', ')}.
+            </p>
+          ) : null}
+        </section>
+
+        <p className="mt-8 text-center">
+          <Link href="/" className="btn btn-ghost">
+            Zpět do obchodu
+          </Link>
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="wrap max-w-3xl pb-16 pt-8">

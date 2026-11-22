@@ -59,7 +59,7 @@ describe('parseCheckoutInput', () => {
     expect(result.data.customer.firstName).toBe('Jana')
     expect(result.data.customer.email).toBe('jana@example.cz')
     expect(result.data.customer.phone).toBe('+420 602 123 456')
-    expect(result.data.delivery.postcode).toBe('12000')
+    expect(result.data.delivery?.postcode).toBe('12000')
     expect(result.address?.postcode).toBe('12000')
   })
 
