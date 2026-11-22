@@ -1,7 +1,7 @@
 import type { PriceUnit } from '../catalog'
 import type { VariantOption } from '../productView'
 
-import type { AddToCartInput } from './store'
+import type { AddToCartInput, CartLineAnalytics } from './store'
 
 /** Product data a cart line is built from (plain, serialisable – passed to client components). */
 export type CartProductInfo = {
@@ -11,6 +11,8 @@ export type CartProductInfo = {
   priceUnit: PriceUnit
   url: string
   imageUrl: string | null
+  /** Stage 6: category path + brand for the dataLayer (`src/lib/measurement/items.ts`). */
+  analytics?: CartLineAnalytics
 }
 
 /** Cart line for a variant, or null when that variant cannot be bought. */
@@ -30,6 +32,7 @@ export function lineForVariant(
     estimatedPrice: option.estimate,
     url: product.url,
     imageUrl: product.imageUrl,
+    ...(product.analytics ? { analytics: product.analytics } : {}),
   }
 }
 
@@ -46,5 +49,6 @@ export function lineForSingle(product: CartProductInfo): AddToCartInput {
     estimatedPrice: Math.round(product.price),
     url: product.url,
     imageUrl: product.imageUrl,
+    ...(product.analytics ? { analytics: product.analytics } : {}),
   }
 }

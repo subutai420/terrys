@@ -6,12 +6,16 @@ import {
   filterProducts,
   filterQueryString,
   hasActiveFilters,
+  PAGE_SIZE,
   paginate,
   sortProducts,
   withPage,
 } from '@/lib/filters'
 import { PRICE_UNIT_SHORT } from '@/lib/productView'
 import type { CardProduct } from '@/storefront/data'
+
+import { LIST_ATTRIBUTE } from '@/lib/measurement/dom'
+import { listItems } from '@/storefront/analytics'
 
 import { ViewItemListEvent } from '../AnalyticsEvents'
 import { Breadcrumbs, type Crumb } from '../Breadcrumbs'
@@ -76,7 +80,7 @@ function Pagination({
 }
 
 /** Category / product listing page of design A: header, sidebar filters, grid, SEO text. */
-export function CategoryView({
+export async function CategoryView({
   title,
   basePath,
   crumbs,
@@ -96,6 +100,12 @@ export function CategoryView({
   const activeCount = Object.values(state.selected).reduce((sum, values) => sum + values.length, 0)
   const formId = `filtry-${listId}`
   const units = new Set(page.items.map((p) => p.priceUnit))
+  // Stage 6: dataLayer items of the shown page (positions continue across pages).
+  const analyticsItems = await listItems(
+    page.items,
+    { id: listId, name: title },
+    (page.page - 1) * PAGE_SIZE + 1,
+  )
 
   return (
     <div className="wrap pb-16">
@@ -189,7 +199,11 @@ export function CategoryView({
           </div>
           <h2 className="sr-only">Produkty</h2>
           {page.items.length > 0 ? (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3" data-testid="product-grid">
+            <div
+              className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3"
+              data-testid="product-grid"
+              {...{ [LIST_ATTRIBUTE]: listId }}
+            >
               {page.items.map((product, index) => (
                 <ProductCard
                   key={product.id}
@@ -240,15 +254,7 @@ export function CategoryView({
         </section>
       ) : null}
 
-      <ViewItemListEvent
-        listId={listId}
-        listName={title}
-        items={page.items.map((product) => ({
-          item_id: String(product.id),
-          item_name: product.title,
-          price: product.price,
-        }))}
-      />
+      <ViewItemListEvent listId={listId} listName={title} items={analyticsItems} />
     </div>
   )
 }

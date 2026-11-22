@@ -4,7 +4,9 @@ import Link from 'next/link'
 import { ViewItemListEvent } from '@/components/storefront/AnalyticsEvents'
 import { ProductCard } from '@/components/storefront/ProductCard'
 import { ListingHeader } from '@/components/storefront/views/ListingViews'
+import { LIST_ATTRIBUTE } from '@/lib/measurement/dom'
 import { LISTING_PATHS } from '@/lib/urls'
+import { listItems } from '@/storefront/analytics'
 import { searchProducts } from '@/storefront/search'
 
 /**
@@ -31,6 +33,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default async function SearchPage({ searchParams }: Props) {
   const query = readQuery(await searchParams)
   const products = query ? await searchProducts(query) : []
+  const analyticsItems = await listItems(products, { id: 'search', name: 'Vyhledávání' })
   return (
     <div className="wrap pb-16">
       <ListingHeader
@@ -70,7 +73,11 @@ export default async function SearchPage({ searchParams }: Props) {
       ) : null}
       {products.length > 0 ? <h2 className="sr-only">Nalezené produkty</h2> : null}
       {products.length > 0 ? (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4" data-testid="search-results">
+        <div
+          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
+          data-testid="search-results"
+          {...{ [LIST_ATTRIBUTE]: 'search' }}
+        >
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -91,15 +98,7 @@ export default async function SearchPage({ searchParams }: Props) {
         </div>
       ) : null}
       {products.length > 0 ? (
-        <ViewItemListEvent
-          listId="search"
-          listName="Vyhledávání"
-          items={products.map((p) => ({
-            item_id: String(p.id),
-            item_name: p.title,
-            price: p.price,
-          }))}
-        />
+        <ViewItemListEvent listId="search" listName="Vyhledávání" items={analyticsItems} />
       ) : null}
     </div>
   )

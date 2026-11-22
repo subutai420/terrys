@@ -87,6 +87,7 @@ export interface Config {
     postcodes: Postcode;
     locations: Location;
     users: User;
+    'integration-jobs': IntegrationJob;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -121,6 +122,7 @@ export interface Config {
     postcodes: PostcodesSelect<false> | PostcodesSelect<true>;
     locations: LocationsSelect<false> | LocationsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'integration-jobs': IntegrationJobsSelect<false> | IntegrationJobsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -133,10 +135,12 @@ export interface Config {
   globals: {
     homepage: Homepage;
     settings: Setting;
+    marketing: Marketing;
   };
   globalsSelect: {
     homepage: HomepageSelect<false> | HomepageSelect<true>;
     settings: SettingsSelect<false> | SettingsSelect<true>;
+    marketing: MarketingSelect<false> | MarketingSelect<true>;
   };
   locale: null;
   widgets: {
@@ -400,6 +404,20 @@ export interface Order {
     landingPage?: string | null;
   };
   /**
+   * Meta Conversions API (jen se souhlasem s marketingovými cookies), Heureka Ověřeno zákazníky (ne při nesouhlasu zákazníka), Ecomail (jen se souhlasem s newsletterem).
+   */
+  integrations?: {
+    metaStatus?: ('pending' | 'sent' | 'failed' | 'skipped' | 'disabled') | null;
+    metaAt?: string | null;
+    metaNote?: string | null;
+    heurekaStatus?: ('pending' | 'sent' | 'failed' | 'skipped' | 'disabled') | null;
+    heurekaAt?: string | null;
+    heurekaNote?: string | null;
+    ecomailStatus?: ('pending' | 'sent' | 'failed' | 'skipped' | 'disabled') | null;
+    ecomailAt?: string | null;
+    ecomailNote?: string | null;
+  };
+  /**
    * Stejné ID posílá prohlížeč i server (deduplikace Meta CAPI, etapa 6).
    */
   eventId?: string | null;
@@ -558,6 +576,12 @@ export interface Product {
    * Nepovinné. Interní kód (např. z pokladny nebo od dodavatele).
    */
   sku?: string | null;
+  feeds?: {
+    /**
+     * Produkt zůstane v obchodě, jen se nepošle do Google, Meta, Heureky a Zboží.
+     */
+    exclude?: boolean | null;
+  };
   /**
    * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
    */
@@ -795,6 +819,27 @@ export interface Category {
      * Obrázek při sdílení na Facebooku apod. Když chybí, použije se hlavní obrázek.
      */
     image?: (number | null) | Media;
+  };
+  /**
+   * Nepovinné. Prázdné = převezme se z nadřazené kategorie, jinak výchozí hodnota v Nastavení → Marketing.
+   */
+  feeds?: {
+    /**
+     * Např. služby (broušení nožů) nebo zboží, které nechcete inzerovat. Platí i pro podkategorie.
+     */
+    exclude?: boolean | null;
+    /**
+     * Např. 4628 = Maso, 427 = Dochucovadla a omáčky. Seznam: https://www.google.com/basepages/producttype/taxonomy-with-ids.cs-CZ.txt
+     */
+    googleProductCategory?: string | null;
+    /**
+     * Např. „Heureka.cz | Jídlo a nápoje | Čerstvé potraviny | Maso, drůbež, ryby“. Strom: https://www.heureka.cz/direct/xml-export/shops/heureka-sekce.xml
+     */
+    heurekaCategory?: string | null;
+    /**
+     * Např. „Potraviny a nápoje | Potraviny | Maso a ryby“. Strom: https://www.zbozi.cz/static/categories.csv
+     */
+    zboziCategory?: string | null;
   };
   /**
    * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
@@ -1407,6 +1452,43 @@ export interface Postcode {
   createdAt: string;
 }
 /**
+ * Co obchod poslal do Meta, Heureky a Ecomailu a s jakým výsledkem. Chybná odeslání se opakují automaticky. Ručně opakovat: změňte stav na „Čeká“ a uložte.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "integration-jobs".
+ */
+export interface IntegrationJob {
+  id: number;
+  kind: 'meta-capi-purchase' | 'heureka-order' | 'ecomail-subscribe';
+  status: 'pending' | 'processing' | 'sent' | 'failed' | 'skipped' | 'expired';
+  attempts?: number | null;
+  order?: (number | null) | Order;
+  nextAttemptAt?: string | null;
+  sentAt?: string | null;
+  lockedUntil?: string | null;
+  lastError?: string | null;
+  payload?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  response?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -1509,6 +1591,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'integration-jobs';
+        value: number | IntegrationJob;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1761,6 +1847,19 @@ export interface OrdersSelect<T extends boolean = true> {
         referrer?: T;
         landingPage?: T;
       };
+  integrations?:
+    | T
+    | {
+        metaStatus?: T;
+        metaAt?: T;
+        metaNote?: T;
+        heurekaStatus?: T;
+        heurekaAt?: T;
+        heurekaNote?: T;
+        ecomailStatus?: T;
+        ecomailAt?: T;
+        ecomailNote?: T;
+      };
   eventId?: T;
   withdrawals?: T;
   accessToken?: T;
@@ -1851,6 +1950,11 @@ export interface ProductsSelect<T extends boolean = true> {
   availability?: T;
   categories?: T;
   sku?: T;
+  feeds?:
+    | T
+    | {
+        exclude?: T;
+      };
   legacyUrl?: T;
   migration?:
     | T
@@ -1879,6 +1983,14 @@ export interface CategoriesSelect<T extends boolean = true> {
         title?: T;
         description?: T;
         image?: T;
+      };
+  feeds?:
+    | T
+    | {
+        exclude?: T;
+        googleProductCategory?: T;
+        heurekaCategory?: T;
+        zboziCategory?: T;
       };
   slug?: T;
   parent?: T;
@@ -2266,6 +2378,24 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "integration-jobs_select".
+ */
+export interface IntegrationJobsSelect<T extends boolean = true> {
+  kind?: T;
+  status?: T;
+  attempts?: T;
+  order?: T;
+  nextAttemptAt?: T;
+  sentAt?: T;
+  lockedUntil?: T;
+  lastError?: T;
+  payload?: T;
+  response?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -2458,6 +2588,49 @@ export interface Setting {
   createdAt?: string | null;
 }
 /**
+ * Měření, cookies a produktové feedy. API klíče (Meta, Heureka, Ecomail) se zadávají jen do proměnných prostředí na serveru, nikdy sem.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "marketing".
+ */
+export interface Marketing {
+  id: number;
+  /**
+   * Změňte (např. na „2027-03“), když přidáte nový měřicí nebo reklamní nástroj nebo změníte text lišty. Všem návštěvníkům se lišta se souhlasem zobrazí znovu.
+   */
+  consentVersion: string;
+  /**
+   * Použijí se, když kategorie produktu nemá vlastní hodnotu (Katalog → Kategorie → Feedy).
+   */
+  feedDefaults?: {
+    /**
+     * 4628 = Jídlo, pití a tabák > Potraviny > Maso, ryby a vejce > Maso.
+     */
+    googleProductCategory?: string | null;
+    heurekaCategory?: string | null;
+    zboziCategory?: string | null;
+    /**
+     * Heureka/Zboží DELIVERY_DATE. 0 = „skladem“.
+     */
+    inStockDeliveryDays?: number | null;
+    /**
+     * Heureka/Zboží DELIVERY_DATE a datum dostupnosti v Google feedu (backorder).
+     */
+    inTransitDeliveryDays?: number | null;
+  };
+  feedStats?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "homepage_select".
  */
@@ -2564,6 +2737,26 @@ export interface SettingsSelect<T extends boolean = true> {
         youtube?: T;
         tiktok?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "marketing_select".
+ */
+export interface MarketingSelect<T extends boolean = true> {
+  consentVersion?: T;
+  feedDefaults?:
+    | T
+    | {
+        googleProductCategory?: T;
+        heurekaCategory?: T;
+        zboziCategory?: T;
+        inStockDeliveryDays?: T;
+        inTransitDeliveryDays?: T;
+      };
+  feedStats?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

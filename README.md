@@ -111,6 +111,9 @@ nad prázdnou databází, do které jste pustili `pnpm payload migrate` a `pnpm 
 │   ├── delivery/              # doručování: načtení pravidel z databáze, API, import PSČ
 │   ├── fulfilment/            # vyřizování objednávek: vážení, vyúčtování, stavy, e-maily, tisk
 │   ├── shipping/              # napojení na dopravce (Balíkobot, simulace)
+│   ├── integrations/          # etapa 6: Meta CAPI, Heureka, Ecomail (fronta, opakování)
+│   ├── feeds/                 # etapa 6: generování produktových feedů (Google, Meta, Heureka, Zboží)
+│   ├── app/feeds/[file]/      # etapa 6: adresy /feeds/google.xml, meta.xml, heureka.xml, zbozi.xml
 │   ├── fields/                # společná pole (slug, SEO, původní URL, pořadí)
 │   ├── globals/               # nastavení obchodu (Settings)
 │   ├── lib/                   # pomocné funkce (ceny, odhad ceny, slug) + jejich testy
@@ -141,7 +144,7 @@ nad prázdnou databází, do které jste pustili `pnpm payload migrate` a `pnpm 
 | **Obsah**      | Články (Magazín, Terrys Academy), Recepty, Stránky, Obrázky                             |
 | **Doručování** | Způsoby dopravy, Rozvozové oblasti, Výjimky v kalendáři, PSČ                            |
 | **Přehledy**   | Kalendář doručování (které dny se pro dané PSČ doručuje)                                |
-| **Nastavení**  | Provozovny a odběrná místa, Uživatelé, Nastavení obchodu                                |
+| **Nastavení**  | Provozovny a odběrná místa, Uživatelé, Fronta marketingu, Nastavení obchodu, Marketing  |
 
 - **Koncepty a publikování:** produkty, články, recepty a stránky se na webu ukážou až po kliknutí
   na „Publikovat“. Do té doby jsou to koncepty; předchozí verze lze obnovit v záložce „Verze“.
@@ -469,6 +472,223 @@ prázdné. Na databázi s importovaným katalogem se spouští jen na požádán
 
 Snímky obrazovek všech obrazovek jsou ve složce `docs/screenshots/etapa-5/` (výrobní list i jako
 PDF). Znovu je vytvoří `SCREENSHOTS=1 pnpm test:e2e`.
+
+## Měření, cookies a produktové feedy (etapa 6)
+
+Shrnutí pro marketing: web sám **nevkládá žádný měřicí kód** (GA4, Meta pixel, Google Ads,
+Heureka, Sklik). Posílá jen data do **GTM dataLayer** a všechno ostatní se nastavuje v kontejneru
+Google Tag Manageru `GTM-NBGRZCL`. Na serveru navíc běží Meta Conversions API, Heureka Ověřeno
+zákazníky a Ecomail. Vše je vypnuté, dokud se na serveru nevyplní příslušné proměnné prostředí.
+
+### Lišta se souhlasem s cookies
+
+- Vlastní lišta (bez externího nástroje), dole na stránce, nezakrývá obsah. Tlačítka
+  **„Odmítnout vše“ a „Přijmout vše“ vypadají stejně**, třetí „Nastavit“ otevře okno s volbou
+  kategorií. Nic není předem zaškrtnuté. Znovu se otevře z patičky odkazem **„Nastavení soukromí“**.
+- Kategorie: **Nezbytné** (vždy: košík, objednávka, tato volba), **Analytické** (GA4 a náš
+  záznam, odkud zákazník poprvé přišel), **Marketingové** (Google Ads, Meta vč. serverového
+  předání nákupu, Seznam/Zboží, Heureka).
+- Volba se ukládá do cookie `terrys_consent` (verze textu, analytické 0/1, marketingové 0/1, čas)
+  na 180 dní. **Když přidáte nový nástroj nebo změníte text lišty, změňte v Nastavení → Marketing
+  „Verzi textu souhlasu“** – všem se lišta zobrazí znovu.
+- Google Consent Mode v2: ještě před načtením GTM se nastaví vše „denied“
+  (`ad_storage`, `ad_user_data`, `ad_personalization`, `analytics_storage`; `wait_for_update` 500 ms,
+  `ads_data_redaction`). Po volbě (a při každé další návštěvě s uloženou volbou) web pošle
+  `gtag('consent','update', …)` a do dataLayer událost `consent_update`
+  (`consent_analytics`, `consent_marketing` = `granted`/`denied`).
+- Odvolání souhlasu smaže náš záznam o zdroji návštěvy a cookies `_ga*` (analytické) /
+  `_gcl*`, `_fbp`, `_fbc` (marketingové) na naší doméně.
+- Záznam „odkud zákazník přišel“ (UTM, gclid, fbclid – připojuje se k objednávce) se ukládá do
+  prohlížeče **jen se souhlasem s analytickými cookies** (§ 89 odst. 3 zákona o elektronických
+  komunikacích vyžaduje souhlas pro každé ukládání do zařízení, které není nezbytné pro službu,
+  o kterou zákazník požádal; viz CLAUDE.md). Bez souhlasu nebude u objednávky zdroj vyplněný.
+
+### Kde se GTM načte
+
+Jen když platí všechno: `GTM_ENABLED=1`, `GTM_ID`, a **adresa stránky je v seznamu
+`GTM_ALLOWED_HOSTS`** (produkce: `terrys.cz,www.terrys.cz`). Klon webu na cizí doméně (dříve
+terrys.live) proto GTM nenačte a nezkreslí statistiky. Na počítači vývojáře a v testech se GTM
+nenačítá nikdy; produkční kontejner `GTM-NBGRZCL` se mimo produkční server odmítne.
+
+### Události v dataLayer (pro nastavení GTM)
+
+Před každou e-commerce událostí web pošle `{ ecommerce: null }` (vyčištění, doporučení Googlu).
+Každá událost má navíc `event_id` (unikátní, pro Meta pixel „Event ID“) a `value_is_estimate: true`.
+
+| Událost (`event`)   | Kdy                                                           | Hlavní parametry v `ecommerce`                                                       |
+| ------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `virtual_page_view` | každé zobrazení stránky, i přechody bez obnovení (Next.js)    | (mimo `ecommerce`) `page_location`, `page_path`, `page_title`, `page_referrer`       |
+| `view_item_list`    | kategorie, /produkty, vyhledávání                             | `item_list_id`, `item_list_name`, `items[]` (s `index`)                              |
+| `select_item`       | klik na produkt v seznamu                                     | `item_list_id`, `item_list_name`, `items[1]`                                         |
+| `view_item`         | detail produktu                                               | `currency`, `value`, `items[1]` (výchozí varianta)                                   |
+| `add_to_cart`       | „Do košíku“, „+“ v košíku                                     | `currency`, `value`, `items[]`                                                       |
+| `remove_from_cart`  | „−“, „Odebrat“ v košíku                                       | `currency`, `value`, `items[]`                                                       |
+| `view_cart`         | otevření košíku                                               | `currency`, `value`, `items[]`                                                       |
+| `add_shipping_info` | košík → „Pokračovat k objednávce“                             | `currency`, `value`, `shipping_tier`, `items[]`; nahoře `delivery_date`              |
+| `begin_checkout`    | stránka objednávky (jednou za nákup)                          | `currency`, `value`, `items[]`                                                       |
+| `purchase`          | stránka „Děkujeme“ – **jednou za objednávku** (ani reload ne) | `transaction_id`, `currency`, `value`, `tax`, `shipping`, `shipping_tier`, `items[]` |
+| `consent_update`    | volba v liště                                                 | (mimo `ecommerce`) `consent_analytics`, `consent_marketing`                          |
+| `newsletter_signup` | přihlášení k newsletteru v patičce                            | (mimo `ecommerce`) `method`                                                          |
+
+**Položka (`items[]`):** `item_id` (viz níže), `item_name`, `item_variant` (např. „500 g“),
+`item_brand` (producent, jinak „Terrys“), `item_category` … `item_category5` (kategorie produktu
+a nadřazené), `price` (odhad za 1 kus vč. DPH), `quantity`, `index`, `item_list_id/name`, a
+vlastní parametry `item_group_id` (ID produktu), `price_per_kg`, `estimated_weight_grams`,
+`price_is_estimate`. Nikdy `coupon` ani `discount`.
+
+**Navíc u `purchase` (mimo `ecommerce`):** `event_id` = ID objednávky pro deduplikaci s Meta
+Conversions API, `value_net` (zboží bez DPH), `value_tax_goods`, `order_total` (zboží + doprava
+vč. DPH), `delivery_price`, `delivery_type` (např. `PPL`, `VLASTNI_VYDEJNI_MISTA`) a – **jen se
+souhlasem s marketingovými cookies** – `user_data` pro rozšířené konverze / advanced matching:
+`{ email, phone_number (E.164, +420…), address: { first_name, last_name, street, city,
+postal_code, country: 'CZ' } }` (nešifrované; Google i Meta si je samy normalizují a hashují).
+
+### Hodnota objednávky – co znamená `value`
+
+| Kam                          | Hodnota                                                    | Proč                                                                       |
+| ---------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------- |
+| GA4 `ecommerce.value`        | **odhad za zboží vč. DPH, bez dopravy** (= Σ cena × počet) | GA4 nechce dopravu ve value; ceny položek jsou vč. DPH, value jim odpovídá |
+| GA4 `shipping` / `tax`       | 229 / 0 Kč; DPH obsažená v celé objednávce                 | zvlášť, jak GA4 chce                                                       |
+| Google Ads konverze (tROAS)  | doporučeno `ecommerce.value` (vč. DPH) – nebo `value_net`  | rozhodněte jednou a nechte (změna rozbije srovnání ROAS)                   |
+| Meta pixel + CAPI `Purchase` | odhad za zboží vč. DPH, bez dopravy, `CZK`                 | stejné jako GA4; server posílá totéž                                       |
+| Zboží/Seznam (SEM)           | `value_net` (bez DPH), `value_tax_goods`, `delivery_price` | Seznam chce value bez DPH                                                  |
+| Heureka měření konverzí      | položky `price` × `quantity`, celkem `order_total`         | podle jejich skriptu                                                       |
+
+Všechny hodnoty jsou **odhad v okamžiku objednávky** (řezník váží, výsledná cena se liší obvykle do
+±15 %). Doprava ve feedech i v událostech je vždy 229 Kč (osobní odběr 0 Kč jen jako samostatná
+možnost odběru).
+
+### Jednotné ID produktu (`item_id`)
+
+Stejné ID je v dataLayer, ve všech feedech, v Meta CAPI (`content_ids`) a v Heurece:
+**varianta = `<ID produktu>-<ID varianty>`** (např. `406-6b03246590708426ec932438`), produkt bez
+variant (omáčka, koření) = `<ID produktu>`. ID skupiny variant (`item_group_id`) = ID produktu.
+ID varianty se nemění při úpravách v administraci (přejmenování, jiná hmotnost, pořadí); změní se
+jen, když variantu smažete a založíte znovu.
+
+### Co je potřeba nastavit v GTM (kontejner GTM-NBGRZCL)
+
+1. **Proměnné (Data Layer Variable, verze 2):** `ecommerce.transaction_id`, `ecommerce.value`,
+   `ecommerce.currency`, `ecommerce.items`, `ecommerce.tax`, `ecommerce.shipping`, `event_id`,
+   `value_net`, `order_total`, `user_data`, `page_location`, `page_path`, `page_title`.
+2. **Google tag (GA4 G-PXMZXR26RG):** spouštěč _Initialization – All Pages_, v nastavení
+   `send_page_view` = `false` a v GA4 (Datové proudy → Rozšířené měření → Zobrazení stránek →
+   _vypnout_ „změny stránky na základě událostí historie prohlížeče“). Pak **GA4 Event tag
+   `page_view`** na vlastní událost `virtual_page_view` s parametry `page_location`,
+   `page_title`, `page_referrer` z dataLayer (URL stránky „Děkujeme“ je tak bez tajného tokenu).
+3. **GA4 e-commerce:** jeden GA4 Event tag s názvem `{{Event}}` a volbou „Send Ecommerce data“
+   (zdroj: Data Layer), spouštěč vlastní událost regex
+   `^(view_item_list|select_item|view_item|add_to_cart|remove_from_cart|view_cart|begin_checkout|add_shipping_info|purchase)$`.
+4. **Google Ads:** konverze „Nákup“ na `purchase`: hodnota `{{ecommerce.value}}` (nebo
+   `{{value_net}}`), měna `{{ecommerce.currency}}`, ID transakce `{{ecommerce.transaction_id}}`.
+   Rozšířené konverze: v Google tagu zapnout „Allow user-provided data“, v tagu konverze
+   proměnná _User-Provided Data_ → „Code“ → Data Layer proměnná `user_data`.
+   Dynamický remarketing: `items[].item_id` odpovídá ID v Merchant Center feedu.
+5. **Meta pixel:** PageView na `virtual_page_view`; ViewContent/AddToCart/InitiateCheckout/
+   Purchase na příslušné události; **Event ID = `{{event_id}}`** (u Purchase je to stejné ID,
+   které posílá server – Meta obě události spáruje), `content_ids` = položky `item_id`,
+   `content_type` = `product`, `value`/`currency`. Advanced matching z `user_data`.
+6. **Souhlas:** Admin → Container settings → _Enable consent overview_. GA4 tagy: vyžadovat
+   `analytics_storage`; Google Ads, Meta, Sklik/Zboží, Heureka: vyžadovat `ad_storage` (u Meta,
+   Sklik a Heureka zvolit „Require additional consent“, protože nemají vestavěný Consent Mode).
+   Doporučujeme „basic“ režim (tagy bez souhlasu vůbec nepálí); „advanced“ (anonymní pingy Googlu
+   bez souhlasu) jen po odsouhlasení právníkem. Výchozí stav souhlasu nastavuje web, **v GTM
+   nepřidávejte žádnou jinou CMP šablonu ani vlastní „consent default“**.
+7. **Heureka měření konverzí:** Custom HTML tag podle návodu Heureky (SDK v2, _veřejný_ klíč),
+   spouštěč `purchase`: `set_order_id` = `{{ecommerce.transaction_id}}`, `add_product` pro každou
+   položku (`item_id`, `item_name`, `price`, `quantity` – ID odpovídají Heureka feedu),
+   `set_total_vat` = `{{order_total}}`, měna CZK. Souhlas: marketingový.
+8. **Zboží.cz / Sklik:** šablona „Seznam SEM“ z galerie komunitních šablon (čte GA4 `ecommerce`
+   z dataLayer) nebo starší konverzní kód `rc.js` jako Custom HTML; `value` = `{{value_net}}`
+   (bez DPH), `orderId` = `{{ecommerce.transaction_id}}`, `delivery_type` = `{{delivery_type}}`,
+   `consent` = 1 jen s marketingovým souhlasem.
+9. Odstraňte ze starého kontejneru tagy navázané na starý web (EasyWeb události, staré proměnné).
+
+**Testování:** GTM → Náhled (Preview) → zadejte adresu webu. Na zkušebním serveru použijte GTM
+prostředí (`GTM_AUTH`, `GTM_PREVIEW`) a jeho doménu přidejte do `GTM_ALLOWED_HOSTS`. Meta: v Events
+Manageru → Test events zkopírujte kód do `META_CAPI_TEST_EVENT_CODE` – serverové události se pak
+ukážou jen tam (na ostrém webu proměnnou smažte). V administraci objednávky (záložka Interní →
+„Marketing a měření“) vidíte, co server odeslal; podrobnosti v Nastavení → **Fronta marketingu**.
+
+### Serverové odesílání (Meta CAPI, Heureka, Ecomail)
+
+| Služba                        | Kdy                                        | Podmínka                                        |
+| ----------------------------- | ------------------------------------------ | ----------------------------------------------- |
+| Meta Conversions API Purchase | hned po přijetí objednávky                 | souhlas s marketingovými cookies                |
+| Heureka Ověřeno zákazníky     | hned po přijetí objednávky (podle Heureky) | zákazník NEzaškrtl „Nesouhlasím s dotazníkem“   |
+| Ecomail (kontakt + jméno)     | hned po přijetí objednávky                 | zákazník zaškrtl souhlas s newsletterem         |
+| Ecomail (patička webu)        | po odeslání formuláře                      | double opt-in: Ecomail pošle potvrzovací e-mail |
+
+Odesílá se až po uložení objednávky a nezdrží ani nezablokuje nákup. Když služba neodpoví,
+zkusí se to znovu za 1 min, 5 min, 30 min, 2 h, 12 h (cron `/api/integrations/retry` každých
+15 minut, nastavený ve `vercel.json`; potřebuje `CRON_SECRET`). Meta přijímá události nejvýš 7 dní
+staré.
+
+### Produktové feedy
+
+| Kanál                  | Adresa                                    | Kam ji zadat                                                         |
+| ---------------------- | ----------------------------------------- | -------------------------------------------------------------------- |
+| Google Merchant Center | `https://www.terrys.cz/feeds/google.xml`  | Produkty → Zdroje dat → Přidat zdroj → „Načíst soubor z URL“ (denně) |
+| Meta katalog           | `https://www.terrys.cz/feeds/meta.xml`    | Commerce Manager → Katalog → Zdroje dat → Datový feed → Plánovaný    |
+| Heureka.cz             | `https://www.terrys.cz/feeds/heureka.xml` | Administrace Heureky → Nastavení → XML feed (nahradit starou adresu) |
+| Zboží.cz               | `https://www.terrys.cz/feeds/zbozi.xml`   | Administrace Zboží (Sklik) → Provozovna → XML feed                   |
+
+- Jedna položka = jedna **varianta** (konkrétní hmotnost a odhad ceny), odkaz vede na produkt
+  s předvybranou variantou (`?varianta=…`), takže web ukazuje přesně cenu z feedu. Cena za kg je
+  v polích jednotkové ceny (Google `unit_pricing_measure` „500 g“ / `unit_pricing_base_measure`
+  „1 kg“, Meta `unit_price`), u Heureky a Zboží je v popisu věta „Cena je odhad za 500 g
+  (990 Kč/kg)…“.
+- Jen publikované a ne skryté produkty. Vyprodané: Google a Meta je mají jako „není skladem“,
+  Heureka a Zboží je nedostávají vůbec. „Na cestě“: Google `backorder` s datem dostupnosti, Meta
+  „in stock“ (lze objednat), Heureka/Zboží doba dodání ze Nastavení → Marketing.
+- Doprava 229 Kč (kurýr PPL), u Zboží navíc osobní odběr 0 Kč (`VLASTNI_VYDEJNI_MISTA`). Náš
+  rozvoz po Praze se do feedů neuvádí – `VLASTNI_PREPRAVA` smí jen dopravce po celé ČR.
+- Bez EAN (vlastní zboží): Google `identifier_exists = no`. Nikdy `sale_price`.
+- Kategorie: výchozí v Nastavení → Marketing (Google 4628 Maso, Heureka „… | Maso, drůbež,
+  ryby“, Zboží „Potraviny a nápoje | Potraviny | Maso a ryby“), u kategorie lze přepsat
+  (Katalog → Kategorie → záložka **Feedy**). **Doplňte prosím** u kategorií, které nejsou maso:
+  Omáčky a koření (Google 427), Sýry (429), Terrys Cake / Dorty / Makronky, Termotašky, Lanýže,
+  Hotová jídla, Ryby, Vegetariánské produkty; **vyřaďte** Broušení nožů a případně Dárkové
+  poukazy (zaškrtávátko „Nevkládat do feedů“ u kategorie nebo u produktu).
+- Feed se po úpravě produktu přegeneruje při dalším stažení, jinak nejpozději za hodinu. Přehled
+  (čas vytvoření, počet položek) je v Nastavení → Marketing.
+- Stav na importovaném katalogu (22. 11. 2026): 241 veřejných produktů → Google/Meta 731 položek
+  z 238 produktů, Heureka/Zboží 515 položek ze 160 produktů (bez vyprodaných); vyřazeny 3 produkty
+  s cenou za kg bez variant (Termotaška malá, Termotaška XL, Wagyu Flank URUG_BMS 6-7 – nedají se
+  objednat). Vytvoření jednoho feedu trvá 0,1–0,4 s.
+
+### Newsletter (Ecomail)
+
+Formulář v patičce posílá adresu do Ecomailu s **double opt-in** (Ecomail pošle e-mail
+s potvrzovacím odkazem; text souhlasu je pod formulářem). Zákazníci, kteří při objednávce
+zaškrtnou newsletter, se do stejného seznamu přidají se jménem (zdroj „objednavka“). Nákupní
+data, opuštěné košíky a historie objednávek se do Ecomailu zatím **neposílají** (po spuštění webu).
+V Ecomailu nastavte potvrzovací (double opt-in) e-mail seznamu a uvítací automatizaci.
+
+### WhatsApp
+
+Číslo z Nastavení obchodu → Kontakty → WhatsApp se zobrazí jako odkaz v patičce a na detailu
+produktu (obyčejný odkaz `wa.me`, žádný skript třetí strany). Prázdné pole = odkaz se neukáže.
+
+### Proměnné prostředí (etapa 6)
+
+`GTM_ENABLED`, `GTM_ID`, `GTM_ALLOWED_HOSTS`, `GTM_AUTH`, `GTM_PREVIEW`, `META_PIXEL_ID`,
+`META_CAPI_ACCESS_TOKEN`, `META_CAPI_TEST_EVENT_CODE`, `META_CAPI_API_VERSION`,
+`HEUREKA_OVERENO_API_KEY`, `ECOMAIL_API_KEY`, `ECOMAIL_LIST_ID`, `CRON_SECRET`,
+`INTEGRATIONS_ALLOW_NONPROD` – popis a produkční hodnoty v `.env.example`.
+
+### Co udělat v jednotlivých nástrojích při spuštění webu
+
+- **GTM:** body 1–9 výše, otestovat v Náhledu, publikovat.
+- **Merchant Center:** nový zdroj dat z URL feedu, zkontrolovat Diagnostiku (ceny vs. web, obrázky),
+  starý zdroj vypnout až po schválení nového. Doprava: v nastavení účtu 229 Kč, doba doručení.
+- **Meta Commerce Manager:** feed jako plánovaný zdroj; v Events Manageru propojit katalog
+  s pixelem (shoda `content_ids`), vygenerovat CAPI token, zapnout automatické advanced matching
+  jen pokud nepoužijete `user_data`.
+- **Heureka:** nová adresa feedu, klíč Ověřeno zákazníky do `HEUREKA_OVERENO_API_KEY`, veřejný
+  klíč měření konverzí do GTM, zkontrolovat párování kategorií.
+- **Zboží.cz:** nová adresa feedu, kategorie, měřicí kód (SEM nebo rc.js) v GTM.
+- **Ecomail:** API klíč a ID seznamu do env, potvrzovací e-mail double opt-in v nastavení seznamu.
 
 ## Doručování (etapa 2)
 

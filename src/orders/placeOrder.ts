@@ -10,10 +10,13 @@ import {
 } from '@/lib/orders/checkoutSchema'
 import { TERMS_PATH } from '@/lib/orders/constants'
 import { checkFormToken } from '@/lib/orders/formToken'
+import { hasMarketingConsent, readCookie } from '@/lib/measurement/consent'
 import { computeTotals, lineWeightGrams } from '@/lib/orders/money'
 import type { Order } from '@/payload-types'
 
 import { checkCart } from './catalog'
+import { enqueueOrderIntegrations } from '@/integrations/order'
+
 import { sendOrderEmails } from './emails'
 import { checkAddress } from './foxentry'
 import { nextOrderNumber } from './orderNumber'
@@ -46,6 +49,11 @@ export type PlaceOrderContext = {
   ip?: string
   /** Integration tests skip the timing trap (they submit instantly). */
   skipBotChecks?: boolean
+  /** Stage 6: request facts for Meta CAPI (consent cookie, `_fbp`/`_fbc`, user agent). */
+  cookieHeader?: string | null
+  userAgent?: string | null
+  /** Stage 6: when to send the marketing calls (default after the response). */
+  integrations?: 'after' | 'await' | 'none'
 }
 
 export type PlaceOrderErrorCode =
@@ -360,6 +368,22 @@ export async function placeOrder(
 
   // E-mails after the order is safely stored (failures are recorded on the order).
   await sendOrderEmails(payload, order, accessToken)
+
+  // Stage 6: Meta CAPI / Heureka / Ecomail – queued, sent after the response; never blocks.
+  try {
+    const cookies = context.cookieHeader ?? null
+    const marketingConsent = hasMarketingConsent(cookies)
+    await enqueueOrderIntegrations(payload, order, {
+      marketingConsent,
+      ip: marketingConsent && context.ip && context.ip !== 'unknown' ? context.ip : null,
+      userAgent: marketingConsent ? (context.userAgent ?? null) : null,
+      fbp: marketingConsent ? readCookie(cookies, '_fbp') : null,
+      fbc: marketingConsent ? readCookie(cookies, '_fbc') : null,
+      mode: context.integrations,
+    })
+  } catch (error) {
+    payload.logger.error(`[orders] marketing integrations not queued: ${String(error)}`)
+  }
 
   return { ok: true, orderNumber: order.orderNumber, accessToken, duplicate: false }
 }

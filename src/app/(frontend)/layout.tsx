@@ -1,17 +1,20 @@
 import type { Metadata, Viewport } from 'next'
 import { Quicksand, Roboto_Slab } from 'next/font/google'
-import React from 'react'
+import React, { Suspense } from 'react'
 
 import { AttributionCapture } from '@/components/storefront/AttributionCapture'
+import { ConsentBanner } from '@/components/storefront/ConsentBanner'
 import { DraftBanner } from '@/components/storefront/DraftBanner'
 import { Footer } from '@/components/storefront/Footer'
+import { GtmScript } from '@/components/storefront/GtmScript'
 import { Header } from '@/components/storefront/Header'
 import { JsonLd } from '@/components/storefront/JsonLd'
+import { PageViewTracker } from '@/components/storefront/PageViewTracker'
 import { organizationJsonLd, websiteJsonLd } from '@/lib/jsonld'
 import { publicText } from '@/lib/openingHours'
 import { LOGO_PATH, SITE_NAME } from '@/lib/site'
-import { absoluteUrl, getSiteUrl } from '@/lib/urls'
-import { getSettings } from '@/storefront/data'
+import { absoluteUrl, getPublicPath, getSiteUrl } from '@/lib/urls'
+import { getAllPages, getConsentVersion, getSettings } from '@/storefront/data'
 
 import './globals.css'
 
@@ -52,7 +55,15 @@ export const viewport: Viewport = {
 }
 
 export default async function FrontendLayout({ children }: { children: React.ReactNode }) {
-  const settings = await getSettings()
+  const [settings, consentVersion, pages] = await Promise.all([
+    getSettings(),
+    getConsentVersion(),
+    getAllPages(),
+  ])
+  const pageHref = (legacyUrl: string) => {
+    const page = pages.find((p) => p.legacyUrl === legacyUrl)
+    return page ? getPublicPath('pages', page) : null
+  }
   const siteUrl = getSiteUrl()
   const sameAs = Object.values(settings.social ?? {})
     .map((value) => (typeof value === 'string' ? value.trim() : ''))
@@ -60,7 +71,16 @@ export default async function FrontendLayout({ children }: { children: React.Rea
 
   return (
     <html lang="cs" className={`${quicksand.variable} ${robotoSlab.variable}`}>
+      <head>
+        {/* Stage 6: Consent Mode defaults + GTM, only on allowed hostnames (src/lib/measurement/gtm.ts). */}
+        <GtmScript consentVersion={consentVersion} />
+      </head>
       <body className="flex min-h-screen flex-col bg-brand-beige font-sans text-ink antialiased">
+        <ConsentBanner
+          version={consentVersion}
+          cookiesHref={pageHref('/pages/cookies/info.aspx')}
+          privacyHref={pageHref('/informace-o-zpracovani-osobnich-udaju')}
+        />
         <DraftBanner />
         <Header />
         <main id="obsah" className="flex-1">
@@ -68,6 +88,9 @@ export default async function FrontendLayout({ children }: { children: React.Rea
         </main>
         <Footer />
         <AttributionCapture />
+        <Suspense fallback={null}>
+          <PageViewTracker />
+        </Suspense>
         <JsonLd
           data={[
             organizationJsonLd({

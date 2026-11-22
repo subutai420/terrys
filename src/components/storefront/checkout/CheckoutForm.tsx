@@ -31,7 +31,7 @@ import { CartLines } from './CartLines'
 import { DeliveryPicker, methodPriceLabel } from './DeliveryPicker'
 import { Field } from './Field'
 import { applyCartCheck, lineTotal, useDeliveryOptions, useValidatedCart } from './hooks'
-import { checkoutItems, Notices, StepHeading } from './parts'
+import { Notices, StepHeading } from './parts'
 
 export type CheckoutPageProps = {
   formToken: string
@@ -188,15 +188,8 @@ export function CheckoutForm(props: CheckoutPageProps) {
   // begin_checkout once per checkout, when the cart is known.
   useEffect(() => {
     if (!hydrated || lines.length === 0 || !checkoutId) return
-    if (markBeginCheckout(checkoutId)) {
-      trackBeginCheckout({
-        currency: 'CZK',
-        value: goodsEstimate,
-        value_is_estimate: true,
-        items: checkoutItems(lines),
-      })
-    }
-  }, [hydrated, lines, goodsEstimate, checkoutId])
+    if (markBeginCheckout(checkoutId)) trackBeginCheckout(lines)
+  }, [hydrated, lines, checkoutId])
 
   const updateChoice = useCallback((next: DeliveryChoice) => {
     setChoice((previous) => {

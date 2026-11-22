@@ -1,106 +1,130 @@
 /**
- * Analytics hooks (stage 6 will wire them to GTM / dataLayer – NOT loaded yet).
+ * Analytics hooks → GTM dataLayer (stage 6).
  *
- * The storefront already calls these at the right moments, so stage 6 only fills in the bodies
- * (e.g. `window.dataLayer.push({ event: 'add_to_cart', ecommerce: { … } })`, GA4 e-commerce
- * schema). Until then they intentionally do nothing: no tracking without consent and without GTM.
+ * Every e-commerce message is built by the typed builders in `src/lib/measurement/ecommerce.ts`
+ * (GA4 recommended events) and pushed here as
  *
- * Where they are called:
- * - `trackViewItemList` – category, product listing and search result pages
- *   (`src/components/storefront/AnalyticsEvents.tsx`, `ViewItemListEvent`),
- * - `trackViewItem` – product detail (`ViewItemEvent`),
- * - `trackAddToCart` – after a successful add in `AddToCartButton.tsx`,
- * - `trackAddShippingInfo` – cart page, when the customer continues with a method and date,
- * - `trackBeginCheckout` – checkout page, once per checkout (`checkoutId`),
- * - `trackPurchase` – thank-you page, exactly once per order (guarded in localStorage).
+ *   dataLayer.push({ ecommerce: null })   // clear the previous ecommerce object (Google's rule)
+ *   dataLayer.push({ event, event_id, value_is_estimate: true, ecommerce: { … } })
  *
- * Prices are estimates (business rule 4): send the estimate as `price` and keep it labelled so.
+ * Pushing to `window.dataLayer` stores nothing and sends nothing by itself: GTM (loaded only on
+ * allowed hostnames, `src/components/storefront/GtmScript.tsx`) decides what fires, with Google
+ * Consent Mode v2 and the tag consent settings in the container. Without GTM (development, tests,
+ * a clone site) the array is just an array – the e2e tests read it.
+ *
+ * Where the hooks are called:
+ * - `trackViewItemList` / `trackSelectItem` – category, /produkty, search (`AnalyticsEvents.tsx`),
+ * - `trackViewItem` – product detail,
+ * - `trackAddToCart` – `AddToCartButton.tsx`, "+" in the cart,
+ * - `trackRemoveFromCart` – "−" / "Odebrat" in the cart,
+ * - `trackViewCart` – cart page, once per visit of the page,
+ * - `trackAddShippingInfo` – cart, "Pokračovat k objednávce" with method and date,
+ * - `trackBeginCheckout` – checkout page, once per `checkoutId`,
+ * - `trackPurchase` – thank-you page, once per order (`PurchaseEvent.tsx`).
  */
 
-export type AnalyticsItem = {
-  item_id: string
-  item_name: string
-  item_variant?: string
-  item_category?: string
-  /** Estimated price in CZK incl. VAT. */
-  price?: number
-  quantity?: number
+import type { CartLine } from './cart/store'
+import * as ecommerce from './measurement/ecommerce'
+import type { EcommercePush } from './measurement/ecommerce'
+import { buildGa4Item, type Ga4Item } from './measurement/items'
+
+type DataLayerWindow = {
+  dataLayer?: unknown[]
+  /** Copy of the e-commerce pushes of this page (debugging, e2e tests). Never leaves the page. */
+  terrysAnalyticsLog?: { event: string; payload: unknown }[]
 }
 
-export function trackViewItemList(listId: string, listName: string, items: AnalyticsItem[]): void {
-  // Stage 6: push `view_item_list` to dataLayer.
-  void listId
-  void listName
-  void items
+export function newEventId(): string {
+  try {
+    return crypto.randomUUID()
+  } catch {
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`
+  }
 }
 
-export function trackViewItem(item: AnalyticsItem): void {
-  // Stage 6: push `view_item` to dataLayer.
-  void item
-}
-
-export function trackAddToCart(item: AnalyticsItem): void {
-  // Stage 6: push `add_to_cart` to dataLayer.
-  void item
-}
-
-// --------------------------------------------------------------------------- stage 4: checkout
-
-/**
- * Local, in-page record of the stage 4 events (`window.terrysAnalyticsLog`). It never leaves the
- * browser; it lets the e2e tests (and stage 6 while wiring GTM) check what would be sent and that
- * `purchase` fires exactly once. Stage 6 may replace it with the dataLayer push.
- */
-function record(event: string, payload: unknown): void {
+/** Pushes one e-commerce message (after clearing the previous ecommerce object). */
+export function pushEcommerce(message: EcommercePush): void {
   if (typeof window === 'undefined') return
-  const w = window as unknown as { terrysAnalyticsLog?: { event: string; payload: unknown }[] }
-  ;(w.terrysAnalyticsLog ??= []).push({ event, payload })
+  const w = window as unknown as DataLayerWindow
+  const dataLayer = (w.dataLayer ??= [])
+  dataLayer.push({ ecommerce: null })
+  dataLayer.push(message)
+  ;(w.terrysAnalyticsLog ??= []).push({ event: message.event, payload: message })
 }
 
-/** An item of the cart/order with the estimate details stage 6 needs. */
-export type CheckoutItem = AnalyticsItem & {
-  /** Estimated weight of ONE piece in grams (weight-priced products; null for fixed price). */
-  estimated_weight_grams?: number | null
+/** Any other dataLayer message (page views, consent, newsletter signup). */
+export function pushDataLayer(message: Record<string, unknown>): void {
+  if (typeof window === 'undefined') return
+  ;((window as unknown as DataLayerWindow).dataLayer ??= []).push(message)
 }
 
-export type CheckoutEventPayload = {
-  currency: 'CZK'
-  /** Estimated goods value incl. VAT (without delivery). */
-  value: number
-  /** Always true: the final price follows the weighed amount (business rule 4). */
-  value_is_estimate: true
-  items: CheckoutItem[]
+/** A cart line as a GA4 item (estimate per piece, categories/brand from the add-to-cart snapshot). */
+export function cartLineItem(line: CartLine, quantity = line.quantity): Ga4Item {
+  return buildGa4Item({
+    productId: line.productId,
+    variantId: line.variantId,
+    title: line.title,
+    variantLabel: line.variantLabel,
+    categories: line.analytics?.categories,
+    brand: line.analytics?.brand,
+    price: line.estimatedPrice,
+    quantity,
+    weightGrams: line.weightGrams,
+    priceUnit: line.priceUnit,
+    unitPrice: line.unitPrice,
+  })
 }
 
-export type ShippingInfoPayload = CheckoutEventPayload & {
-  /** Shipping method name, e.g. "Rozvoz Terrys" or "Osobní odběr – Italská". */
-  shipping_tier: string
-  /** Delivery/pickup date YYYY-MM-DD. */
-  delivery_date: string
+export function trackViewItemList(listId: string, listName: string, items: Ga4Item[]): void {
+  if (items.length === 0) return
+  pushEcommerce(ecommerce.viewItemList({ eventId: newEventId(), listId, listName, items }))
 }
 
-export type PurchasePayload = CheckoutEventPayload & {
-  /** Order number shown to the customer. */
-  transaction_id: string
-  /** Estimated total incl. delivery. NOTE: `value` (GA4) = goods + shipping, see stage 6. */
-  value: number
-  shipping: number
-  shipping_tier: string
-  /** Same id is stored on the order (`orders.eventId`) for Meta CAPI deduplication (stage 6). */
-  event_id: string
+export function trackSelectItem(listId: string, listName: string, item: Ga4Item): void {
+  pushEcommerce(ecommerce.selectItem({ eventId: newEventId(), listId, listName, item }))
 }
 
-export function trackAddShippingInfo(payload: ShippingInfoPayload): void {
-  // Stage 6: push `add_shipping_info` to dataLayer.
-  record('add_shipping_info', payload)
+export function trackViewItem(item: Ga4Item): void {
+  pushEcommerce(ecommerce.viewItem({ eventId: newEventId(), item }))
 }
 
-export function trackBeginCheckout(payload: CheckoutEventPayload): void {
-  // Stage 6: push `begin_checkout` to dataLayer.
-  record('begin_checkout', payload)
+export function trackAddToCart(items: Ga4Item[]): void {
+  pushEcommerce(ecommerce.addToCart({ eventId: newEventId(), items }))
 }
 
-export function trackPurchase(payload: PurchasePayload): void {
-  // Stage 6: push `purchase` to dataLayer (and the server sends the same event_id to Meta CAPI).
-  record('purchase', payload)
+export function trackRemoveFromCart(items: Ga4Item[]): void {
+  pushEcommerce(ecommerce.removeFromCart({ eventId: newEventId(), items }))
+}
+
+export function trackViewCart(lines: CartLine[]): void {
+  if (lines.length === 0) return
+  pushEcommerce(
+    ecommerce.viewCart({ eventId: newEventId(), items: lines.map((l) => cartLineItem(l)) }),
+  )
+}
+
+export function trackBeginCheckout(lines: CartLine[]): void {
+  pushEcommerce(
+    ecommerce.beginCheckout({ eventId: newEventId(), items: lines.map((l) => cartLineItem(l)) }),
+  )
+}
+
+export function trackAddShippingInfo(
+  lines: CartLine[],
+  shippingTier: string,
+  deliveryDate: string,
+): void {
+  pushEcommerce(
+    ecommerce.addShippingInfo({
+      eventId: newEventId(),
+      items: lines.map((l) => cartLineItem(l)),
+      shippingTier,
+      deliveryDate,
+    }),
+  )
+}
+
+/** The purchase message is built on the server (thank-you page) – it knows the order. */
+export function trackPurchase(message: EcommercePush): void {
+  pushEcommerce(message)
 }

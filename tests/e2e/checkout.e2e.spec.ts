@@ -108,7 +108,8 @@ test.describe('Checkout', () => {
     await page.waitForTimeout(Math.max(0, MIN_FILL_MS - (Date.now() - loadedAt)))
     await page.getByTestId('place-order').click()
 
-    await expect(page).toHaveURL(/\/objednavka\/dekujeme\/[A-Za-z0-9_-]{20,}$/)
+    // Stage 6: the secret token is removed from the address bar (never reaches analytics).
+    await expect(page).toHaveURL(/\/objednavka\/dekujeme$/)
     const orderNumber = (await page.getByTestId('order-number').textContent())?.trim() ?? ''
     expect(orderNumber).toMatch(/^\d+$/)
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
@@ -117,7 +118,9 @@ test.describe('Checkout', () => {
     // purchase fired exactly once, also after a reload.
     const purchases = await analyticsEvents(page, 'purchase')
     expect(purchases).toHaveLength(1)
-    expect(purchases[0]).toMatchObject({ transaction_id: orderNumber, shipping: 229 })
+    expect(purchases[0]).toMatchObject({
+      ecommerce: { transaction_id: orderNumber, shipping: 229 },
+    })
     await page.reload()
     await expect(page.getByTestId('order-number')).toHaveText(orderNumber)
     expect(await analyticsEvents(page, 'purchase')).toHaveLength(0)
@@ -156,7 +159,7 @@ test.describe('Checkout', () => {
     await page.getByTestId('consent-heureka').check()
     await page.waitForTimeout(Math.max(0, MIN_FILL_MS - (Date.now() - loadedAt)))
     await page.getByTestId('place-order').click()
-    await expect(page).toHaveURL(/\/objednavka\/dekujeme\//)
+    await expect(page).toHaveURL(/\/objednavka\/dekujeme/)
     const orderNumber = (await page.getByTestId('order-number').textContent())?.trim() ?? ''
     const [order] = await query<Record<string, unknown>>(
       'select delivery_price::int as delivery_price, delivery_method_type, consents_heureka_opt_out, shipping_address_street from orders where order_number = $1',

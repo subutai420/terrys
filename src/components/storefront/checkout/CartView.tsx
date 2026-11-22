@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { trackAddShippingInfo } from '@/lib/analytics'
+import { trackAddShippingInfo, trackViewCart } from '@/lib/analytics'
 import {
   type DeliveryChoice,
   readDeliveryChoice,
@@ -14,7 +14,7 @@ import { CHECKOUT_PATH } from '@/lib/orders/constants'
 
 import { CartLines } from './CartLines'
 import { DeliveryPicker } from './DeliveryPicker'
-import { checkoutItems, Notices, StepHeading } from './parts'
+import { Notices, StepHeading } from './parts'
 import { lineTotal, useDeliveryOptions, useValidatedCart } from './hooks'
 import { OrderSummary } from './OrderSummary'
 
@@ -31,6 +31,14 @@ export function CartView({ priceNotice, deliveryInfoHref }: Props) {
   const [choice, setChoice] = useState<DeliveryChoice>(() => readDeliveryChoice())
   const [continueError, setContinueError] = useState<string | null>(null)
   const delivery = useDeliveryOptions(choice.postcode)
+  const viewCartSent = useRef(false)
+
+  // view_cart once per visit of the page, after the server re-validated the cart.
+  useEffect(() => {
+    if (viewCartSent.current || !hydrated || status === 'loading' || lines.length === 0) return
+    viewCartSent.current = true
+    trackViewCart(lines)
+  }, [hydrated, status, lines])
 
   const updateChoice = useCallback((next: DeliveryChoice) => {
     setChoice(next)
@@ -83,14 +91,7 @@ export function CartView({ priceNotice, deliveryInfoHref }: Props) {
       document.getElementById('doprava')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       return
     }
-    trackAddShippingInfo({
-      currency: 'CZK',
-      value: goodsEstimate,
-      value_is_estimate: true,
-      shipping_tier: method.name,
-      delivery_date: choice.date,
-      items: checkoutItems(lines),
-    })
+    trackAddShippingInfo(lines, method.name, choice.date)
     router.push(CHECKOUT_PATH)
   }
 

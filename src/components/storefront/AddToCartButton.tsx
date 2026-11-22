@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-import { trackAddToCart } from '@/lib/analytics'
+import { cartLineItem, trackAddToCart } from '@/lib/analytics'
 import { type AddToCartInput, getCartStore } from '@/lib/cart/store'
 
 type Props = {
@@ -43,13 +43,8 @@ export function AddToCartButton({
 
   const onClick = () => {
     getCartStore().add(line)
-    trackAddToCart({
-      item_id: String(line.productId),
-      item_name: line.title,
-      item_variant: line.variantLabel ?? undefined,
-      price: line.estimatedPrice ?? undefined,
-      quantity: line.quantity ?? 1,
-    })
+    const quantity = line.quantity ?? 1
+    trackAddToCart([cartLineItem({ ...line, quantity }, quantity)])
     setAdded(true)
     if (timer.current) clearTimeout(timer.current)
     timer.current = setTimeout(() => setAdded(false), 1800)

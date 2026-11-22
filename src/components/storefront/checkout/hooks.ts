@@ -49,7 +49,18 @@ export type CartNotice = { kind: 'problem' | 'change'; message: string }
 
 /** Applies a server check result to the browser cart; returns the notices to show. */
 export function applyCartCheck(result: CartCheckResult): CartNotice[] {
-  getCartStore().replace(result.lines.map(resolvedToCartLine))
+  const store = getCartStore()
+  // Keep the analytics snapshot (categories, brand) the server does not send back.
+  const previous = new Map(
+    store.getLines().map((line) => [`${line.productId}:${line.variantId}`, line.analytics]),
+  )
+  store.replace(
+    result.lines.map((resolved) => {
+      const line = resolvedToCartLine(resolved)
+      const analytics = previous.get(`${line.productId}:${line.variantId}`)
+      return analytics ? { ...line, analytics } : line
+    }),
+  )
   return [
     ...result.problems.map((p) => ({ kind: 'problem' as const, message: p.message })),
     ...result.changes.map((c) => ({ kind: 'change' as const, message: c.message })),

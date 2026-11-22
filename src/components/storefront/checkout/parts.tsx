@@ -1,8 +1,5 @@
 import type { ReactNode } from 'react'
 
-import type { CheckoutItem } from '@/lib/analytics'
-import type { CartLine } from '@/lib/cart/store'
-
 import type { CartNotice } from './hooks'
 
 /** Small shared pieces of the cart and checkout pages. */
@@ -48,16 +45,4 @@ export function Notices({ notices }: { notices: CartNotice[] }) {
       </ul>
     </div>
   )
-}
-
-/** Cart lines in the shape of the analytics hooks (estimated price per piece). */
-export function checkoutItems(lines: CartLine[]): CheckoutItem[] {
-  return lines.map((line) => ({
-    item_id: String(line.productId),
-    item_name: line.title,
-    item_variant: line.variantLabel ?? undefined,
-    price: line.estimatedPrice ?? undefined,
-    quantity: line.quantity,
-    estimated_weight_grams: line.priceUnit === 'piece' ? null : line.weightGrams,
-  }))
 }

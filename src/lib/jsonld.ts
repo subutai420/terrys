@@ -1,4 +1,5 @@
 import type { Availability, PriceUnit } from './catalog'
+import { itemId } from './measurement/ids'
 import { isWeightPriced, type VariantOption } from './productView'
 
 /**
@@ -49,6 +50,8 @@ export type ProductJsonLdInput = {
   sku?: string | null
   brand?: string | null
   category?: string | null
+  /** Stage 6: product id → each Offer carries the feed item id as `sku` and the variant URL. */
+  productId?: number
   price: number
   priceUnit: PriceUnit
   availability: Availability
@@ -86,6 +89,12 @@ export function productJsonLd(input: ProductJsonLdInput): JsonLd {
           .filter((option) => option.estimate !== null)
           .map((option) => ({
             ...base,
+            ...(input.productId !== undefined && option.id
+              ? {
+                  url: variantUrl(input.url, option.id),
+                  sku: itemId(input.productId, option.id),
+                }
+              : {}),
             name: option.label,
             price: option.estimate,
             availability: AVAILABILITY_SCHEMA[option.availability],
@@ -114,6 +123,15 @@ export function productJsonLd(input: ProductJsonLdInput): JsonLd {
     category: input.category || undefined,
     offers: offers.length ? offers : undefined,
   })
+}
+
+/**
+ * URL of a product page with a variant preselected (`?varianta=<variant row id>`) – used by the
+ * feeds and the Offers so the landing page shows exactly the advertised price (stage 6).
+ */
+export function variantUrl(productUrl: string, variantId: string | null | undefined): string {
+  if (!variantId) return productUrl
+  return `${productUrl}${productUrl.includes('?') ? '&' : '?'}varianta=${encodeURIComponent(variantId)}`
 }
 
 export type ArticleJsonLdInput = {

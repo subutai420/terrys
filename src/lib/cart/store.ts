@@ -28,7 +28,11 @@ export type CartLine = {
   /** Public URL of the product (for links from the cart). */
   url: string
   imageUrl: string | null
+  /** Stage 6: category path and brand for the dataLayer items (snapshot, optional). */
+  analytics?: CartLineAnalytics
 }
+
+export type CartLineAnalytics = { categories: string[]; brand: string | null }
 
 export type AddToCartInput = Omit<CartLine, 'quantity'> & { quantity?: number }
 

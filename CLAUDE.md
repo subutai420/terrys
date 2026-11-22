@@ -46,6 +46,8 @@ read it: the bundled Next.js docs in `node_modules/next/dist/docs/` match the in
   queries); `src/shipping` – carrier service (Balíkobot / simulation); pure logic in
   `src/lib/orders/{fulfilment,status,money}.ts` and `src/lib/shipping`; admin screens in
   `src/components/admin/fulfilment`. See "Fulfilment (stage 5)".
+- `src/integrations` (Meta CAPI / Heureka / Ecomail outbox), `src/feeds` (feed generation),
+  `src/lib/measurement`, `src/lib/feeds`, `src/lib/consent` – stage 6, see "Measurement…".
 - `src/delivery` – Payload glue of the delivery module (loading rules, endpoints, CSV import);
   the pure logic is in `src/lib/delivery`. `src/components/admin` – custom admin components.
 - `tests/e2e` – Playwright tests (`*.e2e.spec.ts`).
@@ -315,6 +317,8 @@ Code in `src/migration`, outputs in `migration/` (committed: `url-inventory.csv`
   targets. Add them in `src/proxy.ts` (extend its matcher) or as `next.config` redirects.
 - Stage 4 (cart/orders) is done, see "Orders (stage 4)" below (notes for stages 5–7 there).
 - Stage 5 (fulfilment, Balíkobot) is done, see "Fulfilment (stage 5)" below.
+- Stage 6 (measurement, consent, feeds, Meta CAPI, Heureka, Ecomail) is done, see
+  "Measurement, consent, feeds, integrations (stage 6)" below (notes for stages 7 and 9 there).
 
 ## Orders (stage 4)
 
@@ -427,7 +431,8 @@ spy on `payload.sendEmail`; e2e reads the outbox folder (Playwright passes
   `terrys-purchase-tracked-v1`): {transaction_id, value = estimated TOTAL incl. delivery,
   shipping, shipping_tier, event_id (= `orders.eventId`), currency, value_is_estimate, items}.
 - items: {item_id (product id), item_name, item_variant, price (estimate per piece), quantity,
-  estimated_weight_grams}. Stage 6 decides whether GA4 `value` should exclude shipping.
+  estimated_weight_grams}. SUPERSEDED by stage 6: GA4 `value` = goods estimate WITHOUT shipping;
+  the current payloads are in "Measurement, consent, feeds, integrations (stage 6)".
 
 ### Withdrawal ("odstoupení od smlouvy")
 
@@ -444,7 +449,7 @@ from 2018 and cite repealed laws – owner/lawyer must update them).
 
 - Stage 5: done – see "Fulfilment (stage 5)". (Invoice numbers are NOT issued by the shop: they
   are typed in from the accounting software.)
-- Stage 6: fill the analytics hooks (dataLayer), Meta CAPI with `orders.eventId`, Ecomail
+- Stage 6 (DONE, see "Measurement…"): fill the analytics hooks (dataLayer), Meta CAPI with `orders.eventId`, Ecomail
   (`consents.newsletter` + `newsletterAt`; consider the `customers` collection above), Heureka
   "Ověřeno zákazníky" – skip orders with `consents.heurekaOptOut`. Decide with the lawyer whether
   `AttributionCapture` needs cookie consent; if so gate it there.
@@ -738,12 +743,223 @@ only writer of new lines; stage 4 added `replace()` (used after the server re-va
 
 ### Analytics hooks (for stage 6)
 
-`src/lib/analytics.ts`: `trackViewItemList`, `trackViewItem`, `trackAddToCart` – no-ops today,
+Stage 6 implemented these (see "Measurement…"); historic note: `src/lib/analytics.ts`: `trackViewItemList`, `trackViewItem`, `trackAddToCart` – were no-ops,
 called from `AnalyticsEvents.tsx` (categories, `/produkty`, search; product detail) and from
 `AddToCartButton.tsx`. Stage 6 fills them with dataLayer pushes; GTM is not loaded. Stage 4 added
 `trackAddShippingInfo`, `trackBeginCheckout`, `trackPurchase` (payloads in "Orders (stage 4)").
 Newsletter: `src/app/(frontend)/actions/newsletter.ts` validates and logs (without the address);
 stage 6 sends it to Ecomail.
+
+## Measurement, consent, feeds, integrations (stage 6)
+
+Marketer-facing version (events, GTM setup, feed URLs, platform to-dos) is in README "Měření,
+cookies a produktové feedy". Specs read 2026-11 (GA4 events reference + GTM ecommerce guide,
+Consent Mode, Meta CAPI parameters v27.0, Meta catalog reference, Merchant Center product data
+spec, Heureka XML feed + Ověřeno zákazníky API v2 on GitHub, Sklik/Zboží feed spec, Ecomail API
+docs.ecomail.cz). Nothing was tested against a real third-party API (no credentials): all
+senders are contract-tested against the documented shapes with a mocked fetch.
+
+### Module boundaries
+
+| Where                                                                                         | What                                                                                                   |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `src/lib/measurement/ids.ts`                                                                  | **THE item id scheme** (below). Never build ids elsewhere.                                             |
+| `src/lib/measurement/items.ts`                                                                | category path, brand (`productBrand`, default "Terrys"), `buildGa4Item`, `itemsValue`                  |
+| `src/lib/measurement/productItems.ts`                                                         | storefront product → GA4 item of its default variant                                                   |
+| `src/lib/measurement/ecommerce.ts`                                                            | typed builders of every dataLayer message + `purchase` value conventions, `buildUserData`, `phoneE164` |
+| `src/lib/measurement/consent.ts`                                                              | consent model, cookie format, Consent Mode mapping, server-side `hasMarketingConsent(cookieHeader)`    |
+| `src/lib/measurement/gtm.ts`                                                                  | GTM env rules + the inline head script (host allow-list → consent default → stored update → gtm.js)    |
+| `src/lib/measurement/metaCapi.ts`                                                             | CAPI normalisation/hashing, `buildPurchaseEvent`, 7-day limit, redaction (server only, node:crypto)    |
+| `src/lib/measurement/pageView.ts`                                                             | `sanitizePageLocation` (thank-you token → `/objednavka/dekujeme`)                                      |
+| `src/lib/consent/browser.ts`                                                                  | **consent state API** for browser code (below)                                                         |
+| `src/lib/analytics.ts`                                                                        | the hooks → `dataLayer.push({ecommerce:null})` + message; `cartLineItem`; `pushDataLayer`              |
+| `src/lib/feeds/*`                                                                             | pure feed items + XML renderers + delivery ids; `xmlCheck.ts` = strict well-formedness for tests       |
+| `src/feeds/generate.ts`                                                                       | Payload glue: load (public rules), map categories, render, cache (storefront tag), stats               |
+| `src/app/feeds/[file]/route.ts`                                                               | `/feeds/{google,meta,heureka,zbozi}.xml`                                                               |
+| `src/integrations/*`                                                                          | env gates (`config.ts`), HTTP senders, outbox runner (`jobs.ts`), order hook (`order.ts`), endpoints   |
+| `src/components/storefront/{ConsentBanner,GtmScript,PageViewTracker,ConsentSettingsLink}.tsx` | UI                                                                                                     |
+| `src/globals/Marketing.ts`, `src/collections/IntegrationJobs.ts`, `src/fields/feeds.ts`       | admin                                                                                                  |
+
+Migration `20261122_204404_measurement`: global `marketing`, collection `integration-jobs`, order
+group `integrations` {meta,heureka,ecomail}{Status,At,Note}, `products.feeds.exclude`,
+`categories.feeds` {exclude, googleProductCategory, heurekaCategory, zboziCategory}.
+
+### Item id scheme
+
+`itemId(productId, variantId)` = `<productId>-<variant row id>` for variants, `<productId>` for a
+product without variants; `itemGroupId` = `<productId>`. Used identically in dataLayer `item_id`,
+all four feeds (`g:id`, `ITEM_ID`), Meta CAPI `content_ids`/`contents[].id`, Heureka
+`productItemIds`, JSON-LD `Offer.sku`. Why the Payload array row id: stable across admin edits
+(label, weight, order), already stored on cart lines and order lines (`variantId`), ≤ 35 chars
+(Heureka max 36). It changes when a variant row is deleted + re-added, or when the stage 8
+importer rewrites a product (pre-launch only – re-import after launch would break ad history).
+Feed/Offer links use `?varianta=<variant row id>`; `BuyBox` preselects it (client-side, the page
+stays ISR) so the landing page shows exactly the feed price.
+
+### dataLayer contract
+
+`{ecommerce:null}` before every e-commerce push. Messages: `virtual_page_view` (first load + every
+App Router navigation; `page_location` sanitised), `view_item_list`/`select_item` (lists:
+`ViewItemListEvent` + delegated click listener on `[data-analytics-list] [data-analytics-item] a`),
+`view_item`, `add_to_cart` (button, "+" in cart), `remove_from_cart` ("−", "Odebrat"), `view_cart`
+(once per cart page visit, after re-validation), `add_shipping_info`, `begin_checkout` (once per
+checkoutId), `purchase` (thank-you page, once per order number via localStorage
+`terrys-purchase-tracked-v1`), `consent_update`, `consent_restored` (GTM loader),
+`newsletter_signup`. Every e-commerce message has `event_id` (uuid; for purchase = `orders.eventId`)
+and `value_is_estimate: true`. Items: GA4 standard fields + `item_group_id`, `price_per_kg`,
+`estimated_weight_grams`, `price_is_estimate`, `google_business_vertical: 'retail'`. Cart lines
+carry an `analytics` snapshot {categories, brand} from the add-to-cart moment (kept across server
+re-validation in `applyCartCheck`). Never `coupon`/`discount`.
+
+Value: GA4 `value` = Σ price × quantity = estimated goods incl. VAT without delivery; `shipping` =
+delivery price; `tax` = VAT of the whole order (`totals.vat`). Purchase extras: `value_net`
+(goods without VAT, per-rate haléře maths), `value_tax_goods`, `order_total`, `delivery_price`,
+`delivery_type` (Zboží/Heureka delivery id), `user_data` (Google "user-provided data" shape,
+unhashed) ONLY when `hasConsent('marketing')` in the browser. Meta CAPI `value` = goods incl. VAT.
+
+Thank-you token: `PurchaseEvent` replaces the URL with `/objednavka/dekujeme` (history.replaceState,
+before the page view – child effects run before the layout's tracker) and stores the token in
+sessionStorage; `/objednavka/dekujeme` (`ThankYouRedirect`) goes back to the token URL on reload.
+E-mail links keep the token URL.
+
+### Consent
+
+Cookie `terrys_consent` = URI-encoded `{"v":version,"a":0|1,"m":0|1,"t":ISO}`, 180 days, first
+party, `SameSite=Lax` (+`Secure` on https). `Marketing.consentVersion` (admin) is the text version;
+a stored choice with another version = no choice (banner again). Browser API
+(`src/lib/consent/browser.ts`): `getConsent()`, `hasConsent('analytics'|'marketing')`,
+`saveConsent({analytics, marketing})`, `onConsentChange(cb)`, `openConsentSettings()`,
+`setConsentVersion()` (called by the banner). Server: `hasMarketingConsent(req.headers.get('cookie'))`.
+Categories: necessary (always), analytics (`analytics_storage`, our attribution), marketing
+(`ad_storage`, `ad_user_data`, `ad_personalization`; Meta/Sklik/Heureka via GTM "additional
+consent"). Withdrawal deletes attribution + `_ga*` / `_gcl*`, `_fbp`, `_fbc`.
+
+**Attribution (§ 89 odst. 3 ZEK) – decision:** localStorage is "storing information in the
+user's terminal equipment"; the law has no analytics exemption and first-touch attribution is not
+strictly necessary to sell meat → consent needed. Category **analytics**: first-party measurement
+of which channel brought the order, not shared with ad platforms for targeting (the CAPI `fbc`
+built from a stored fbclid is sent only with marketing consent too). `AttributionCapture` runs only
+with analytics consent (also right after it is given, on the landing page). Lawyer may confirm;
+changing the category is one line in `AttributionCapture.tsx` + the banner text.
+
+GTM (`gtmConfigFromEnv`): needs `GTM_ENABLED=1`, valid `GTM_ID`, non-empty `GTM_ALLOWED_HOSTS`;
+`GTM-NBGRZCL` refused unless `NODE_ENV=production`; the inline script checks
+`location.hostname` against the allow-list before anything else (clone domains get nothing).
+Default consent: all denied except security, `wait_for_update: 500`, `ads_data_redaction`.
+
+### Server-side integrations (outbox)
+
+`placeOrder()` → after e-mails → `enqueueOrderIntegrations(payload, order, {marketingConsent, ip,
+userAgent, fbp, fbc, mode})` (never throws into the order). Per service it records on the order
+`disabled` (no env keys) / `skipped` (no consent, Heureka opt-out, no newsletter) / `pending`, and
+creates `integration-jobs` rows; `runAfterResponse` processes them via Next `after()` (outside a
+request: fire-and-forget). Row claim = conditional UPDATE (pending/failed, or processing with an
+expired 2-min lock). Outcomes: `sent`; `retry` (network, timeout 8 s, 429/5xx, Meta `is_transient`)
+→ `failed` + `nextAttemptAt` (1 min, 5 min, 30 min, 2 h, 12 h; 6 attempts then `expired`);
+`give-up` (other 4xx, Meta event > 7 days) → `expired`; `disabled` → `skipped`. Cron:
+`GET /api/integrations/retry` with `Authorization: Bearer $CRON_SECRET` (`vercel.json`, every 15
+min; 503 when CRON_SECRET is unset). Order summary written with one SQL UPDATE of fixed columns
+(no hooks, no audit entry – bookkeeping only). After a successful CAPI send the stored payload is
+redacted (no IP/UA). Env gates (`src/integrations/config.ts`): keys present AND (`NODE_ENV=
+production` or `INTEGRATIONS_ALLOW_NONPROD=1`); Meta outside production additionally requires
+`META_CAPI_TEST_EVENT_CODE`. Tests replace HTTP with `setIntegrationFetch()`.
+
+- Meta CAPI: `Purchase` only. AddToCart/InitiateCheckout server-side were NOT built: the cart
+  lives in the browser, a server event per click would need a new public endpoint and adds little
+  over the pixel; the pixel events already carry `event_id` if this is added later.
+- Heureka Ověřeno: `POST https://api.heureka.cz/shop-certification/v2/order/log` {apiKey, email,
+  orderId (number), productItemIds} at order placement (Heureka's docs: report created orders;
+  Heureka delays the questionnaire itself). Alternative if the owner prefers: trigger on
+  delivered/picked-up from `changeStatus` (enqueue the same job there).
+- Ecomail: `POST /lists/{id}/subscribe`, header `key`, `skip_confirmation:false` (double opt-in),
+  `trigger_autoresponders:true`; checkout opt-in → `update_existing:true`, name/surname,
+  source `objednavka`, no tags (tags overwrite); footer → `update_existing:false`, source/tag
+  `web-paticka`, consent text + time stored in the job payload as evidence. Footer action rate
+  limit 5 / 10 min / IP. No `customers` collection: Ecomail holds subscription state (DOI log),
+  orders hold `newsletterAt`; it did not simplify anything yet. Post-launch (not built):
+  transactional data (`POST /tracker/transaction`), abandoned cart, order history – they would
+  need a customer key (e-mail), consent check per contact and a hook on order status changes;
+  add them as new `integration-jobs` kinds in `src/integrations`.
+
+### Feeds
+
+`buildFeedItems` (pure): public products only (loaded with `overrideAccess:false`, drafts and
+hidden never), one item per variant with a computable estimate (`variantOptions`), fixed-price
+products without variants as one item; excluded and reported: product/category `feeds.exclude`,
+weight-priced without variants, no photo. Availability: in-stock → Google `in_stock`/Meta
+`in stock`; in-transit → Google `backorder` + `availability_date` (now + `inTransitDeliveryDays`),
+Meta `in stock`; sold-out → `out_of_stock`/`out of stock`, Heureka and Zboží drop the item.
+Price = estimate (whole CZK), never `sale_price`. Unit pricing: Google `unit_pricing_measure`
+"<g> g" / base "1 kg" (or "100 g"), Meta `unit_price` {value per kg, CZK, kg}; Heureka/Zboží
+description starts with "Cena je odhad za … (… Kč/kg) …". Google/Meta: `item_group_id` +
+`size` = variant label; Heureka: no ITEMGROUP_ID (reserved for apparel), variant in the name;
+Zboží: ITEMGROUP_ID. `identifier_exists=no`, `condition=new`, brand via `productBrand`.
+Shipping: Google/Meta `g:shipping` CZ 229 CZK; Heureka DELIVERY PPL 229 (COD 229 – payment on
+delivery, no surcharge); Zboží PPL 229 + `VLASTNI_VYDEJNI_MISTA` 0 when a pickup method is
+active. Own van not listed (`VLASTNI_PREPRAVA` = whole-CR delivery only). Courier id from the
+courier method's Balíkobot carrier code (`courierDeliveryId`). Images: original JPEG/PNG upload
+(Meta rejects WebP), fallback `detail` WebP; up to 10 additional. Categories: first non-empty
+mapping on the product's category chain, else Marketing defaults (Google 4628, Heureka "… |
+Čerstvé potraviny | Maso, drůbež, ryby", Zboží "Potraviny a nápoje | Potraviny | Maso a ryby" –
+all verified in the official trees 2026-11). Cached with `unstable_cache` (storefront tag, 1 h)
+
+- `s-maxage=3600`; errors → 503 (platforms keep the last good copy). Real catalog (257 products,
+  241 public): Google/Meta 731 items / 238 products, Heureka/Zboží 515 / 160, 3 excluded (per-kg
+  without variants), 0.1–0.4 s per feed, ~0.9 MB.
+
+### Other stage 6 bits
+
+- JSON-LD offers per variant now carry `url` (`?varianta=`) and `sku` = item id.
+- `/llms.txt` (route, ISR 1 h): only facts the site already publishes (settings, locations,
+  categories, pages). robots.txt unchanged (exposes nothing private; feeds allowed, they send
+  `X-Robots-Tag: noindex`).
+- WhatsApp: `whatsappUrl(settings.contact.whatsapp)` → plain `https://wa.me/<digits>` link in the
+  footer and on the product detail; hidden when empty.
+- Admin: Nastavení → **Marketing** (consent version, feed defaults, status panel via
+  `GET /api/marketing/status`, admin only) and **Fronta marketingu** (`integration-jobs`; admin can
+  set a row back to "Čeká" to resend).
+- Tests: `src/lib/measurement/measurement.test.ts`, `src/lib/feeds/feeds.test.ts`,
+  `src/integrations/senders.test.ts`, `tests/int/measurement.int.test.ts`,
+  `tests/e2e/measurement.e2e.spec.ts` (banner 375/1440 px, full dataLayer purchase journey, feeds;
+  `SCREENSHOTS=1` → `docs/screenshots/etapa-6`). Playwright presets an "accept all" consent cookie
+  (`CONSENT_ACCEPTED_STATE` in `playwright.config.ts`) so the banner never covers buttons.
+
+### Not built in stage 6 (deliberately)
+
+- Server-side "final value" adjustment after weighing (GA4 Measurement Protocol refund/adjust,
+  Meta value correction): platforms optimise on the order-time estimate (±15 %); a later correction
+  would double-count unless built as a proper refund+repurchase. Revisit when tROAS data exist.
+- Meta CAPI AddToCart / InitiateCheckout (see above). GA4 Measurement Protocol purchase backup.
+
+### Notes for stage 7 (vouchers)
+
+- Voucher products: a separate category with `feeds.exclude` (or exclude per product) unless the
+  owner wants to advertise them; if advertised: Google category 53 (Dárkové certifikáty), no unit
+  pricing (priceUnit `piece`), VAT per product (0 %/21 % per accountant).
+- Voucher-only orders (`kind: 'voucher'`, no delivery): `purchase` with `shipping: 0`, no
+  `shipping_tier`, `delivery_type` null; item id = `itemId(voucherProductId)` (or the voucher
+  product's variant) so feeds/CAPI stay consistent. Heureka Ověřeno: probably skip voucher-only
+  orders (no delivery experience) – owner to decide; Meta CAPI as normal with consent.
+- Redemptions are a means of payment, NOT a discount: never `coupon`/`discount` in events, never
+  lower `value`; the purchase value stays the goods estimate.
+
+### Notes for stage 9 (go-live)
+
+- Env on production: `GTM_ENABLED=1`, `GTM_ID=GTM-NBGRZCL`, `GTM_ALLOWED_HOSTS=terrys.cz,www.terrys.cz`,
+  `META_PIXEL_ID`, `META_CAPI_ACCESS_TOKEN` (no test code), `HEUREKA_OVERENO_API_KEY`,
+  `ECOMAIL_API_KEY`, `ECOMAIL_LIST_ID`, `CRON_SECRET` (Vercel Pro for a 15-min cron; Hobby = daily).
+- GTM container changes per README (virtual_page_view, consent settings, Meta event_id), test in
+  Preview + Meta Test events (one real test order with `META_CAPI_TEST_EVENT_CODE`, check
+  "Deduplicated" in Events Manager), then remove the test code.
+- First real calls: verify Heureka returns `{"code":200}`, Ecomail DOI e-mail arrives, Meta
+  Events Manager shows server + browser Purchase deduplicated; check `Fronta marketingu`.
+- Feeds: register URLs, read Merchant Center/Meta/Heureka/Zboží diagnostics (Meta `unit_price`
+  XML nesting and Heureka/Zboží delivery ids were taken from the docs, not from a live
+  validation), set category overrides for non-meat categories, exclude services.
+- Check `/llms.txt`, `robots.txt` and that GTM does NOT load on any other hostname (e.g. the
+  Vercel preview domain unless added on purpose).
+- Lawyer: cookie texts, attribution under analytics, "basic" vs "advanced" Consent Mode,
+  Heureka questionnaire legal basis (opt-out checkbox).
 
 ## Business rules – never violate these
 

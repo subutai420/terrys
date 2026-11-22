@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
+import { cartLineItem, trackAddToCart, trackRemoveFromCart } from '@/lib/analytics'
 import { type CartLine, getCartStore, MAX_QUANTITY } from '@/lib/cart/store'
 import { formatCzk, formatUnitPrice } from '@/lib/format'
 import { UNIT_LABEL, weightText } from '@/lib/orders/format'
@@ -62,9 +63,10 @@ export function CartLines({ lines, editable = true }: { lines: CartLine[]; edita
                     type="button"
                     className="h-10 w-10 rounded-card border border-line bg-white text-lg font-bold hover:border-brand-brown"
                     aria-label={line.quantity === 1 ? `Odebrat ${line.title}` : 'Ubrat jeden kus'}
-                    onClick={() =>
+                    onClick={() => {
                       store.setQuantity(line.productId, line.variantId, line.quantity - 1)
-                    }
+                      trackRemoveFromCart([cartLineItem(line, 1)])
+                    }}
                   >
                     −
                   </button>
@@ -80,9 +82,10 @@ export function CartLines({ lines, editable = true }: { lines: CartLine[]; edita
                     className="h-10 w-10 rounded-card border border-line bg-white text-lg font-bold hover:border-brand-brown disabled:opacity-40"
                     aria-label="Přidat jeden kus"
                     disabled={line.quantity >= MAX_QUANTITY}
-                    onClick={() =>
+                    onClick={() => {
                       store.setQuantity(line.productId, line.variantId, line.quantity + 1)
-                    }
+                      trackAddToCart([cartLineItem(line, 1)])
+                    }}
                   >
                     +
                   </button>
@@ -103,7 +106,10 @@ export function CartLines({ lines, editable = true }: { lines: CartLine[]; edita
                   <button
                     type="button"
                     className="text-sm text-muted underline hover:text-brand-red"
-                    onClick={() => store.remove(line.productId, line.variantId)}
+                    onClick={() => {
+                      store.remove(line.productId, line.variantId)
+                      trackRemoveFromCart([cartLineItem(line)])
+                    }}
                   >
                     Odebrat<span className="sr-only"> {line.title}</span>
                   </button>

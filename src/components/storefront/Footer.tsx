@@ -5,8 +5,10 @@ import { publicText, weeklyRows } from '@/lib/openingHours'
 import { WITHDRAWAL_PATH } from '@/lib/orders/constants'
 import { SITE_NAME } from '@/lib/site'
 import { getPublicPath, LISTING_PATHS } from '@/lib/urls'
+import { whatsappUrl } from '@/lib/whatsapp'
 import { getAllPages, getLocations, getSettings } from '@/storefront/data'
 
+import { ConsentSettingsLink } from './ConsentSettingsLink'
 import { NewsletterForm } from './NewsletterForm'
 
 /** Static pages in the "Nákup" column, by their old URL (only published ones are shown). */
@@ -72,6 +74,8 @@ export async function Footer() {
   ]
   const email = publicText(settings.contact?.email)
   const phone = publicText(settings.contact?.phone)
+  // Stage 6: plain WhatsApp link (no widget script), hidden when the number is empty.
+  const whatsapp = whatsappUrl(settings.contact?.whatsapp)
   const company = settings.company
   const companyName = publicText(company?.name)
   const ico = publicText(company?.ico)
@@ -142,6 +146,10 @@ export async function Footer() {
                   Všechny produkty
                 </Link>
               </li>
+              <li>
+                {/* Stage 6: re-opens the cookie preferences. */}
+                <ConsentSettingsLink className="text-left hover:text-white hover:underline" />
+              </li>
             </ul>
           </div>
           <div className="min-w-0">
@@ -180,7 +188,7 @@ export async function Footer() {
                   </li>
                 )
               })}
-              {phone || email ? (
+              {phone || email || whatsapp ? (
                 <li>
                   {phone ? (
                     <div>
@@ -196,6 +204,19 @@ export async function Footer() {
                     <div>
                       <a href={`mailto:${email}`} className="hover:text-white hover:underline">
                         {email}
+                      </a>
+                    </div>
+                  ) : null}
+                  {whatsapp ? (
+                    <div>
+                      <a
+                        href={whatsapp}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-white hover:underline"
+                        data-testid="footer-whatsapp"
+                      >
+                        Napište nám na WhatsApp
                       </a>
                     </div>
                   ) : null}

@@ -25,6 +25,7 @@ import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { HolidayPrefill as HolidayPrefill_6d37d723970541255dcccea22608455c } from '../../../components/admin/HolidayPrefill'
 import { PostcodeImport as PostcodeImport_f4d99a57f51a82c01110fd83997c275b } from '../../../components/admin/PostcodeImport'
+import { MarketingStatus as MarketingStatus_595c27ce6320bc74f532e0d0e2b3f12a } from '../../../components/admin/MarketingStatus'
 import { DeliveryCalendarNavLink as DeliveryCalendarNavLink_04760a1349c828d07719fd0aa1dcfaf3 } from '../../../components/admin/DeliveryCalendarNavLink'
 import { TodayPanel as TodayPanel_1cd8c464698bc037fd660dbeaf1e6b26 } from '../../../components/admin/fulfilment/TodayPanel'
 import { OrdersNavGroup as OrdersNavGroup_d06b0f700e9919ded5046c52887cb2d9 } from '../../../components/admin/fulfilment/OrdersNavGroup'
@@ -63,6 +64,7 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "/components/admin/HolidayPrefill#HolidayPrefill": HolidayPrefill_6d37d723970541255dcccea22608455c,
   "/components/admin/PostcodeImport#PostcodeImport": PostcodeImport_f4d99a57f51a82c01110fd83997c275b,
+  "/components/admin/MarketingStatus#MarketingStatus": MarketingStatus_595c27ce6320bc74f532e0d0e2b3f12a,
   "/components/admin/DeliveryCalendarNavLink#DeliveryCalendarNavLink": DeliveryCalendarNavLink_04760a1349c828d07719fd0aa1dcfaf3,
   "/components/admin/fulfilment/TodayPanel#TodayPanel": TodayPanel_1cd8c464698bc037fd660dbeaf1e6b26,
   "/components/admin/fulfilment/OrdersNavGroup#OrdersNavGroup": OrdersNavGroup_d06b0f700e9919ded5046c52887cb2d9,

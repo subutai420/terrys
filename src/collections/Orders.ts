@@ -43,6 +43,17 @@ import {
  */
 
 const readOnly = { readOnly: true } as const
+
+/** Stage 6: per-order result of a server-side marketing call (src/integrations). */
+export const INTEGRATION_STATUSES = ['pending', 'sent', 'failed', 'skipped', 'disabled'] as const
+export type IntegrationStatus = (typeof INTEGRATION_STATUSES)[number]
+const INTEGRATION_STATUS_LABELS: Record<IntegrationStatus, string> = {
+  pending: 'Čeká na odeslání',
+  sent: 'Odesláno',
+  failed: 'Chyba (opakuje se)',
+  skipped: 'Neposílá se (souhlas / volba zákazníka)',
+  disabled: 'Vypnuto (chybí klíč v nastavení serveru)',
+}
 const hiddenFieldAccess = { read: () => false, update: () => false, create: () => false }
 
 const options = <T extends string>(values: readonly T[], labels: Record<T, string>) =>
@@ -1247,6 +1258,52 @@ export const Orders: CollectionConfig = {
                 },
                 { name: 'landingPage', type: 'text', label: 'Vstupní stránka', admin: readOnly },
               ],
+            },
+            {
+              // Stage 6: results of the server-side marketing calls (src/integrations); details
+              // and retries in Nastavení → Fronta marketingu.
+              name: 'integrations',
+              type: 'group',
+              label: 'Marketing a měření (odesláno ze serveru)',
+              admin: {
+                description:
+                  'Meta Conversions API (jen se souhlasem s marketingovými cookies), Heureka ' +
+                  'Ověřeno zákazníky (ne při nesouhlasu zákazníka), Ecomail (jen se souhlasem ' +
+                  's newsletterem).',
+              },
+              fields: (['meta', 'heureka', 'ecomail'] as const).map((prefix): Field => ({
+                type: 'row',
+                fields: [
+                  {
+                    name: `${prefix}Status`,
+                    type: 'select',
+                    label:
+                      prefix === 'meta'
+                        ? 'Meta CAPI'
+                        : prefix === 'heureka'
+                          ? 'Heureka Ověřeno zákazníky'
+                          : 'Ecomail',
+                    options: options(INTEGRATION_STATUSES, INTEGRATION_STATUS_LABELS),
+                    admin: { ...readOnly, width: '30%' },
+                  },
+                  {
+                    name: `${prefix}At`,
+                    type: 'date',
+                    label: 'Kdy',
+                    admin: {
+                      ...readOnly,
+                      width: '25%',
+                      date: { pickerAppearance: 'dayAndTime' },
+                    },
+                  },
+                  {
+                    name: `${prefix}Note`,
+                    type: 'text',
+                    label: 'Poznámka / chyba',
+                    admin: { ...readOnly, width: '45%' },
+                  },
+                ],
+              })),
             },
             {
               name: 'eventId',

@@ -132,7 +132,9 @@ async function placeCourierOrder(page: Page): Promise<string> {
   await page.getByTestId('consent-terms').check()
   await page.waitForTimeout(Math.max(0, MIN_FILL_MS - (Date.now() - loadedAt)))
   await page.getByTestId('place-order').click()
-  await expect(page).toHaveURL(/\/objednavka\/dekujeme\//)
+  // Stage 6 strips the token from the address bar right after the page loads.
+  await expect(page).toHaveURL(/\/objednavka\/dekujeme/)
+  await expect(page.getByTestId('order-number')).toBeVisible()
   return ((await page.getByTestId('order-number').textContent()) ?? '').trim()
 }
 

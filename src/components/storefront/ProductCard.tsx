@@ -1,6 +1,8 @@
 import Link from 'next/link'
 
 import { lineForSingle, lineForVariant } from '@/lib/cart/line'
+import { ITEM_ATTRIBUTE } from '@/lib/measurement/dom'
+import { itemId } from '@/lib/measurement/ids'
 import { formatCzk } from '@/lib/format'
 import {
   availabilityLabel,
@@ -10,6 +12,7 @@ import {
   variantOptions,
 } from '@/lib/productView'
 import { getPublicPath } from '@/lib/urls'
+import { productAnalytics } from '@/storefront/analytics'
 import type { CardProduct } from '@/storefront/data'
 
 import { AddToCartButton } from './AddToCartButton'
@@ -31,8 +34,11 @@ export function AvailabilityBadge({ availability }: { availability: CardProduct[
   return <span className={`text-sm font-bold ${color}`}>{availabilityLabel(availability)}</span>
 }
 
-/** Product card for grids (category, search, related products), design A. */
-export function ProductCard({
+/**
+ * Product card for grids (category, search, related products), design A. Stage 6: carries the
+ * dataLayer item id of its default variant (`select_item`) and the analytics snapshot for the cart.
+ */
+export async function ProductCard({
   product,
   imageSizes = '(min-width: 64rem) 300px, (min-width: 40rem) 45vw, 100vw',
   showButton = true,
@@ -52,6 +58,7 @@ export function ProductCard({
     priceUnit: product.priceUnit,
     url,
     imageUrl: image ? (mediaSource(image, 'thumbnail')?.src ?? null) : null,
+    analytics: await productAnalytics(product),
   }
   const defaultOption = options[defaultVariantIndex(options)]
   const line =
@@ -63,7 +70,10 @@ export function ProductCard({
   const meta = [termName(product.cut), termName(product.origin)].filter(Boolean).join(', ')
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-card bg-white">
+    <article
+      className="flex flex-col overflow-hidden rounded-card bg-white"
+      {...{ [ITEM_ATTRIBUTE]: itemId(product.id, defaultOption?.id ?? null) }}
+    >
       <Link
         href={url}
         className="relative block aspect-[3/2] bg-brand-beige-light"

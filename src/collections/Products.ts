@@ -2,6 +2,7 @@ import type { CollectionConfig, NumberFieldSingleValidation } from 'payload'
 
 import { editors, publicProductsOrLoggedIn } from '@/access'
 import { legacyUrlField, migrationGroup, seoGroup } from '@/fields/common'
+import { productFeedsGroup } from '@/fields/feeds'
 import { previewUrl } from '@/fields/preview'
 import { slugField } from '@/fields/slug'
 import {
@@ -399,6 +400,8 @@ export const Products: CollectionConfig = {
         description: 'Nepovinné. Interní kód (např. z pokladny nebo od dodavatele).',
       },
     },
+    // Stage 6: per-product switch for the product feeds (src/feeds).
+    productFeedsGroup,
     legacyUrlField,
     migrationGroup,
   ],

@@ -12,6 +12,7 @@ import { Categories } from './collections/Categories'
 import { Cuts, MeatTypes, Origins, ShelfLives, Usages } from './collections/codeLists'
 import { DeliveryExceptions } from './collections/DeliveryExceptions'
 import { DeliveryZones } from './collections/DeliveryZones'
+import { IntegrationJobs } from './collections/IntegrationJobs'
 import { Locations } from './collections/Locations'
 import { Media } from './collections/Media'
 import { OrderAuditLog } from './collections/OrderAuditLog'
@@ -27,7 +28,9 @@ import { deliveryOptionsEndpoint } from './delivery/optionsEndpoint'
 import { createEmailAdapter } from './email/adapter'
 import { fulfilmentEndpoints } from './fulfilment/endpoints'
 import { Homepage } from './globals/Homepage'
+import { Marketing } from './globals/Marketing'
 import { Settings } from './globals/Settings'
+import { integrationEndpoints } from './integrations/endpoints'
 import { migrations } from './migrations'
 import { checkoutEndpoints } from './orders/endpoints'
 
@@ -108,13 +111,22 @@ export default buildConfig({
     // Nastavení
     Locations,
     Users,
+    // Stage 6: outbox of Meta CAPI / Heureka / Ecomail calls.
+    IntegrationJobs,
   ],
   // Homepage = editable blocks of the storefront homepage (stage 3).
-  globals: [Homepage, Settings],
+  // Stage 6: Marketing (consent text version, feed defaults, status of measurement).
+  globals: [Homepage, Settings, Marketing],
   // Public endpoint for the cart: GET /api/delivery/options?psc=12000 (src/delivery/).
   // Stage 4: checkout endpoints POST /api/checkout/* (src/orders/endpoints.ts).
   // Stage 5: admin fulfilment endpoints /api/fulfilment/* (src/fulfilment/endpoints.ts).
-  endpoints: [deliveryOptionsEndpoint, ...checkoutEndpoints, ...fulfilmentEndpoints],
+  // Stage 6: /api/integrations/retry (cron) and /api/marketing/status (admin).
+  endpoints: [
+    deliveryOptionsEndpoint,
+    ...checkoutEndpoints,
+    ...fulfilmentEndpoints,
+    ...integrationEndpoints,
+  ],
   // Stage 4: Resend when RESEND_API_KEY is set, otherwise e-mails are only saved to .emails/.
   email: createEmailAdapter(),
   editor: lexicalEditor(),

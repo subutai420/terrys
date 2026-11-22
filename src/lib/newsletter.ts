@@ -1,4 +1,10 @@
-/** Validation of the newsletter signup (pure, unit-tested in `newsletter.test.ts`). */
+/** Newsletter signup (pure, unit-tested in `newsletter.test.ts`). */
+
+/** Shown next to the footer form and stored with every signup as evidence (stage 6). */
+export const NEWSLETTER_CONSENT_TEXT =
+  'Souhlasím se zasíláním e-mailů s novinkami a recepty od Terrys. Souhlas mohu kdykoli odvolat ' +
+  'odkazem v každém e-mailu. Odběr je potřeba potvrdit v e-mailu, který vám pošleme.'
+
 export function validateNewsletterEmail(
   value: unknown,
 ): { ok: true; email: string } | { ok: false; message: string } {

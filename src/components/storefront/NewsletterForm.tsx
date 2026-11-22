@@ -1,14 +1,20 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect } from 'react'
 
 import { type NewsletterState, subscribeNewsletter } from '@/app/(frontend)/actions/newsletter'
+import { pushDataLayer } from '@/lib/analytics'
+import { NEWSLETTER_CONSENT_TEXT } from '@/lib/newsletter'
 
 const initial: NewsletterState = { status: 'idle', message: '' }
 
-/** Newsletter signup in the footer (posts to a stub server action until stage 6). */
+/** Newsletter signup in the footer → Ecomail with double opt-in (stage 6, server action). */
 export function NewsletterForm() {
   const [state, action, pending] = useActionState(subscribeNewsletter, initial)
+  useEffect(() => {
+    // GA4 recommended event "sign_up" would mean an account; this is a newsletter lead.
+    if (state.status === 'ok') pushDataLayer({ event: 'newsletter_signup', method: 'paticka' })
+  }, [state])
   return (
     <section className="bg-white py-12 text-center" aria-labelledby="newsletter-title">
       <div className="wrap">
@@ -56,6 +62,11 @@ export function NewsletterForm() {
             </button>
           </form>
         )}
+        {state.status !== 'ok' ? (
+          <p className="mx-auto mt-2.5 max-w-[32.5rem] text-[0.8125rem] text-muted">
+            {NEWSLETTER_CONSENT_TEXT}
+          </p>
+        ) : null}
         {state.status === 'error' ? (
           <p
             id="newsletter-error"

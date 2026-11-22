@@ -4,9 +4,11 @@ import { notFound } from 'next/navigation'
 import { connection } from 'next/server'
 
 import { PurchaseEvent } from '@/components/storefront/checkout/PurchaseEvent'
-import type { PurchasePayload } from '@/lib/analytics'
 import { formatPostcode } from '@/lib/delivery/constants'
+import { orderDeliveryId } from '@/lib/feeds/delivery'
 import { formatCzk, formatUnitPrice } from '@/lib/format'
+import { buildUserData, purchase } from '@/lib/measurement/ecommerce'
+import { buildGa4Item, categoryPath } from '@/lib/measurement/items'
 import { publicText } from '@/lib/openingHours'
 import {
   addressLine,
@@ -18,6 +20,7 @@ import {
 } from '@/lib/orders/format'
 import { WEIGHT_TOLERANCE } from '@/lib/productView'
 import type { Order } from '@/payload-types'
+import { categoryNodes } from '@/storefront/analytics'
 import { getPayloadClient, getSettings } from '@/storefront/data'
 
 /**
@@ -47,6 +50,81 @@ async function findOrder(token: string): Promise<Order | null> {
   return (result.docs[0] as Order | undefined) ?? null
 }
 
+/**
+ * Stage 6: the GA4 `purchase` message of the order (`src/lib/measurement/ecommerce.ts`) and the
+ * enhanced-conversions data (added in the browser only with marketing consent).
+ */
+async function purchaseMessage(order: Order) {
+  const lines = order.lines ?? []
+  const productIdOf = (line: (typeof lines)[number]): number | null => {
+    const value = typeof line.product === 'object' && line.product ? line.product.id : line.product
+    return typeof value === 'number' ? value : null
+  }
+  const productIds = lines.map(productIdOf).filter((id): id is number => id !== null)
+  const payload = await getPayloadClient()
+  const [products, nodes] = await Promise.all([
+    productIds.length
+      ? payload
+          .find({
+            collection: 'products',
+            where: { id: { in: productIds } },
+            depth: 0,
+            limit: productIds.length,
+            pagination: false,
+            select: { categories: true, brand: true },
+            overrideAccess: true,
+          })
+          .then((result) => result.docs)
+      : Promise.resolve([]),
+    categoryNodes(),
+  ])
+  const facts = new Map(products.map((doc) => [doc.id, doc]))
+  const items = lines.map((line) => {
+    const productId = productIdOf(line) ?? 0
+    const doc = facts.get(productId)
+    return buildGa4Item({
+      productId,
+      variantId: line.variantId ?? null,
+      title: line.productTitle,
+      variantLabel: line.variantLabel,
+      categories: categoryPath(doc?.categories, nodes),
+      brand: doc?.brand,
+      // Haléře per piece, so Σ price × quantity equals the stored line estimates exactly.
+      price: line.estimatedPrice / line.quantity,
+      quantity: line.quantity,
+      weightGrams: line.estimatedWeightGrams,
+      priceUnit: line.priceUnit,
+      unitPrice: line.unitPrice,
+    })
+  })
+  const message = purchase({
+    eventId: order.eventId ?? order.orderNumber,
+    orderNumber: order.orderNumber,
+    items,
+    lines: lines.map((line) => ({
+      estimatedPrice: line.estimatedPrice,
+      quantity: line.quantity,
+      vatRate: line.vatRate,
+    })),
+    goodsEstimate: order.totals.goodsEstimate,
+    deliveryPrice: order.totals.deliveryPrice,
+    totalEstimate: order.totals.totalEstimate,
+    vat: order.totals.vat ?? [],
+    shippingTier: order.delivery?.methodName ?? '',
+    deliveryType: orderDeliveryId(order.delivery?.methodType),
+  })
+  const userData = buildUserData({
+    email: order.customer.email,
+    phone: order.customer.phone,
+    firstName: order.customer.firstName,
+    lastName: order.customer.lastName,
+    street: order.shippingAddress?.street,
+    city: order.shippingAddress?.city,
+    postcode: order.shippingAddress?.postcode ?? order.delivery?.postcode,
+  })
+  return { message, userData }
+}
+
 export default async function ThankYouPage({ params }: { params: Promise<{ token: string }> }) {
   await connection()
   const { token } = await params
@@ -59,29 +137,11 @@ export default async function ThankYouPage({ params }: { params: Promise<{ token
   const email = publicText(settings.contact?.email)
   const lines = order.lines ?? []
 
-  const purchase: PurchasePayload = {
-    transaction_id: order.orderNumber,
-    currency: 'CZK',
-    value: order.totals.totalEstimate,
-    value_is_estimate: true,
-    shipping: order.totals.deliveryPrice,
-    shipping_tier: delivery?.methodName ?? '',
-    event_id: order.eventId ?? order.orderNumber,
-    items: lines.map((line) => ({
-      item_id: String(
-        typeof line.product === 'object' && line.product ? line.product.id : (line.product ?? ''),
-      ),
-      item_name: line.productTitle,
-      item_variant: line.variantLabel ?? undefined,
-      price: Math.round(line.estimatedPrice / line.quantity),
-      quantity: line.quantity,
-      estimated_weight_grams: line.estimatedWeightGrams ?? null,
-    })),
-  }
+  const { message, userData } = await purchaseMessage(order)
 
   return (
     <div className="wrap max-w-3xl pb-16 pt-8">
-      <PurchaseEvent payload={purchase} />
+      <PurchaseEvent message={message} userData={userData} token={token} />
       <div className="card text-center">
         <p
           aria-hidden="true"

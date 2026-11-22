@@ -98,6 +98,8 @@ const cardSelect = {
   usages: true,
   marbling: true,
   categories: true,
+  // Stage 6: item_brand in the dataLayer.
+  brand: true,
 } as const
 
 export type CardProduct = Pick<
@@ -117,6 +119,7 @@ export type CardProduct = Pick<
   | 'usages'
   | 'marbling'
   | 'categories'
+  | 'brand'
 >
 
 /** Drops relations that the public may not read (Payload leaves them as plain ids). */
@@ -131,6 +134,25 @@ export function populated<T extends { id: number | string }>(
 export const getSettings = loader('settings', async (draft): Promise<Setting> => {
   const payload = await getPayloadClient()
   return payload.findGlobal({ slug: 'settings', depth: 0, ...access(draft) })
+})
+
+/**
+ * Stage 6: the public part of the Marketing global (only the consent text version). The global
+ * itself is not publicly readable, so this reads it on the server with `overrideAccess`.
+ */
+export const getConsentVersion = loader('consent-version', async (): Promise<string> => {
+  const payload = await getPayloadClient()
+  try {
+    const marketing = await payload.findGlobal({
+      slug: 'marketing',
+      depth: 0,
+      overrideAccess: true,
+      select: { consentVersion: true },
+    })
+    return marketing.consentVersion || '1'
+  } catch {
+    return '1'
+  }
 })
 
 export const getHomepage = loader('homepage', async (draft): Promise<Homepage> => {

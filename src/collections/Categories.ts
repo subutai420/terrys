@@ -5,6 +5,7 @@ import { legacyUrlField, migrationGroup, seoGroup } from '@/fields/common'
 import { previewUrl } from '@/fields/preview'
 import { slugField } from '@/fields/slug'
 
+import { categoryFeedsGroup } from '@/fields/feeds'
 import { storefrontRevalidationHooks } from '@/storefront/revalidate'
 
 import { ADMIN_GROUPS } from './adminGroups'
@@ -106,6 +107,11 @@ export const Categories: CollectionConfig = {
         {
           label: 'SEO',
           fields: [seoGroup],
+        },
+        {
+          // Stage 6: category mapping for the product feeds.
+          label: 'Feedy',
+          fields: [categoryFeedsGroup],
         },
       ],
     },

@@ -1,8 +1,36 @@
 import { defineConfig, devices } from '@playwright/test'
 import 'dotenv/config'
 
+import { CONSENT_COOKIE, serializeConsent } from './src/lib/measurement/consent'
+
 const PORT = 3000
 const baseURL = `http://localhost:${PORT}`
+
+/**
+ * Stage 6: every test starts with the cookie choice already made ("accept all", default text
+ * version), so the consent banner does not cover buttons. Tests of the banner itself use an empty
+ * storage state (	ests/e2e/measurement.e2e.spec.ts).
+ */
+export const CONSENT_ACCEPTED_STATE = {
+  cookies: [
+    {
+      name: CONSENT_COOKIE,
+      value: serializeConsent({
+        analytics: true,
+        marketing: true,
+        version: '2026-11',
+        timestamp: '2026-11-22T12:00:00.000Z',
+      }),
+      domain: 'localhost',
+      path: '/',
+      expires: -1,
+      httpOnly: false,
+      secure: false,
+      sameSite: 'Lax' as const,
+    },
+  ],
+  origins: [],
+}
 
 /**
  * Browser (end-to-end) tests. See https://playwright.dev/docs/test-configuration
@@ -22,6 +50,7 @@ export default defineConfig({
   use: {
     baseURL,
     locale: 'cs-CZ',
+    storageState: CONSENT_ACCEPTED_STATE,
     trace: 'on-first-retry',
   },
   projects: [

@@ -73,7 +73,12 @@ export const checkoutEndpoints: Endpoint[] = [
         return json({ ok: false, error: 'invalid-input', message: 'Neplatný požadavek.' }, 400)
       }
       try {
-        const result = await placeOrder(req.payload, body, { ip: clientIp(req.headers) })
+        const result = await placeOrder(req.payload, body, {
+          ip: clientIp(req.headers),
+          // Stage 6: consent cookie, _fbp/_fbc and user agent for Meta CAPI.
+          cookieHeader: req.headers.get('cookie'),
+          userAgent: req.headers.get('user-agent'),
+        })
         return json(result, result.ok ? 200 : result.status)
       } catch (error) {
         req.payload.logger.error(`[orders] place-order failed: ${String(error)}`)

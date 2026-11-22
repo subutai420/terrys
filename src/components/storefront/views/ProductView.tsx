@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ancestorsOf } from '@/lib/categoryTree'
 import { formatCzk } from '@/lib/format'
 import { productJsonLd } from '@/lib/jsonld'
+import { productItem } from '@/lib/measurement/productItems'
 import { publicText } from '@/lib/openingHours'
 import {
   defaultVariantIndex,
@@ -12,6 +13,7 @@ import {
 } from '@/lib/productView'
 import { lexicalToPlainText, metaDescription } from '@/lib/text'
 import { absoluteUrl, getPublicPath } from '@/lib/urls'
+import { whatsappUrl } from '@/lib/whatsapp'
 import type { Category, Product, Recipe } from '@/payload-types'
 import {
   type CardProduct,
@@ -21,6 +23,7 @@ import {
   getSettings,
   populated,
 } from '@/storefront/data'
+import { productAnalytics } from '@/storefront/analytics'
 
 import { ViewItemEvent } from '../AnalyticsEvents'
 import { Breadcrumbs, type Crumb } from '../Breadcrumbs'
@@ -88,6 +91,7 @@ export async function ProductView({ product }: { product: Product }) {
   const productUsages = populated<{ id: number; name: string }>(product.usages as never)
   const deliveryPrice = settings.deliveryPrice ?? 229
   const priceNotice = settings.priceNotice
+  const whatsapp = whatsappUrl(settings.contact?.whatsapp, `Dotaz k produktu: ${product.title}`)
 
   // Related products: chosen by the editor, otherwise other products from the same category.
   let related = populated<CardProduct & { id: number }>(product.relatedProducts as never).filter(
@@ -125,6 +129,7 @@ export async function ProductView({ product }: { product: Product }) {
   ].filter((p): p is { label: string; value: string } => Boolean(p))
 
   const firstImage = images[0]
+  const analytics = await productAnalytics(product)
   const cartInfo = {
     id: product.id,
     title: product.title,
@@ -132,6 +137,7 @@ export async function ProductView({ product }: { product: Product }) {
     priceUnit: product.priceUnit,
     url,
     imageUrl: firstImage?.thumbSrc ?? null,
+    analytics,
   }
   const description = metaDescription(
     product.seo?.description,
@@ -235,6 +241,19 @@ export async function ProductView({ product }: { product: Product }) {
                 <li>Každý kus zvážíme. Výsledná cena se řídí skutečnou hmotností.</li>
               ) : null}
             </ul>
+            {whatsapp ? (
+              <p className="mt-3">
+                Dotaz k masu?{' '}
+                <a
+                  href={whatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-brand-red underline"
+                >
+                  Napište řezníkům na WhatsApp
+                </a>
+              </p>
+            ) : null}
           </aside>
         </div>
       </section>
@@ -283,6 +302,7 @@ export async function ProductView({ product }: { product: Product }) {
           sku: product.sku,
           brand: publicText(product.brand),
           category: primary?.title,
+          productId: product.id,
           price: product.price,
           priceUnit: product.priceUnit,
           availability: product.availability,
@@ -291,14 +311,7 @@ export async function ProductView({ product }: { product: Product }) {
           priceNotice,
         })}
       />
-      <ViewItemEvent
-        item={{
-          item_id: String(product.id),
-          item_name: product.title,
-          item_category: primary?.title,
-          price: options[defaultVariantIndex(options)]?.estimate ?? product.price,
-        }}
-      />
+      <ViewItemEvent item={productItem(product, analytics.categories)} />
     </div>
   )
 }

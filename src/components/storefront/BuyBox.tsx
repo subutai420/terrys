@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 
 import { type CartProductInfo, lineForSingle, lineForVariant } from '@/lib/cart/line'
 import { formatCzk } from '@/lib/format'
@@ -32,6 +32,15 @@ export function BuyBox({
   soldOut,
 }: Props) {
   const [selected, setSelected] = useState(defaultIndex)
+  // Stage 6: feeds and ads link to `?varianta=<variant id>` – preselect that variant so the page
+  // shows exactly the advertised price. Read after hydration (the page itself is cached / ISR).
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('varianta')
+    if (!wanted) return
+    const match = options.find((item) => item.id === wanted)
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-off sync with the URL
+    if (match) setSelected(match.index)
+  }, [options])
   const name = useId()
   const option = options[selected]
   const unit = PRICE_UNIT_SHORT[product.priceUnit]
