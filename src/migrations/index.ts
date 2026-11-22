@@ -4,6 +4,7 @@ import * as migration_20261122_164358_delivery from './20261122_164358_delivery'
 import * as migration_20261122_171106_migration_import from './20261122_171106_migration_import';
 import * as migration_20261122_174401_storefront from './20261122_174401_storefront';
 import * as migration_20261122_184945_orders from './20261122_184945_orders';
+import * as migration_20261122_194425_fulfilment from './20261122_194425_fulfilment';
 
 export const migrations = [
   {
@@ -34,6 +35,11 @@ export const migrations = [
   {
     up: migration_20261122_184945_orders.up,
     down: migration_20261122_184945_orders.down,
-    name: '20261122_184945_orders'
+    name: '20261122_184945_orders',
+  },
+  {
+    up: migration_20261122_194425_fulfilment.up,
+    down: migration_20261122_194425_fulfilment.down,
+    name: '20261122_194425_fulfilment'
   },
 ];

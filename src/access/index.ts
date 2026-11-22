@@ -7,7 +7,8 @@ import type { Access, FieldAccess, Where } from 'payload'
  * - `admin`   – everything, including users, settings and locations.
  * - `staff`   – obsluha: manages products, categories, code lists, content and media.
  *               Cannot manage users, settings or locations.
- * - `butcher` – řezník: read-only access to the admin for now (later stages: weighing orders).
+ * - `butcher` – řezník: reads the admin; weighs orders on the weighing screen (stage 5, through
+ *               `src/fulfilment/service.ts` – never by editing the order document itself).
  *
  * Anonymous visitors (the public storefront) may read only published, non-hidden content.
  *

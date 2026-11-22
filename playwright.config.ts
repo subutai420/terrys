@@ -39,6 +39,9 @@ export default defineConfig({
     // needs a recipient – a reserved test domain, never a real address.
     env: {
       ORDER_NOTIFICATION_EMAIL: process.env.ORDER_NOTIFICATION_EMAIL || 'objednavky@example.test',
+      // Stage 5: never call Balíkobot from tests – the production server (`pnpm start` on CI)
+      // would otherwise refuse to create shipments without credentials.
+      BALIKOBOT_SIMULATION: '1',
     },
   },
 })

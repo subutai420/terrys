@@ -42,6 +42,10 @@ read it: the bundled Next.js docs in `node_modules/next/dist/docs/` match the in
 - `src/lib` – plain helper functions; unit tests sit next to them as `*.test.ts`.
 - `src/orders` – stage 4 order glue (placement, cart check, endpoints, e-mails, withdrawal); pure
   logic in `src/lib/orders`; e-mail adapter + templates in `src/email`. See "Orders (stage 4)".
+- `src/fulfilment` – stage 5 order fulfilment (services, endpoints, hooks, e-mails, print sheets,
+  queries); `src/shipping` – carrier service (Balíkobot / simulation); pure logic in
+  `src/lib/orders/{fulfilment,status,money}.ts` and `src/lib/shipping`; admin screens in
+  `src/components/admin/fulfilment`. See "Fulfilment (stage 5)".
 - `src/delivery` – Payload glue of the delivery module (loading rules, endpoints, CSV import);
   the pure logic is in `src/lib/delivery`. `src/components/admin` – custom admin components.
 - `tests/e2e` – Playwright tests (`*.e2e.spec.ts`).
@@ -60,7 +64,7 @@ read it: the bundled Next.js docs in `node_modules/next/dist/docs/` match the in
 
 ## Data model (stage 1)
 
-Collections (slug → purpose). Admin groups: Objednávky (stage 4, see "Orders"), Katalog, Číselníky, Obsah, Doručování (stage 2, see
+Collections (slug → purpose). Admin groups: Objednávky (stage 4/5, see "Orders" and "Fulfilment"; custom nav group), Katalog, Číselníky, Obsah, Doručování (stage 2, see
 below), Nastavení
 (`src/collections/adminGroups.ts`; sidebar order = order in `payload.config.ts`).
 
@@ -90,9 +94,9 @@ in kg. Do not add them (business rule 1).
 
 ### Access control (`src/access/index.ts`, tests in `access.test.ts`)
 
-- Roles: `admin` (everything), `staff` (catalog, code lists, content, media, delivery exceptions;
-  not users, locations, settings, shipping methods, zones, postcodes), `butcher` (read-only admin
-  for now; will weigh orders later).
+- Roles: `admin` (everything), `staff` (catalog, code lists, content, media, delivery exceptions,
+  order fulfilment; not users, locations, settings, shipping methods, zones, postcodes), `butcher`
+  (read-only admin + weighing, see the matrix in "Fulfilment (stage 5)").
 - Use the helpers (`anyone`, `loggedIn`, `adminOnly`, `editors`, `publishedOrLoggedIn`,
   `publicProductsOrLoggedIn`, `adminOrSelf`, `adminOnlyField`) instead of ad-hoc checks.
 - Anonymous (storefront) reads: drafts never; products additionally never with
@@ -310,8 +314,7 @@ Code in `src/migration`, outputs in `migration/` (committed: `url-inventory.csv`
   serves `legacyUrl` paths directly, so only aliases need redirects; use `getPublicPath()` for the
   targets. Add them in `src/proxy.ts` (extend its matcher) or as `next.config` redirects.
 - Stage 4 (cart/orders) is done, see "Orders (stage 4)" below (notes for stages 5–7 there).
-- Stage 5 (orders, Balíkobot): courier methods carry `balikobot.carrierCode` / `serviceCode`
-  (empty service code today). Use `toShopDate()` / `toShopDateTime()` for any date shown to staff.
+- Stage 5 (fulfilment, Balíkobot) is done, see "Fulfilment (stage 5)" below.
 
 ## Orders (stage 4)
 
@@ -439,17 +442,202 @@ from 2018 and cite repealed laws – owner/lawyer must update them).
 
 ### Notes for the next stages
 
-- Stage 5: weighing UI fills `lines[].actualWeightGrams/finalPrice`, `totals.goodsFinal/
-totalFinal` (round final line prices to whole CZK like the estimate, reuse `money.ts`), sets
-  `status`, deducts verified vouchers (`voucherCode`), issues invoice numbers (own gap-free
-  series), Balíkobot for `delivery.methodType = courier` (address snapshot is on the order).
-  Send "zváženo" e-mails with the same template helpers.
+- Stage 5: done – see "Fulfilment (stage 5)". (Invoice numbers are NOT issued by the shop: they
+  are typed in from the accounting software.)
 - Stage 6: fill the analytics hooks (dataLayer), Meta CAPI with `orders.eventId`, Ecomail
   (`consents.newsletter` + `newsletterAt`; consider the `customers` collection above), Heureka
   "Ověřeno zákazníky" – skip orders with `consents.heurekaOptOut`. Decide with the lawyer whether
   `AttributionCapture` needs cookie consent; if so gate it there.
 - Stage 7: voucher-only orders = `kind: 'voucher'`, no `delivery`, bank transfer; add their own
   flow (the cart must not ask for a postcode when it holds only electronic vouchers).
+
+## Fulfilment (stage 5)
+
+### Screens and daily flow
+
+| Where (admin)                                           | Who                   | What                                                                                                                                                                                                                                                                                                                         |
+| ------------------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Home → panel "Dnes" (`beforeDashboard`)                 | all                   | to weigh today, overdue, to ship, ready for pickup, flagged (`needsReview`), new withdrawals                                                                                                                                                                                                                                 |
+| `/admin/expedice` "Expedice"                            | all (actions by role) | day strip (yesterday + 7 days: orders, estimated kg, to weigh), filters date/method/status, search (number, name, phone, e-mail – all dates), orders grouped own van / courier / pickup with status, flags, amount to collect; print links; bulk "Vytvořit zásilky kurýra", "Předat dopravci (uzavřít svoz)", "Řidič vyráží" |
+| `/admin/vazeni/:id` "Vážení"                            | butcher, staff, admin | tablet/phone screen: one card per line (target, unit price), 64 px numeric input in grams (or "Vážit po kusech"), live price + deviation, tolerance box with quick reasons, "Náhrada", "Není k dispozici", sticky "Uložit rozpracované" / "Hotovo – zváženo"                                                                 |
+| `/admin/vyrizeni/:id` "Vyřízení objednávky"             | staff, admin          | items with weights/deviation/estimate/final, VAT after weighing, voucher payment rows, invoice number (live duplicate warning), internal note, amount to collect, confirm billing, shipment (create / label / drop), status buttons (with the guard's reason), e-mails + resend, audit trail                                 |
+| `GET /api/fulfilment/print/production?date=`            | all                   | A4 production sheet: cut list (product + variant: pieces, target total, orders) + every order with items, target weights, empty "Skutečně (g)" column, customer note                                                                                                                                                         |
+| `…/print/route?date=`, `…/print/packing?id=` / `?date=` | all                   | driver route sheet (own van: address, phone, amount to collect, note, signature) + pickup list; packing slip per order                                                                                                                                                                                                       |
+| `…/orders/:id/label`, `…/labels?date=`                  | staff, admin          | label PDF (Balíkobot label_url / LABELS, or the simulation placeholder)                                                                                                                                                                                                                                                      |
+
+The order collections have `admin.group: false`; the nav group "Objednávky" (Expedice, Objednávky,
+Odstoupení, Historie změn) is the client component `OrdersNavGroup` in `beforeNavLinks`, because
+Payload cannot put a custom view into a generated collection group. The standard order form keeps
+working (sidebar field `OrderActionsField` links to Vážení / Vyřízení; stage 5 fields read-only).
+
+Daily flow: orders arrive (Přijato) → Expedice for the day → print the production sheet →
+butchers weigh (Zváženo) → staff check flagged orders, type the invoice number from the
+accounting software, deduct verified vouchers, "Potvrdit vyúčtování" (final-price e-mail) →
+courier: "Vytvořit zásilky kurýra" + "Štítky dne" + "Předat dopravci" (→ Odesláno + tracking
+e-mail); own van: route sheet + "Řidič vyráží" (→ Odesláno + e-mail); pickup: "→ Připraveno k
+odběru" (e-mail) → Doručeno / Vyzvednuto by hand.
+
+### Weighing model (decisions)
+
+- A line with quantity > 1 is weighed as ONE TOTAL weight (`actualWeightGrams` = all pieces).
+  Price and tolerance depend only on the total, and the butcher types one number. "Vážit po kusech"
+  adds single pieces up in the browser; they are kept as text in `pieceWeights` for the record.
+- `lines[].resolution`: `weighed`, `substituted` (note required; priced with the ORIGINAL unit
+  price – the butcher never sets prices), `unavailable` (0 Kč), `piece` (piece-priced items are
+  resolved automatically on the first save). Empty = not done.
+- Tolerance: `settings.orders.weightTolerancePercent` (default 15). Over it (exactly 15 % is fine)
+  the line needs a short reason (`toleranceNote`, quick-pick chips) – NOT blocking (owner has not
+  decided the procedure) – and the order gets `needsReview` + `reviewReasons` for staff.
+- "Uložit rozpracované" saves partial progress; "Hotovo – zváženo" only when every line is
+  resolved (`isWeighingComplete`). A weight change after the billing was confirmed clears
+  `fulfilment.finalisedAt` (must be confirmed again).
+
+### Final price (`src/lib/orders/money.ts`, rules 6–9, tested)
+
+Same rounding as stage 4: final line = unit price × actual line weight, rounded ONCE per line to
+whole CZK (half up); piece items = price × quantity; unavailable = 0. `goodsFinal` = sum of lines;
+`totalFinal` = goodsFinal + the delivery price of the order (never changes). VAT recomputed from the
+final lines (haléře per rate, delivery split by FINAL goods value; if nothing is delivered the
+delivery keeps the line rates). Vouchers = means of payment: they never change prices or VAT, only
+`amountDue` (= totalFinal − vouchers); whole CZK > 0 each; sum ≤ totalFinal (`VoucherCapError`).
+Stored: `lines[].finalPrice`, `totals.{goodsFinal,totalFinal,vatFinal[],voucherTotal,amountDue}`
+and the flat list column `amountDue`. Accountant question (open): VAT of single-purpose vouchers.
+
+### Data model additions (migration `20261122_194425_fulfilment`)
+
+Orders: `needsReview`, `reviewReasons`, `amountDue`; lines `resolution`, `pieceWeights`,
+`overTolerance`, `toleranceNote`, `weighNote`; totals `vatFinal[]`, `voucherTotal`, `amountDue`;
+`voucherRedemptions[]` {code, amount, note, recordedBy, recordedAt} (stage 7: add a relation to the
+voucher record per row); `invoiceNumber` now `unique` (typed in; the service also refuses
+duplicates case-insensitively with a Czech message; the screen warns while typing);
+`fulfilment` {weighedAt/By, finalisedAt/By}; `shipment` {provider balikobot|simulation,
+carrierCode, serviceCode, packageId, labelUrl, labelCreatedAt, handedOverAt, batchId, attempt,
+lastError}; `cancellation` {reason, cancelledAt, cancelledBy}; `statusHistory[]`; `sentEmails[]`
+{kind, status, at, by, to, subject, error}. New collection `order-audit-log` (read editors;
+create/update/delete NOBODY – only the hook writes). Settings `orders.weightTolerancePercent`
+(15), `orders.packagingWeightGrams` (1000, added to the courier parcel weight).
+
+### Permissions matrix
+
+| Action                                                   | admin | staff | butcher | anonymous |
+| -------------------------------------------------------- | ----- | ----- | ------- | --------- |
+| Read orders, Expedice, print sheets                      | ✓     | ✓     | ✓       | –         |
+| Weigh (weights, notes, unavailable/substitute) – Přijato | ✓     | ✓     | ✓       | –         |
+| Change weights of a "Zváženo" order                      | ✓     | ✓     | –       | –         |
+| Přijato → Zváženo                                        | ✓     | ✓     | ✓       | –         |
+| Any other status, cancel                                 | ✓     | ✓     | –       | –         |
+| Vouchers, invoice number, internal note, confirm billing | ✓     | ✓     | –       | –         |
+| Shipments, labels, hand-over, resend e-mails             | ✓     | ✓     | –       | –         |
+| Edit the order document / REST `PATCH /api/orders`       | ✓     | ✓     | –       | –         |
+| Delete orders                                            | ✓     | –     | –       | –         |
+| Read audit log                                           | ✓     | ✓     | –       | –         |
+| Edit / delete audit log                                  | –     | –     | –       | –         |
+
+Enforced in `src/fulfilment/service.ts` (role checks) and by the collection access (butcher has
+no update access at all – weighing goes only through `POST /api/fulfilment/orders/:id/weigh`, which
+accepts weights/notes/resolution and computes prices itself). Two order hooks
+(`src/fulfilment/hooks.ts`) run for EVERY write: `orderStatusGuard` (transitions of
+`src/lib/orders/status.ts`; the services set `context.fulfilmentStatusChecked` after checking with
+full facts; writes without a user = trusted server code) and `orderAuditAfterChange` (status,
+invoice number, tracking number, goods/total/amount due, vouchers, package id, and per line
+weight, price, resolution, notes → `order-audit-log` with user, time, old → new, in the same
+transaction). Endpoints: logged-in admin/staff/butcher only (401 otherwise), POST same-origin.
+Note: Payload accepts the admin session cookie only from browsers (CSRF / Sec-Fetch-Site check),
+so scripts must use `Authorization: JWT …`.
+
+### Status flow (`src/lib/orders/status.ts`)
+
+received → weighed (all lines resolved) → shipped (own van/courier; billing confirmed; courier
+needs a tracking number) or ready-for-pickup (pickup; billing confirmed) → delivered / picked-up
+(by hand). weighed → received (re-open). received/weighed/shipped/ready-for-pickup → cancelled
+(reason required; refused while a parcel exists that was not handed over – drop it first).
+Final: delivered, picked-up, cancelled. **Tracking sync (later):** a job calling Balíkobot
+`TRACK`/`TRACKSTATUS` for shipped courier orders could call `changeStatus(…, 'delivered')` – the
+guard already allows it; not built (owner sets it by hand today).
+
+### Customer e-mails (`src/email/templates/fulfilment.ts`, `src/fulfilment/emails.ts`)
+
+| Trigger                                  | E-mail (`sentEmails.kind`)                                                     | How             |
+| ---------------------------------------- | ------------------------------------------------------------------------------ | --------------- |
+| Staff "Potvrdit vyúčtování" (first time) | `final-price`: per-line weights + prices, total, vouchers, amount to pay, date | automatic, once |
+| → Odesláno (courier)                     | `shipped`: tracking number + link                                              | automatic, once |
+| → Odesláno (own van)                     | `shipped`: "náš řidič k vám vyráží <date>", amount to pay                      | automatic, once |
+| → Připraveno k odběru                    | `ready-for-pickup`: place, opening hours (when filled), amount                 | automatic, once |
+| → Zrušeno                                | `cancelled`: reason                                                            | automatic, once |
+| "Poslat znovu" on Vyřízení               | any of the above that fits the status                                          | button (force)  |
+
+Not on "Zváženo": the butcher's weighing is checked by staff (vouchers, flagged deviations) before
+the customer sees a price. E-mail-once: an automatic send skips a kind already `sent`/`outbox`
+for the order; failures do not count (next trigger retries), mark `needsReview` and are listed on
+the dashboard. Every attempt is appended to `sentEmails`. Re-confirming after a change does not
+resend automatically (message tells staff to use "Poslat znovu"). Double clicks are prevented in
+the UI (buttons disabled while busy); two parallel requests could still both send – acceptable.
+
+### Carrier service (`src/shipping/carrier.ts`) and Balíkobot
+
+```ts
+interface CarrierService {
+  mode: 'live' | 'simulation'
+  createShipment(input: ShipmentInput): Promise<{ ok: true; packageId; trackingNumber; trackingUrl; labelUrl; simulated } | { ok: false; errors: string[] }>
+  cancelShipment(carrierCode, packageId)       // Balíkobot DROP (only before hand-over)
+  labels(carrierCode, packages[])              // single: download label_url; many: LABELS → labels_url
+  closeBatch(carrierCode, packageIds[])        // Balíkobot ORDER (hand-over to the carrier)
+}
+getCarrierService(env) // BALIKOBOT_SIMULATION=1 → simulation; user+key → live;
+                       // nothing: simulation outside production, error in production
+```
+
+Balíkobot API v2 (`src/lib/shipping/balikobot.ts`, pure, contract-tested against fixtures in
+`src/lib/shipping/fixtures`): base `https://apiv2.balikobot.cz`, HTTP Basic (API user : API key),
+`POST /{carrier}/add` {packages:[{eid, real_order_id, reference, service_type, rec_name, rec_firm,
+rec_street, rec_city, rec_zip, rec_country, rec_phone (+420…), rec_email, price, ins_currency,
+weight (kg), cod_price, cod_currency, vs, return_track, return_full_errors}]} → packages[].
+{package_id, carrier_id, track_url, label_url, status}; errors {packages:[{status, errors:[{type,
+attribute, message}]}]} → Czech messages stored in `shipment.lastError` and shown on Vyřízení.
+`POST /{carrier}/drop` {package_ids}, `/labels` {package_ids} → labels_url, `/order`
+{package_ids} → order_id, handover_url (208 = already handed over = ok). eid = order number
+(`-2`, `-3` after a DROP, Balíkobot refuses a reused eid with 208). COD = `amountDue`, VS = invoice
+number (digits only, ≤ 10 – validated before sending), service = shipping method
+`balikobot.serviceCode`, weight = weighed goods + `packagingWeightGrams`. Label downloads only from
+`*.balikobot.cz`. Sources: https://api-doc.balikobot.cz/docs/APIV2 (base URL + auth; the public
+part of the new site shows only the overview) and the API v2 blueprint at
+https://balikobot.docs.apiary.io (endpoint/field reference, marked "no longer updated").
+**Not tested against the real API** (no credentials) – stage 9 checklist.
+
+Simulation: fake tracking `SIM…`, tracking URL on `simulace.balikobot.invalid`, placeholder PDF
+(`src/lib/shipping/pdf.ts`), `shipment.provider = simulation`, red banners in Expedice/Vyřízení.
+"→ Odesláno" on a courier order first hands its parcel over (ORDER) – otherwise the carrier
+would never get the data; "Předat dopravci" does it for the whole day.
+
+### Seed and tests
+
+`pnpm seed` part `orders` (non-production only, idempotent via `idempotencyKey = seed-demo-N`,
+customers `@example.test`, internal note "UKÁZKOVÁ OBJEDNÁVKA"): 6 demo orders today/tomorrow in
+states received / weighed (one over tolerance) / weighed+confirmed courier / ready for pickup.
+Tests: `src/lib/orders/{money,fulfilment,status}.test.ts`, `src/lib/shipping/balikobot.test.ts`
+(builder, validation, parsing, client with mocked fetch, mode selection), `fulfilment.test.ts`
+(e-mail templates), `tests/int/fulfilment.int.test.ts` (access per role, weighing, audit,
+billing/voucher cap, invoice uniqueness, e-mail-once, status guard, simulated shipments, Balíkobot
+error with mocked HTTP), `tests/e2e/fulfilment.e2e.spec.ts` (storefront → butcher on tablet →
+staff → simulated shipment → e-mails; `SCREENSHOTS=1` regenerates `docs/screenshots/etapa-5`).
+Playwright and CI set `BALIKOBOT_SIMULATION=1`.
+
+### Notes for the next stages
+
+- Stage 6 (measurement): optional server-side "final value" event when billing is confirmed
+  (`saveBilling(..., finalise)`: `orders.eventId`, `totals.totalFinal`, `goodsFinal`) – e.g. GA4
+  Measurement Protocol / Meta CAPI value adjustment; Heureka "Ověřeno zákazníky" could be sent on
+  delivered/picked-up (skip `consents.heurekaOptOut`).
+- Stage 7 (vouchers): `voucherRedemptions[]` is the redemption record – add `voucher`
+  (relationship) per row, validate code/balance in `saveBilling`, decrease the voucher balance in
+  the same transaction; keep "payment, not discount" (business rule 1).
+- Stage 9 (go-live): Balíkobot account + API key in env (remove `BALIKOBOT_SIMULATION`), set the
+  PPL service code on "Kurýr PPL" (method SERVICES lists them; seed leaves it empty), test ADD /
+  LABELS / DROP / ORDER with a test parcel against the real account (field names, phone format,
+  `vs`, COD bank account in the client zone, label format A4/A6), confirm whether PPL needs
+  ORDER per day (implemented) and the pickup ordering (ORDERPICKUP not implemented), check
+  tracking URLs; delete demo orders (`@example.test`); accountant: VAT of vouchers, delivery VAT
+  split; owner: tolerance procedure, substitution pricing, chilled transport by courier.
 
 ## Storefront (stage 3)
 

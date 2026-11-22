@@ -1,6 +1,7 @@
 import type { CollectionConfig, Field } from 'payload'
 
 import { adminOnly, editors, nobody, orderReaders } from '@/access'
+import { orderAuditAfterChange, orderStatusGuard } from '@/fulfilment/hooks'
 import { PRICE_UNIT_LABELS, PRICE_UNITS, VAT_RATES } from '@/lib/catalog'
 import { SHIPPING_METHOD_TYPE_LABELS, SHIPPING_METHOD_TYPES } from '@/lib/delivery/constants'
 import {
@@ -8,13 +9,15 @@ import {
   ADDRESS_CHECK_STATUSES,
   EMAIL_STATUS_LABELS,
   EMAIL_STATUSES,
+  FULFILMENT_EMAIL_KINDS,
+  FULFILMENT_EMAIL_LABELS,
+  LINE_RESOLUTION_LABELS,
+  LINE_RESOLUTIONS,
   ORDER_KIND_LABELS,
   ORDER_KINDS,
   ORDER_STATUS_LABELS,
   ORDER_STATUSES,
 } from '@/lib/orders/constants'
-
-import { ADMIN_GROUPS } from './adminGroups'
 
 /**
  * Orders (stage 4). Created ONLY by the server (`src/orders/placeOrder.ts`, local API with
@@ -28,8 +31,15 @@ import { ADMIN_GROUPS } from './adminGroups'
  * haléře, see `src/lib/orders/money.ts`). All prices are ESTIMATES until the butcher weighs the
  * order (stage 5 fills `actualWeightGrams`, `finalPrice`, `totals.goodsFinal`, `totals.totalFinal`).
  *
- * Access: admin, staff and butcher read; admin and staff edit (status, internal note, stage 5
- * fields); only admin deletes. Anonymous visitors never see orders.
+ * Access: admin, staff and butcher read; admin and staff edit; only admin deletes. Anonymous
+ * visitors never see orders.
+ *
+ * Stage 5 (fulfilment): weighing, final price, vouchers, invoice number, shipment and status
+ * changes are done on the screens "Vážení" (/admin/vazeni/:id) and "Vyřízení objednávky"
+ * (/admin/vyrizeni/:id) through `src/fulfilment/service.ts` – the stage 5 fields are therefore
+ * read-only in this form. Two hooks guard every write, whatever the path (form, REST, service):
+ * `orderStatusGuard` (only allowed status transitions) and `orderAuditAfterChange` (every
+ * weight / price / voucher / invoice / status change is written to `order-audit-log`).
  */
 
 const readOnly = { readOnly: true } as const
@@ -73,7 +83,9 @@ export const Orders: CollectionConfig = {
   slug: 'orders',
   labels: { singular: 'Objednávka', plural: 'Objednávky' },
   admin: {
-    group: ADMIN_GROUPS.orders,
+    // Stage 5: hidden from the generated sidebar; listed in the custom "Objednávky" nav group
+    // (`src/components/admin/fulfilment/OrdersNavGroup.tsx`) together with "Expedice".
+    group: false,
     useAsTitle: 'orderNumber',
     defaultColumns: [
       'orderNumber',
@@ -83,6 +95,8 @@ export const Orders: CollectionConfig = {
       'scheduledDate',
       'shippingLabel',
       'totalEstimate',
+      'amountDue',
+      'invoiceNumber',
     ],
     listSearchableFields: ['orderNumber', 'customerName', 'contactEmail', 'contactPhone'],
     description:
@@ -91,6 +105,10 @@ export const Orders: CollectionConfig = {
     pagination: { defaultLimit: 50 },
   },
   defaultSort: '-createdAt',
+  hooks: {
+    beforeChange: [orderStatusGuard],
+    afterChange: [orderAuditAfterChange],
+  },
   access: {
     read: orderReaders,
     create: nobody,
@@ -99,6 +117,15 @@ export const Orders: CollectionConfig = {
   },
   fields: [
     // ------------------------------------------------------------------ sidebar / list
+    {
+      // Stage 5: buttons "Vážit" / "Vyřídit objednávku" + status overview (no data stored).
+      name: 'fulfilmentActions',
+      type: 'ui',
+      admin: {
+        position: 'sidebar',
+        components: { Field: '/components/admin/fulfilment/OrderActionsField#OrderActionsField' },
+      },
+    },
     {
       name: 'orderNumber',
       type: 'text',
@@ -117,8 +144,27 @@ export const Orders: CollectionConfig = {
       index: true,
       options: options(ORDER_STATUSES, ORDER_STATUS_LABELS),
       admin: {
+        ...readOnly,
         position: 'sidebar',
-        description: 'Etapa 4 zakládá „Přijato“. Vážení a další stavy přijdou v etapě 5.',
+        components: { Cell: '/components/admin/fulfilment/StatusCell#StatusCell' },
+        description: 'Stav se mění tlačítky na stránce „Vyřízení objednávky“ (a při vážení).',
+      },
+    },
+    {
+      name: 'needsReview',
+      type: 'checkbox',
+      label: 'Ke kontrole (odchylka, náhrada, chyba)',
+      index: true,
+      admin: { ...readOnly, position: 'sidebar' },
+    },
+    {
+      name: 'reviewReasons',
+      type: 'textarea',
+      label: 'Proč ke kontrole',
+      admin: {
+        ...readOnly,
+        position: 'sidebar',
+        condition: (data) => Boolean(data?.needsReview),
       },
     },
     {
@@ -170,6 +216,13 @@ export const Orders: CollectionConfig = {
       admin: { ...readOnly, position: 'sidebar' },
     },
     {
+      // Stage 5: flat copy of totals.amountDue for the list (what the driver / shop collects).
+      name: 'amountDue',
+      type: 'number',
+      label: 'K úhradě při převzetí (Kč)',
+      admin: { ...readOnly, position: 'sidebar' },
+    },
+    {
       type: 'tabs',
       tabs: [
         // ---------------------------------------------------------------- items
@@ -182,11 +235,11 @@ export const Orders: CollectionConfig = {
               label: 'Položky',
               labels: { singular: 'Položka', plural: 'Položky' },
               admin: {
-                // Snapshot: rows cannot be added or removed by hand. Stage 5 adds the weighing UI
-                // (actualWeightGrams / finalPrice) – e.g. a custom view or by lifting this flag.
+                // Snapshot: rows cannot be added or removed by hand. Weights are entered on the
+                // weighing screen (/admin/vazeni/:id).
                 readOnly: true,
                 description:
-                  'Stav v okamžiku objednávky. Skutečnou hmotnost a výslednou cenu doplní vážení (etapa 5).',
+                  'Stav v okamžiku objednávky. Skutečnou hmotnost a výslednou cenu doplní vážení (tlačítko „Vážit“).',
               },
               fields: [
                 {
@@ -283,16 +336,56 @@ export const Orders: CollectionConfig = {
                     {
                       name: 'actualWeightGrams',
                       type: 'number',
-                      label: 'Skutečná hmotnost (g)',
-                      admin: { width: '25%', description: 'Vyplní řezník při vážení (etapa 5).' },
+                      label: 'Skutečná hmotnost řádku (g)',
+                      admin: {
+                        ...readOnly,
+                        width: '25%',
+                        description: 'Všechny kusy řádku dohromady.',
+                      },
                     },
                     {
                       name: 'finalPrice',
                       type: 'number',
                       label: 'Výsledná cena řádku (Kč)',
-                      admin: { width: '25%', description: 'Etapa 5.' },
+                      admin: { ...readOnly, width: '25%' },
                     },
                   ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'resolution',
+                      type: 'select',
+                      label: 'Výsledek vážení',
+                      options: options(LINE_RESOLUTIONS, LINE_RESOLUTION_LABELS),
+                      admin: { ...readOnly, width: '25%' },
+                    },
+                    {
+                      name: 'pieceWeights',
+                      type: 'text',
+                      label: 'Jednotlivé kusy (g)',
+                      admin: { ...readOnly, width: '25%' },
+                    },
+                    {
+                      name: 'overTolerance',
+                      type: 'checkbox',
+                      label: 'Odchylka nad limit',
+                      admin: { ...readOnly, width: '20%' },
+                    },
+                    {
+                      name: 'toleranceNote',
+                      type: 'text',
+                      label: 'Důvod odchylky',
+                      admin: { ...readOnly, width: '30%' },
+                    },
+                  ],
+                },
+                {
+                  name: 'weighNote',
+                  type: 'text',
+                  label: 'Poznámka řezníka (náhrada, nedostupné)',
+                  admin: readOnly,
                 },
               ],
             },
@@ -356,13 +449,96 @@ export const Orders: CollectionConfig = {
                       name: 'goodsFinal',
                       type: 'number',
                       label: 'Zboží po zvážení (Kč)',
-                      admin: { width: '50%', description: 'Etapa 5.' },
+                      admin: { ...readOnly, width: '25%' },
                     },
                     {
                       name: 'totalFinal',
                       type: 'number',
-                      label: 'K úhradě po zvážení (Kč)',
-                      admin: { width: '50%', description: 'Etapa 5.' },
+                      label: 'Celkem po zvážení vč. dopravy (Kč)',
+                      admin: { ...readOnly, width: '25%' },
+                    },
+                    {
+                      name: 'voucherTotal',
+                      type: 'number',
+                      label: 'Uhrazeno poukazy (Kč)',
+                      admin: { ...readOnly, width: '25%' },
+                    },
+                    {
+                      name: 'amountDue',
+                      type: 'number',
+                      label: 'K úhradě při převzetí (Kč)',
+                      admin: { ...readOnly, width: '25%' },
+                    },
+                  ],
+                },
+                {
+                  name: 'vatFinal',
+                  type: 'array',
+                  label: 'Rozpis DPH po zvážení',
+                  labels: { singular: 'Sazba', plural: 'Sazby' },
+                  admin: readOnly,
+                  fields: [
+                    {
+                      type: 'row',
+                      fields: [
+                        { name: 'rate', type: 'number', label: 'Sazba %', admin: { width: '25%' } },
+                        { name: 'base', type: 'number', label: 'Základ', admin: { width: '25%' } },
+                        { name: 'vat', type: 'number', label: 'DPH', admin: { width: '25%' } },
+                        { name: 'gross', type: 'number', label: 'Celkem', admin: { width: '25%' } },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              // Gift vouchers are a MEANS OF PAYMENT (not a discount): they never change prices
+              // or VAT, only what the customer pays on delivery. Stage 7 adds voucher records;
+              // then each row gets a relation to the voucher it redeems.
+              name: 'voucherRedemptions',
+              type: 'array',
+              label: 'Úhrada dárkovými poukazy',
+              labels: { singular: 'Poukaz', plural: 'Poukazy' },
+              admin: {
+                ...readOnly,
+                description: 'Ověřené poukazy zapsané obsluhou na stránce „Vyřízení objednávky“.',
+              },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'code',
+                      type: 'text',
+                      label: 'Kód poukazu',
+                      required: true,
+                      admin: { width: '30%' },
+                    },
+                    {
+                      name: 'amount',
+                      type: 'number',
+                      label: 'Uhrazeno (Kč)',
+                      required: true,
+                      admin: { width: '20%' },
+                    },
+                    { name: 'note', type: 'text', label: 'Poznámka', admin: { width: '50%' } },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'recordedBy',
+                      type: 'relationship',
+                      relationTo: 'users',
+                      label: 'Zapsal',
+                      admin: { width: '50%' },
+                    },
+                    {
+                      name: 'recordedAt',
+                      type: 'date',
+                      label: 'Kdy',
+                      admin: { width: '50%', date: { pickerAppearance: 'dayAndTime' } },
                     },
                   ],
                 },
@@ -634,23 +810,285 @@ export const Orders: CollectionConfig = {
               type: 'row',
               fields: [
                 {
+                  // Typed in by staff from the accounting software (invoices are NOT issued
+                  // here). Unique: the service refuses a number another order already has.
                   name: 'invoiceNumber',
                   type: 'text',
-                  label: 'Číslo dokladu / faktury',
-                  admin: { width: '33%', description: 'Etapa 5.' },
+                  label: 'Číslo faktury',
+                  unique: true,
+                  index: true,
+                  admin: { ...readOnly, width: '33%' },
                 },
                 {
                   name: 'trackingNumber',
                   type: 'text',
                   label: 'Číslo zásilky',
-                  admin: { width: '33%', description: 'Etapa 5 (Balíkobot).' },
+                  admin: { ...readOnly, width: '33%' },
                 },
                 {
                   name: 'trackingUrl',
                   type: 'text',
                   label: 'Odkaz na sledování',
-                  admin: { width: '34%', description: 'Etapa 5.' },
+                  admin: { ...readOnly, width: '34%' },
                 },
+              ],
+            },
+            {
+              name: 'fulfilment',
+              type: 'group',
+              label: 'Vážení a vyúčtování',
+              admin: { description: 'Kdo a kdy objednávku zvážil a potvrdil vyúčtování.' },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'weighedAt',
+                      type: 'date',
+                      label: 'Zváženo',
+                      admin: {
+                        ...readOnly,
+                        width: '25%',
+                        date: { pickerAppearance: 'dayAndTime' },
+                      },
+                    },
+                    {
+                      name: 'weighedBy',
+                      type: 'relationship',
+                      relationTo: 'users',
+                      label: 'Vážil',
+                      admin: { ...readOnly, width: '25%' },
+                    },
+                    {
+                      name: 'finalisedAt',
+                      type: 'date',
+                      label: 'Vyúčtování potvrzeno',
+                      admin: {
+                        ...readOnly,
+                        width: '25%',
+                        date: { pickerAppearance: 'dayAndTime' },
+                      },
+                    },
+                    {
+                      name: 'finalisedBy',
+                      type: 'relationship',
+                      relationTo: 'users',
+                      label: 'Potvrdil',
+                      admin: { ...readOnly, width: '25%' },
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              name: 'shipment',
+              type: 'group',
+              label: 'Zásilka (kurýr)',
+              admin: {
+                condition: (data) => data?.delivery?.methodType === 'courier',
+              },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'provider',
+                      type: 'select',
+                      label: 'Vytvořeno přes',
+                      options: [
+                        { value: 'balikobot', label: 'Balíkobot' },
+                        { value: 'simulation', label: 'SIMULACE (nic se neodeslalo)' },
+                      ],
+                      admin: { ...readOnly, width: '25%' },
+                    },
+                    {
+                      name: 'carrierCode',
+                      type: 'text',
+                      label: 'Dopravce',
+                      admin: { ...readOnly, width: '25%' },
+                    },
+                    {
+                      name: 'serviceCode',
+                      type: 'text',
+                      label: 'Služba',
+                      admin: { ...readOnly, width: '25%' },
+                    },
+                    {
+                      name: 'packageId',
+                      type: 'text',
+                      label: 'ID balíku (Balíkobot)',
+                      admin: { ...readOnly, width: '25%' },
+                    },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'labelCreatedAt',
+                      type: 'date',
+                      label: 'Zásilka vytvořena',
+                      admin: {
+                        ...readOnly,
+                        width: '25%',
+                        date: { pickerAppearance: 'dayAndTime' },
+                      },
+                    },
+                    {
+                      name: 'handedOverAt',
+                      type: 'date',
+                      label: 'Předáno dopravci (svoz)',
+                      admin: {
+                        ...readOnly,
+                        width: '25%',
+                        date: { pickerAppearance: 'dayAndTime' },
+                      },
+                    },
+                    {
+                      name: 'batchId',
+                      type: 'text',
+                      label: 'ID svozu',
+                      admin: { ...readOnly, width: '25%' },
+                    },
+                    {
+                      name: 'attempt',
+                      type: 'number',
+                      label: 'Počet vytvořených zásilek',
+                      defaultValue: 0,
+                      admin: { ...readOnly, width: '25%' },
+                    },
+                  ],
+                },
+                {
+                  name: 'labelUrl',
+                  type: 'text',
+                  label: 'Odkaz na štítek (Balíkobot)',
+                  admin: readOnly,
+                },
+                {
+                  name: 'lastError',
+                  type: 'textarea',
+                  label: 'Poslední chyba Balíkobotu',
+                  admin: {
+                    ...readOnly,
+                    condition: (_data, sibling) => Boolean(sibling?.lastError),
+                  },
+                },
+              ],
+            },
+            {
+              name: 'cancellation',
+              type: 'group',
+              label: 'Zrušení',
+              admin: { condition: (data) => data?.status === 'cancelled' },
+              fields: [
+                { name: 'reason', type: 'textarea', label: 'Důvod zrušení', admin: readOnly },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'cancelledAt',
+                      type: 'date',
+                      label: 'Zrušeno',
+                      admin: {
+                        ...readOnly,
+                        width: '50%',
+                        date: { pickerAppearance: 'dayAndTime' },
+                      },
+                    },
+                    {
+                      name: 'cancelledBy',
+                      type: 'relationship',
+                      relationTo: 'users',
+                      label: 'Zrušil',
+                      admin: { ...readOnly, width: '50%' },
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              name: 'statusHistory',
+              type: 'array',
+              label: 'Historie stavů',
+              labels: { singular: 'Změna stavu', plural: 'Změny stavu' },
+              admin: { ...readOnly, initCollapsed: true },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'status',
+                      type: 'select',
+                      label: 'Stav',
+                      options: options(ORDER_STATUSES, ORDER_STATUS_LABELS),
+                      admin: { width: '25%' },
+                    },
+                    {
+                      name: 'at',
+                      type: 'date',
+                      label: 'Kdy',
+                      admin: { width: '25%', date: { pickerAppearance: 'dayAndTime' } },
+                    },
+                    {
+                      name: 'by',
+                      type: 'relationship',
+                      relationTo: 'users',
+                      label: 'Kdo',
+                      admin: { width: '25%' },
+                    },
+                    { name: 'note', type: 'text', label: 'Poznámka', admin: { width: '25%' } },
+                  ],
+                },
+              ],
+            },
+            {
+              name: 'sentEmails',
+              type: 'array',
+              label: 'E-maily zákazníkovi při vyřizování',
+              labels: { singular: 'E-mail', plural: 'E-maily' },
+              admin: { ...readOnly, initCollapsed: true },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'kind',
+                      type: 'select',
+                      label: 'Druh',
+                      options: options(FULFILMENT_EMAIL_KINDS, FULFILMENT_EMAIL_LABELS),
+                      admin: { width: '30%' },
+                    },
+                    {
+                      name: 'status',
+                      type: 'select',
+                      label: 'Výsledek',
+                      options: options(EMAIL_STATUSES, EMAIL_STATUS_LABELS),
+                      admin: { width: '30%' },
+                    },
+                    {
+                      name: 'at',
+                      type: 'date',
+                      label: 'Kdy',
+                      admin: { width: '20%', date: { pickerAppearance: 'dayAndTime' } },
+                    },
+                    {
+                      name: 'by',
+                      type: 'relationship',
+                      relationTo: 'users',
+                      label: 'Kdo',
+                      admin: { width: '20%' },
+                    },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'to', type: 'text', label: 'Komu', admin: { width: '40%' } },
+                    { name: 'subject', type: 'text', label: 'Předmět', admin: { width: '60%' } },
+                  ],
+                },
+                { name: 'error', type: 'textarea', label: 'Chyba' },
               ],
             },
             {

@@ -8,8 +8,6 @@ import {
   WITHDRAWAL_STATUSES,
 } from '@/lib/orders/constants'
 
-import { ADMIN_GROUPS } from './adminGroups'
-
 /**
  * Withdrawals from the contract ("odstoupení od smlouvy") submitted through the online function
  * at /odstoupeni-od-smlouvy (stage 4). Created only by the server. A withdrawal is recorded even
@@ -23,7 +21,9 @@ export const Withdrawals: CollectionConfig = {
   slug: 'withdrawals',
   labels: { singular: 'Odstoupení od smlouvy', plural: 'Odstoupení od smlouvy' },
   admin: {
-    group: ADMIN_GROUPS.orders,
+    // Stage 5: hidden from the generated sidebar; listed in the custom "Objednávky" nav group
+    // (`src/components/admin/fulfilment/OrdersNavGroup.tsx`) together with "Expedice".
+    group: false,
     useAsTitle: 'name',
     defaultColumns: ['submittedAt', 'orderNumberEntered', 'name', 'order', 'status'],
     description:

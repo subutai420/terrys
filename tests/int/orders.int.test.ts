@@ -462,7 +462,7 @@ describe('access to orders', () => {
     ).rejects.toMatchObject({ status: 403 })
   })
 
-  it('butcher reads, staff edits the status, tokens are never exposed', async () => {
+  it('butcher reads, staff edits, status is guarded, tokens are never exposed', async () => {
     const list = await payload.find({
       collection: 'orders',
       user: butcher,
@@ -484,11 +484,21 @@ describe('access to orders', () => {
     const updated = await payload.update({
       collection: 'orders',
       id: list.docs[0].id,
-      data: { status: 'weighed', internalNote: 'Zavolat před dovozem' },
+      data: { internalNote: 'Zavolat před dovozem' },
       user: staff,
       overrideAccess: false,
     })
-    expect(updated.status).toBe('weighed')
+    expect(updated.internalNote).toBe('Zavolat před dovozem')
+    // Stage 5: status changes are guarded – "Zváženo" only after every line was weighed.
+    await expect(
+      payload.update({
+        collection: 'orders',
+        id: list.docs[0].id,
+        data: { status: 'weighed' },
+        user: staff,
+        overrideAccess: false,
+      }),
+    ).rejects.toThrow(/zvažte/)
   })
 })
 

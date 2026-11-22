@@ -121,9 +121,9 @@ export function orderEmailData(order: Order, settings: Setting): OrderEmailData 
   }
 }
 
-type SendResult = { status: EmailStatus; error: string | null; at: string | null }
+export type SendResult = { status: EmailStatus; error: string | null; at: string | null }
 
-async function send(
+export async function send(
   payload: Payload,
   to: string | null,
   email: RenderedEmail,

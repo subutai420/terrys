@@ -3,6 +3,7 @@ import type { GlobalConfig } from 'payload'
 import { adminOnly, anyone } from '@/access'
 import { ADMIN_GROUPS } from '@/collections/adminGroups'
 import { DEFAULT_HORIZON_DAYS } from '@/lib/delivery/constants'
+import { DEFAULT_WEIGHT_TOLERANCE_PERCENT } from '@/lib/orders/constants'
 import { revalidateGlobalAfterChange } from '@/storefront/revalidate'
 
 /** Default storefront notice next to estimated prices (business rule: final price by weight). */
@@ -105,6 +106,44 @@ export const Settings: GlobalConfig = {
                       'Interní e-mail s kompletními údaji objednávky (např. objednavky@…). Když je ' +
                       'prázdné, použije se proměnná ORDER_NOTIFICATION_EMAIL, jinak kontaktní e-mail.',
                   },
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      // Stage 5: weighing screen warns (and asks for a reason) above this.
+                      name: 'weightTolerancePercent',
+                      type: 'number',
+                      label: 'Povolená odchylka při vážení (%)',
+                      required: true,
+                      defaultValue: DEFAULT_WEIGHT_TOLERANCE_PERCENT,
+                      min: 1,
+                      max: 100,
+                      admin: {
+                        width: '50%',
+                        step: 1,
+                        description:
+                          'Když se skutečná hmotnost liší od odhadu víc, řezník musí napsat důvod a ' +
+                          'objednávka se označí „ke kontrole“. Vážení to neblokuje.',
+                      },
+                    },
+                    {
+                      // Stage 5: added to the weighed goods for the courier parcel weight.
+                      name: 'packagingWeightGrams',
+                      type: 'number',
+                      label: 'Hmotnost obalu zásilky (g)',
+                      required: true,
+                      defaultValue: 1000,
+                      min: 0,
+                      max: 20000,
+                      admin: {
+                        width: '50%',
+                        step: 50,
+                        description:
+                          'Termobox, chladicí vložky… Přičte se k masu u zásilky kurýrem.',
+                      },
+                    },
+                  ],
                 },
               ],
             },

@@ -9,9 +9,9 @@ Nový e-shop řeznictví **Terrys.cz** (prémiové maso a steaky). Jedna aplikac
 Projekt vzniká po etapách (0–9). Hotové jsou **etapa 0 – základ projektu**, **etapa 1 – katalog
 a obsah v administraci** (produkty, kategorie, číselníky, články, recepty, stránky, nastavení)
 **etapa 2 – doručování** (způsoby dopravy, PSČ, rozvozové oblasti, kalendář výjimek a svátků,
-výpočet termínů doručení) **etapa 3 – obchod pro zákazníky** a **etapa 4 – košík a objednávky** (viz níže). Z etapy 8 (migrace) je hotová první část: **přenos katalogu a obsahu
-ze starého webu** (viz níže). Navazují další etapy (košík a objednávky, vážení
-objednávek, napojení na další služby). Pravidla pro vývoj a obchodní pravidla jsou v souboru [`CLAUDE.md`](./CLAUDE.md).
+výpočet termínů doručení) **etapa 3 – obchod pro zákazníky**, **etapa 4 – košík a objednávky** a **etapa 5 – vážení a expedice objednávek** (viz níže). Z etapy 8 (migrace) je hotová první část: **přenos katalogu a obsahu
+ze starého webu** (viz níže). Navazují další etapy (měření a marketing, dárkové
+poukazy, spuštění). Pravidla pro vývoj a obchodní pravidla jsou v souboru [`CLAUDE.md`](./CLAUDE.md).
 
 ## Co je potřeba nainstalovat
 
@@ -70,24 +70,24 @@ angličtiny), anglicky pro anglický prohlížeč. Jazyk lze přepnout v adminis
 
 ## Příkazy (scripts)
 
-| Příkaz                    | Co dělá                                                                                                                         |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                | Spustí vývojový server na <http://localhost:3000>.                                                                              |
-| `pnpm build`              | Vytvoří produkční sestavení aplikace.                                                                                           |
-| `pnpm start`              | Spustí produkční sestavení (po `pnpm build`).                                                                                   |
-| `pnpm lint`               | Zkontroluje kód nástrojem ESLint.                                                                                               |
-| `pnpm typecheck`          | Zkontroluje typy TypeScriptu.                                                                                                   |
-| `pnpm test`               | Spustí všechny testy (Vitest): jednotkové + integrační. Databáze musí běžet.                                                    |
-| `pnpm test:unit`          | Jen rychlé jednotkové testy (bez databáze).                                                                                     |
-| `pnpm test:int`           | Jen integrační testy (Payload + dočasná testovací databáze).                                                                    |
-| `pnpm seed`               | Naplní databázi výchozími a ukázkovými daty (lze spouštět opakovaně). `--only=settings,locations,delivery` = jen některé části. |
-| `pnpm migrate:crawl`      | Projde starý terrys.cz a uloží ho (viz Přenos dat ze starého webu).                                                             |
-| `pnpm migrate:import`     | Nahraje uložený starý web do administrace (viz Přenos dat ze starého webu).                                                     |
-| `pnpm test:e2e`           | Spustí testy v prohlížeči (Playwright). Databáze musí běžet.                                                                    |
-| `pnpm format`             | Naformátuje kód nástrojem Prettier.                                                                                             |
-| `pnpm generate:types`     | Přegeneruje TypeScript typy z nastavení Payloadu (`src/payload-types.ts`).                                                      |
-| `pnpm generate:importmap` | Přegeneruje mapu komponent administrace (po přidání vlastních komponent).                                                       |
-| `pnpm payload …`          | Příkazy Payload CLI, např. `pnpm payload migrate:create nazev`.                                                                 |
+| Příkaz                    | Co dělá                                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                | Spustí vývojový server na <http://localhost:3000>.                                                                                                        |
+| `pnpm build`              | Vytvoří produkční sestavení aplikace.                                                                                                                     |
+| `pnpm start`              | Spustí produkční sestavení (po `pnpm build`).                                                                                                             |
+| `pnpm lint`               | Zkontroluje kód nástrojem ESLint.                                                                                                                         |
+| `pnpm typecheck`          | Zkontroluje typy TypeScriptu.                                                                                                                             |
+| `pnpm test`               | Spustí všechny testy (Vitest): jednotkové + integrační. Databáze musí běžet.                                                                              |
+| `pnpm test:unit`          | Jen rychlé jednotkové testy (bez databáze).                                                                                                               |
+| `pnpm test:int`           | Jen integrační testy (Payload + dočasná testovací databáze).                                                                                              |
+| `pnpm seed`               | Naplní databázi výchozími a ukázkovými daty vč. ukázkových objednávek (lze spouštět opakovaně). `--only=settings,locations,delivery` = jen některé části. |
+| `pnpm migrate:crawl`      | Projde starý terrys.cz a uloží ho (viz Přenos dat ze starého webu).                                                                                       |
+| `pnpm migrate:import`     | Nahraje uložený starý web do administrace (viz Přenos dat ze starého webu).                                                                               |
+| `pnpm test:e2e`           | Spustí testy v prohlížeči (Playwright). Databáze musí běžet.                                                                                              |
+| `pnpm format`             | Naformátuje kód nástrojem Prettier.                                                                                                                       |
+| `pnpm generate:types`     | Přegeneruje TypeScript typy z nastavení Payloadu (`src/payload-types.ts`).                                                                                |
+| `pnpm generate:importmap` | Přegeneruje mapu komponent administrace (po přidání vlastních komponent).                                                                                 |
+| `pnpm payload …`          | Příkazy Payload CLI, např. `pnpm payload migrate:create nazev`.                                                                                           |
 
 Před prvním spuštěním `pnpm test:e2e` je potřeba jednou stáhnout prohlížeč:
 `pnpm exec playwright install chromium`. Testy obchodu počítají s daty z `pnpm seed`: spouštějte je
@@ -109,6 +109,8 @@ nad prázdnou databází, do které jste pustili `pnpm payload migrate` a `pnpm 
 │   ├── storefront/            # načítání dat pro obchod, vyhledávání, obnova po úpravách
 │   ├── proxy.ts               # přesměrování starých adres kategorií na stránku kategorie (interně)
 │   ├── delivery/              # doručování: načtení pravidel z databáze, API, import PSČ
+│   ├── fulfilment/            # vyřizování objednávek: vážení, vyúčtování, stavy, e-maily, tisk
+│   ├── shipping/              # napojení na dopravce (Balíkobot, simulace)
 │   ├── fields/                # společná pole (slug, SEO, původní URL, pořadí)
 │   ├── globals/               # nastavení obchodu (Settings)
 │   ├── lib/                   # pomocné funkce (ceny, odhad ceny, slug) + jejich testy
@@ -118,6 +120,7 @@ nad prázdnou databází, do které jste pustili `pnpm payload migrate` a `pnpm 
 │   ├── migrations/            # migrace databáze (generuje Payload)
 │   ├── payload.config.ts      # hlavní nastavení Payloadu
 │   └── payload-types.ts       # generované typy (pnpm generate:types), neupravovat ručně
+├── docs/screenshots/          # snímky obrazovek po etapách
 ├── tests/e2e/                 # testy v prohlížeči (Playwright)
 ├── tests/int/                 # integrační testy (Payload + dočasná databáze)
 ├── migration/                 # inventura starých URL, report importu, uložené vzorové stránky
@@ -130,15 +133,15 @@ nad prázdnou databází, do které jste pustili `pnpm payload migrate` a `pnpm 
 
 ## Administrace: co kde najdete
 
-| Skupina v menu | Co obsahuje                                                                      |
-| -------------- | -------------------------------------------------------------------------------- |
-| **Objednávky** | Objednávky z e-shopu a odstoupení od smlouvy (etapa 4)                           |
-| **Katalog**    | Produkty (cena, varianty, fotky, vlastnosti) a Kategorie (strom kategorií, menu) |
-| **Číselníky**  | Řezy, Země původu, Druhy masa, Hodí se na, Trvanlivost a skladování              |
-| **Obsah**      | Články (Magazín, Terrys Academy), Recepty, Stránky, Obrázky                      |
-| **Doručování** | Způsoby dopravy, Rozvozové oblasti, Výjimky v kalendáři, PSČ                     |
-| **Přehledy**   | Kalendář doručování (které dny se pro dané PSČ doručuje)                         |
-| **Nastavení**  | Provozovny a odběrná místa, Uživatelé, Nastavení obchodu                         |
+| Skupina v menu | Co obsahuje                                                                             |
+| -------------- | --------------------------------------------------------------------------------------- |
+| **Objednávky** | Expedice (vážení, vyúčtování, štítky), Objednávky, Odstoupení od smlouvy, Historie změn |
+| **Katalog**    | Produkty (cena, varianty, fotky, vlastnosti) a Kategorie (strom kategorií, menu)        |
+| **Číselníky**  | Řezy, Země původu, Druhy masa, Hodí se na, Trvanlivost a skladování                     |
+| **Obsah**      | Články (Magazín, Terrys Academy), Recepty, Stránky, Obrázky                             |
+| **Doručování** | Způsoby dopravy, Rozvozové oblasti, Výjimky v kalendáři, PSČ                            |
+| **Přehledy**   | Kalendář doručování (které dny se pro dané PSČ doručuje)                                |
+| **Nastavení**  | Provozovny a odběrná místa, Uživatelé, Nastavení obchodu                                |
 
 - **Koncepty a publikování:** produkty, články, recepty a stránky se na webu ukážou až po kliknutí
   na „Publikovat“. Do té doby jsou to koncepty; předchozí verze lze obnovit v záložce „Verze“.
@@ -156,7 +159,7 @@ nad prázdnou databází, do které jste pustili `pnpm payload migrate` a `pnpm 
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Administrátor** | Vše: produkty, obsah, číselníky, uživatelé, provozovny, nastavení obchodu.                                                                  |
 | **Obsluha**       | Produkty, kategorie, číselníky, obsah, obrázky a výjimky v kalendáři doručování. Ne uživatele, nastavení, způsoby dopravy, oblasti ani PSČ. |
-| **Řezník**        | Prohlíží (i objednávky); vážit objednávky bude v etapě 5.                                                                                   |
+| **Řezník**        | Prohlíží (i objednávky) a váží objednávky (viz Vyřizování objednávek).                                                                      |
 
 První uživatel vytvořený v prázdné databázi je vždy administrátor. Nové uživatele zakládá a role
 mění jen administrátor (Nastavení → Uživatelé). Každý si může změnit své jméno a heslo.
@@ -280,8 +283,8 @@ Přihlášení k newsletteru v patičce se zatím jen kontroluje a nikam neodes�
    uplynula uzávěrka a zvolený den už nejde, zákazník dostane hlášku a vybere jiný.
 5. **Děkovná stránka** (`/objednavka/dekujeme/…`) a **e-maily**: potvrzení zákazníkovi a kopie
    obchodu se všemi údaji (pojistka, kdyby nešla administrace).
-6. Objednávka je v administraci v **Objednávky → Objednávky** se stavem „Přijato“. Vážení,
-   další stavy, faktury a Balíkobot přijdou v etapě 5.
+6. Objednávka je v administraci v **Objednávky → Objednávky** (a v **Expedici**) se stavem
+   „Přijato“. Co se s ní děje dál, popisuje kapitola Vyřizování objednávek.
 
 Čísla objednávek jdou po sobě od **100001** (číslo se může výjimečně přeskočit, to nevadí).
 
@@ -326,6 +329,146 @@ objednávek.
   `pnpm test:e2e` (celý nákup v prohlížeči na velikosti mobilu – viz „Příkazy“).
 - Testovací objednávky v cizí databázi smažte: v administraci (jen administrátor) nebo SQL
   `DELETE FROM withdrawals; DELETE FROM orders;`.
+
+## Vyřizování objednávek – vážení a expedice (etapa 5)
+
+Všechno se dělá v administraci ve skupině **Objednávky → Expedice**. Na úvodní stránce
+administrace je navíc rámeček **„Dnes“**: kolik objednávek čeká na vážení, na odeslání, na
+vyzvednutí, kolik je „ke kontrole“ a nová odstoupení od smlouvy. Klepnutím na číslo se otevře
+příslušný seznam.
+
+![Expedice](docs/screenshots/etapa-5/expedice.png)
+
+### Denní postup krok za krokem
+
+1. **Ráno otevřete Expedici.** Nahoře je pruh dní (včera, dnes, zítra a dalších 6 dní) – u každého
+   dne počet objednávek, odhad kilogramů a kolik zbývá zvážit. Klepněte na den. Objednávky jsou
+   rozdělené na **Rozvoz vlastním vozem**, **Kurýr** a **Osobní odběr**. Barevný proužek vlevo
+   ukazuje stav (šedá = přijato, oranžová = zváženo, modrá = odesláno/připraveno).
+   Hledání (číslo objednávky, jméno, telefon) prohledá všechny dny.
+2. **Vytiskněte výrobní list** (tlačítko „Výrobní list“). Nahoře je souhrn „Co připravit“ – kolik
+   kusů a kilogramů kterého masa a varianty je na ten den potřeba, pod ním každá objednávka zvlášť
+   s cílovými hmotnostmi, poznámkou zákazníka a prázdným sloupcem „Skutečně (g)“ na zapsání.
+3. **Řezník váží** – na tabletu nebo telefonu: Expedice → u objednávky **„Vážit“**.
+   - U každé položky vidí cílovou hmotnost a cenu za kg. Do velkého pole napíše **gramy** a hned
+     vidí cenu a odchylku od odhadu. Klávesa „Další“ skočí na další položku.
+   - Více kusů jedné položky se váží **dohromady** (jedno číslo). Kdo chce, klepne na „Vážit po
+     kusech“ a zadá každý kus zvlášť – součet se spočítá sám.
+   - Když se hmotnost liší víc než o povolených **±15 %** (nastavení), objeví se oranžový rámeček:
+     řezník klepne na připravený důvod („Celý kus nejde rozdělit“, „Zákazník souhlasil po
+     telefonu“…) nebo napíše vlastní. Vážení to nezastaví, objednávka se jen označí „ke kontrole“.
+   - **„Není k dispozici“** = položka se nedodá (0 Kč). **„Náhrada“** = místo objednaného masa jde
+     jiné; řezník ho zváží a napíše, co to je (cena zůstává podle původní ceny za kg – obsluha
+     to zkontroluje).
+   - Kusové zboží (omáčky…) se neváží.
+   - **„Uložit rozpracované“** uloží, co je hotové (lze pokračovat později).
+     **„Hotovo – zváženo“** jde stisknout, až je vše vyřešené.
+
+   ![Vážení na tabletu](docs/screenshots/etapa-5/vazeni-tablet.png)
+   ![Odchylka nad limit](docs/screenshots/etapa-5/vazeni-tablet-odchylka.png)
+
+4. **Obsluha vyúčtuje** – Expedice → **„Vyřídit“** (stránka „Vyřízení objednávky“):
+   - Zkontrolujte oranžový rámeček „Ke kontrole“ (velké odchylky, náhrady, nedostupné zboží).
+   - **Dárkový poukaz:** pokud zákazník zadal kód, je vidět. Kód ověřte (zatím ručně), pak
+     „+ Přidat poukaz“ (kód se předvyplní), částka a do poznámky kdo ověřil. Poukaz je **způsob
+     platby, ne sleva** – cena ani DPH se nemění, jen se sníží „K úhradě při převzetí“. Poukazy
+     nesmí být vyšší než cena objednávky.
+   - **Číslo faktury** opište z účetního programu (faktury vystavuje Blanka v účetnictví jako
+     dosud). Pokud stejné číslo už má jiná objednávka, obrazovka hned upozorní a uložení odmítne.
+     Pro kurýra na dobírku musí být číslo faktury jen z číslic (je to variabilní symbol).
+   - Částka **„K úhradě při převzetí“** je to, co vybere řidič / kurýr / prodejna.
+   - **„Potvrdit vyúčtování a poslat zákazníkovi cenu“** – zákazník dostane e-mail s výslednou
+     cenou po položkách, částkou k zaplacení a termínem.
+
+   ![Vyúčtování](docs/screenshots/etapa-5/vyrizeni-vyuctovani.png)
+
+5. **Odeslání:**
+   - **Kurýr (Balíkobot):** v Expedici „Vytvořit zásilky kurýra“ (nebo u jedné objednávky „Vytvořit
+     zásilku a štítek“) → „Štítky dne“ vytiskne PDF se štítky (u jedné objednávky „Tisk štítku“,
+     lze tisknout opakovaně) → štítky nalepit → **„Předat dopravci (uzavřít svoz)“**. Tím se
+     zásilky předají dopravci, objednávky přejdou do stavu „Odesláno“ a zákazník dostane e-mail
+     s odkazem na sledování. Dobírka = částka k úhradě, variabilní symbol = číslo faktury.
+     Zásilku, která ještě nebyla předána, lze „Zrušit zásilku“ a vytvořit znovu (např. po opravě
+     částky).
+   - **Vlastní vůz:** „Rozvoz a výdej“ vytiskne **rozvozový list** pro řidiče (adresa, telefon,
+     kolik vybrat, poznámka, podpis). Když řidič vyráží: „Řidič vyráží“ – objednávky dne přejdou
+     do „Odesláno“ a zákazníci dostanou e-mail „náš řidič k vám vyráží“.
+   - **Osobní odběr:** po přípravě na stránce objednávky „→ Připraveno k odběru“ – zákazník dostane
+     e-mail s místem, otevírací dobou (pokud je vyplněná u provozovny) a částkou.
+6. **Po předání** nastavte ručně „→ Doručeno“ / „→ Vyzvednuto“.
+
+**Balicí list** (tlačítko u objednávky nebo „Balicí listy“ pro celý den) obsahuje položky se
+skutečnou hmotností a cenou a částku k úhradě – přikládá se k zásilce.
+
+**Tisk:** tiskové stránky se otevřou v nové záložce, nahoře je tlačítko „Vytisknout“ (nebo
+Ctrl+P). Jsou připravené na A4; tisknou se bez lišty.
+
+### Zrušení objednávky
+
+Na stránce objednávky „Zrušit objednávku…“, napište důvod (pošle se zákazníkovi e-mailem) a
+potvrďte. Objednávku s vytvořenou, ale nepředanou zásilkou nejdřív „Zrušit zásilku“.
+
+### E-maily zákazníkovi
+
+| Kdy                                 | E-mail                                              |
+| ----------------------------------- | --------------------------------------------------- |
+| Obsluha potvrdí vyúčtování (poprvé) | výsledná cena po položkách, k zaplacení, termín     |
+| Odesláno – kurýr                    | číslo zásilky a odkaz na sledování                  |
+| Odesláno – vlastní vůz              | „náš řidič k vám vyráží <den>“ a částka k zaplacení |
+| Připraveno k odběru                 | místo, otevírací doba, částka                       |
+| Zrušeno                             | důvod zrušení                                       |
+
+Každý e-mail se pošle automaticky **jen jednou**. Všechny odeslané e-maily jsou vidět na stránce
+objednávky; tlačítkem „Poslat znovu“ lze e-mail zopakovat (např. po změně ceny). Bez nastaveného
+Resendu se e-maily jen ukládají do složky `.emails/` (stav „Neodesláno – jen uloženo“).
+
+### Kdo co smí
+
+| Role              | Vyřizování objednávek                                                                                                |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Administrátor** | Vše, navíc mazání objednávek.                                                                                        |
+| **Obsluha**       | Vše kromě mazání: vážení i opravy vážení, poukazy, číslo faktury, potvrzení ceny, zásilky, stavy, e-maily.           |
+| **Řezník**        | Vidí objednávky, Expedici a tiskne listy; **jen váží** a označí „Zváženo“. Nemění ceny, údaje zákazníka, nic nemaže. |
+
+Každá změna hmotnosti, ceny, poukazu, čísla faktury, stavu a zásilky se zapisuje do **Historie
+změn** (kdo, kdy, původně → nově). Historii nikdo nemůže upravit ani smazat.
+
+### Nastavení
+
+**Nastavení → Nastavení obchodu → Objednávky:** „Povolená odchylka při vážení (%)“ (výchozí 15) a
+„Hmotnost obalu zásilky (g)“ (termobox, chladicí vložky – přičte se k masu u kurýra; výchozí
+1000 g). **Doručování → Způsoby dopravy → Kurýr → Balíkobot:** kód dopravce (`ppl`) a **kód
+služby** Balíkobotu (bez něj ostrý Balíkobot zásilku nevytvoří).
+
+### Balíkobot a simulace
+
+| Proměnná v `.env`                         | K čemu                                                             |
+| ----------------------------------------- | ------------------------------------------------------------------ |
+| `BALIKOBOT_API_USER`, `BALIKOBOT_API_KEY` | Přístup k Balíkobotu (klientská zóna → expediční místo → API).     |
+| `BALIKOBOT_API_URL`                       | Nepovinné, výchozí `https://apiv2.balikobot.cz`.                   |
+| `BALIKOBOT_SIMULATION=1`                  | Vynutí simulaci (testy, zkušební server). Na ostrém e-shopu nikdy. |
+
+**Simulace** = bez přihlašovacích údajů se nic neposílá žádnému dopravci. Tlačítka fungují
+normálně, ale zásilka dostane vymyšlené číslo `SIM…`, štítek je jen ukázkové PDF s nápisem
+SIMULACE a v Expedici i u objednávky svítí červený pruh „SIMULACE“. Slouží k vyzkoušení celého
+postupu. Na produkčním serveru se simulace bez `BALIKOBOT_SIMULATION=1` nezapne – bez údajů
+tam vytvoření zásilky skončí chybou (aby zákazník nikdy nedostal falešné sledování).
+**Napojení na skutečný Balíkobot zatím nebylo vyzkoušeno** (nemáme účet) – před spuštěním je
+potřeba poslat zkušební zásilku (viz CLAUDE.md, etapa 9).
+
+Když Balíkobot zásilku odmítne (např. špatné PSČ), u objednávky se zobrazí červený rámeček
+s důvodem česky. Údaje se před odesláním kontrolují (telefon, PSČ, číslo faktury jako
+variabilní symbol…).
+
+### Ukázkové objednávky
+
+`pnpm seed` (mimo produkci) vytvoří 6 ukázkových objednávek na dnešek a zítřek v různých stavech
+(zákazníci `…@example.test`, interní poznámka „UKÁZKOVÁ OBJEDNÁVKA“), aby obrazovky nebyly
+prázdné. Na databázi s importovaným katalogem se spouští jen na požádání:
+`pnpm seed --only=orders`. Před spuštěním e-shopu je smažte (filtr e-mailu `example.test`).
+
+Snímky obrazovek všech obrazovek jsou ve složce `docs/screenshots/etapa-5/` (výrobní list i jako
+PDF). Znovu je vytvoří `SCREENSHOTS=1 pnpm test:e2e`.
 
 ## Doručování (etapa 2)
 

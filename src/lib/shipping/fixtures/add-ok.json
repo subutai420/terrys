@@ -1,0 +1,16 @@
+{
+  "_source": "Shape of the ADD response in the Balíkobot API v2 docs (PPL example), values replaced",
+  "packages": [
+    {
+      "eid": "100123",
+      "order_number": 1,
+      "carrier_id": 58800700001,
+      "package_id": "add-ppl-5704168",
+      "label_url": "https://pdf.balikobot.cz/ppl/eNozNjXQNQQCc0MDS1wwDy4CWw..",
+      "track_url": "https://www.ppl.cz/vyhledat-zasilku?shipmentId=58800700001",
+      "status": 200
+    }
+  ],
+  "labels_url": "https://pdf.balikobot.cz/ppl/eNozNjXQNQQCc0NDA1wwD1wnAlM.",
+  "status": 200
+}

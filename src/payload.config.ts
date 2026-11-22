@@ -14,6 +14,7 @@ import { DeliveryExceptions } from './collections/DeliveryExceptions'
 import { DeliveryZones } from './collections/DeliveryZones'
 import { Locations } from './collections/Locations'
 import { Media } from './collections/Media'
+import { OrderAuditLog } from './collections/OrderAuditLog'
 import { Orders } from './collections/Orders'
 import { Pages } from './collections/Pages'
 import { Postcodes } from './collections/Postcodes'
@@ -24,6 +25,7 @@ import { Users } from './collections/Users'
 import { Withdrawals } from './collections/Withdrawals'
 import { deliveryOptionsEndpoint } from './delivery/optionsEndpoint'
 import { createEmailAdapter } from './email/adapter'
+import { fulfilmentEndpoints } from './fulfilment/endpoints'
 import { Homepage } from './globals/Homepage'
 import { Settings } from './globals/Settings'
 import { migrations } from './migrations'
@@ -49,7 +51,24 @@ export default buildConfig({
           Component: '/components/admin/DeliveryCalendarView#DeliveryCalendarView',
           path: '/kalendar-doruceni',
         },
+        // Stage 5: fulfilment screens (src/components/admin/fulfilment).
+        expedice: {
+          Component: '/components/admin/fulfilment/ExpediceView#ExpediceView',
+          path: '/expedice',
+        },
+        weighing: {
+          Component: '/components/admin/fulfilment/WeighView#WeighView',
+          path: '/vazeni/:id',
+        },
+        orderFulfilment: {
+          Component: '/components/admin/fulfilment/OrderFulfilmentView#OrderFulfilmentView',
+          path: '/vyrizeni/:id',
+        },
       },
+      // Stage 5: own "Objednávky" nav group (Expedice + the order collections, which have
+      // `admin.group: false`) and the "Dnes" panel on the admin home.
+      beforeNavLinks: ['/components/admin/fulfilment/OrdersNavGroup#OrdersNavGroup'],
+      beforeDashboard: ['/components/admin/fulfilment/TodayPanel#TodayPanel'],
       afterNavLinks: ['/components/admin/DeliveryCalendarNavLink#DeliveryCalendarNavLink'],
     },
   },
@@ -66,6 +85,7 @@ export default buildConfig({
     // Objednávky (stage 4)
     Orders,
     Withdrawals,
+    OrderAuditLog,
     // Katalog
     Products,
     Categories,
@@ -93,7 +113,8 @@ export default buildConfig({
   globals: [Homepage, Settings],
   // Public endpoint for the cart: GET /api/delivery/options?psc=12000 (src/delivery/).
   // Stage 4: checkout endpoints POST /api/checkout/* (src/orders/endpoints.ts).
-  endpoints: [deliveryOptionsEndpoint, ...checkoutEndpoints],
+  // Stage 5: admin fulfilment endpoints /api/fulfilment/* (src/fulfilment/endpoints.ts).
+  endpoints: [deliveryOptionsEndpoint, ...checkoutEndpoints, ...fulfilmentEndpoints],
   // Stage 4: Resend when RESEND_API_KEY is set, otherwise e-mails are only saved to .emails/.
   email: createEmailAdapter(),
   editor: lexicalEditor(),

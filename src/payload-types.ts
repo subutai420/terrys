@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     orders: Order;
     withdrawals: Withdrawal;
+    'order-audit-log': OrderAuditLog;
     products: Product;
     categories: Category;
     cuts: Cut;
@@ -102,6 +103,7 @@ export interface Config {
   collectionsSelect: {
     orders: OrdersSelect<false> | OrdersSelect<true>;
     withdrawals: WithdrawalsSelect<false> | WithdrawalsSelect<true>;
+    'order-audit-log': OrderAuditLogSelect<false> | OrderAuditLogSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     cuts: CutsSelect<false> | CutsSelect<true>;
@@ -174,9 +176,11 @@ export interface Order {
   id: number;
   orderNumber: string;
   /**
-   * Etapa 4 zakládá „Přijato“. Vážení a další stavy přijdou v etapě 5.
+   * Stav se mění tlačítky na stránce „Vyřízení objednávky“ (a při vážení).
    */
   status: 'received' | 'weighed' | 'shipped' | 'ready-for-pickup' | 'delivered' | 'picked-up' | 'cancelled';
+  needsReview?: boolean | null;
+  reviewReasons?: string | null;
   kind: 'goods' | 'voucher';
   customerName?: string | null;
   contactEmail?: string | null;
@@ -187,8 +191,9 @@ export interface Order {
   scheduledDate?: string | null;
   shippingLabel?: string | null;
   totalEstimate?: number | null;
+  amountDue?: number | null;
   /**
-   * Stav v okamžiku objednávky. Skutečnou hmotnost a výslednou cenu doplní vážení (etapa 5).
+   * Stav v okamžiku objednávky. Skutečnou hmotnost a výslednou cenu doplní vážení (tlačítko „Vážit“).
    */
   lines?:
     | {
@@ -204,13 +209,15 @@ export interface Order {
         estimatedWeightGrams?: number | null;
         estimatedPrice: number;
         /**
-         * Vyplní řezník při vážení (etapa 5).
+         * Všechny kusy řádku dohromady.
          */
         actualWeightGrams?: number | null;
-        /**
-         * Etapa 5.
-         */
         finalPrice?: number | null;
+        resolution?: ('weighed' | 'substituted' | 'unavailable' | 'piece') | null;
+        pieceWeights?: string | null;
+        overTolerance?: boolean | null;
+        toleranceNote?: string | null;
+        weighNote?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -230,15 +237,33 @@ export interface Order {
           id?: string | null;
         }[]
       | null;
-    /**
-     * Etapa 5.
-     */
     goodsFinal?: number | null;
-    /**
-     * Etapa 5.
-     */
     totalFinal?: number | null;
+    voucherTotal?: number | null;
+    amountDue?: number | null;
+    vatFinal?:
+      | {
+          rate?: number | null;
+          base?: number | null;
+          vat?: number | null;
+          gross?: number | null;
+          id?: string | null;
+        }[]
+      | null;
   };
+  /**
+   * Ověřené poukazy zapsané obsluhou na stránce „Vyřízení objednávky“.
+   */
+  voucherRedemptions?:
+    | {
+        code: string;
+        amount: number;
+        note?: string | null;
+        recordedBy?: (number | null) | User;
+        recordedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * NEOVĚŘENO. Poukaz zkontrolujte ručně a jeho hodnotu odečtěte při vážení.
    */
@@ -286,18 +311,57 @@ export interface Order {
    * Vidí jen obsluha. Zákazníkovi se nikdy neposílá.
    */
   internalNote?: string | null;
-  /**
-   * Etapa 5.
-   */
   invoiceNumber?: string | null;
-  /**
-   * Etapa 5 (Balíkobot).
-   */
   trackingNumber?: string | null;
-  /**
-   * Etapa 5.
-   */
   trackingUrl?: string | null;
+  /**
+   * Kdo a kdy objednávku zvážil a potvrdil vyúčtování.
+   */
+  fulfilment?: {
+    weighedAt?: string | null;
+    weighedBy?: (number | null) | User;
+    finalisedAt?: string | null;
+    finalisedBy?: (number | null) | User;
+  };
+  shipment?: {
+    provider?: ('balikobot' | 'simulation') | null;
+    carrierCode?: string | null;
+    serviceCode?: string | null;
+    packageId?: string | null;
+    labelCreatedAt?: string | null;
+    handedOverAt?: string | null;
+    batchId?: string | null;
+    attempt?: number | null;
+    labelUrl?: string | null;
+    lastError?: string | null;
+  };
+  cancellation?: {
+    reason?: string | null;
+    cancelledAt?: string | null;
+    cancelledBy?: (number | null) | User;
+  };
+  statusHistory?:
+    | {
+        status?:
+          ('received' | 'weighed' | 'shipped' | 'ready-for-pickup' | 'delivered' | 'picked-up' | 'cancelled') | null;
+        at?: string | null;
+        by?: (number | null) | User;
+        note?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  sentEmails?:
+    | {
+        kind?: ('final-price' | 'shipped' | 'ready-for-pickup' | 'cancelled') | null;
+        status?: ('pending' | 'sent' | 'outbox' | 'failed' | 'skipped') | null;
+        at?: string | null;
+        by?: (number | null) | User;
+        to?: string | null;
+        subject?: string | null;
+        error?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Pokud se potvrzení zákazníkovi nepodařilo odeslat, objednávka je přesto platná – kontaktujte zákazníka telefonem.
    */
@@ -924,6 +988,39 @@ export interface Recipe {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Lidé, kteří se mohou přihlásit do administrace. Spravuje jen administrátor.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  name?: string | null;
+  /**
+   * Administrátor: vše včetně uživatelů a nastavení. Obsluha: produkty, kategorie, číselníky, obsah a obrázky. Řezník: zatím jen prohlížení (později vážení objednávek). Roli může měnit jen administrátor. První vytvořený uživatel je vždy administrátor.
+   */
+  role: 'admin' | 'staff' | 'butcher';
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
+}
+/**
  * Rozvoz, kurýr a osobní odběry. Cena rozvozu i kurýra je jednotná a nastavuje se v Nastavení obchodu (doprava zdarma neexistuje); osobní odběr je vždy zdarma. Upravuje administrátor.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1139,6 +1236,27 @@ export interface Withdrawal {
   createdAt: string;
 }
 /**
+ * Kdo a kdy změnil hmotnost, cenu, poukaz, číslo faktury, stav nebo zásilku. Záznamy nejdou upravit ani smazat.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "order-audit-log".
+ */
+export interface OrderAuditLog {
+  id: number;
+  order?: (number | null) | Order;
+  orderNumber?: string | null;
+  at: string;
+  user?: (number | null) | User;
+  userEmail?: string | null;
+  field: string;
+  lineId?: string | null;
+  oldValue?: string | null;
+  newValue?: string | null;
+  summary?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Články do Magazínu a Terrys Academy. Na webu se ukážou až po publikování.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1289,39 +1407,6 @@ export interface Postcode {
   createdAt: string;
 }
 /**
- * Lidé, kteří se mohou přihlásit do administrace. Spravuje jen administrátor.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
- */
-export interface User {
-  id: number;
-  name?: string | null;
-  /**
-   * Administrátor: vše včetně uživatelů a nastavení. Obsluha: produkty, kategorie, číselníky, obsah a obrázky. Řezník: zatím jen prohlížení (později vážení objednávek). Roli může měnit jen administrátor. První vytvořený uživatel je vždy administrátor.
-   */
-  role: 'admin' | 'staff' | 'butcher';
-  updatedAt: string;
-  createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  resetPasswordRequestedAt?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
-  collection: 'users';
-}
-/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -1352,6 +1437,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'withdrawals';
         value: number | Withdrawal;
+      } | null)
+    | ({
+        relationTo: 'order-audit-log';
+        value: number | OrderAuditLog;
       } | null)
     | ({
         relationTo: 'products';
@@ -1470,6 +1559,8 @@ export interface PayloadMigration {
 export interface OrdersSelect<T extends boolean = true> {
   orderNumber?: T;
   status?: T;
+  needsReview?: T;
+  reviewReasons?: T;
   kind?: T;
   customerName?: T;
   contactEmail?: T;
@@ -1477,6 +1568,7 @@ export interface OrdersSelect<T extends boolean = true> {
   scheduledDate?: T;
   shippingLabel?: T;
   totalEstimate?: T;
+  amountDue?: T;
   lines?:
     | T
     | {
@@ -1493,6 +1585,11 @@ export interface OrdersSelect<T extends boolean = true> {
         estimatedPrice?: T;
         actualWeightGrams?: T;
         finalPrice?: T;
+        resolution?: T;
+        pieceWeights?: T;
+        overTolerance?: T;
+        toleranceNote?: T;
+        weighNote?: T;
         id?: T;
       };
   totals?:
@@ -1512,6 +1609,27 @@ export interface OrdersSelect<T extends boolean = true> {
             };
         goodsFinal?: T;
         totalFinal?: T;
+        voucherTotal?: T;
+        amountDue?: T;
+        vatFinal?:
+          | T
+          | {
+              rate?: T;
+              base?: T;
+              vat?: T;
+              gross?: T;
+              id?: T;
+            };
+      };
+  voucherRedemptions?:
+    | T
+    | {
+        code?: T;
+        amount?: T;
+        note?: T;
+        recordedBy?: T;
+        recordedAt?: T;
+        id?: T;
       };
   voucherCode?: T;
   customer?:
@@ -1559,6 +1677,56 @@ export interface OrdersSelect<T extends boolean = true> {
   invoiceNumber?: T;
   trackingNumber?: T;
   trackingUrl?: T;
+  fulfilment?:
+    | T
+    | {
+        weighedAt?: T;
+        weighedBy?: T;
+        finalisedAt?: T;
+        finalisedBy?: T;
+      };
+  shipment?:
+    | T
+    | {
+        provider?: T;
+        carrierCode?: T;
+        serviceCode?: T;
+        packageId?: T;
+        labelCreatedAt?: T;
+        handedOverAt?: T;
+        batchId?: T;
+        attempt?: T;
+        labelUrl?: T;
+        lastError?: T;
+      };
+  cancellation?:
+    | T
+    | {
+        reason?: T;
+        cancelledAt?: T;
+        cancelledBy?: T;
+      };
+  statusHistory?:
+    | T
+    | {
+        status?: T;
+        at?: T;
+        by?: T;
+        note?: T;
+        id?: T;
+      };
+  sentEmails?:
+    | T
+    | {
+        kind?: T;
+        status?: T;
+        at?: T;
+        by?: T;
+        to?: T;
+        subject?: T;
+        error?: T;
+        id?: T;
+      };
   emails?:
     | T
     | {
@@ -1618,6 +1786,24 @@ export interface WithdrawalsSelect<T extends boolean = true> {
   confirmationSentAt?: T;
   confirmationError?: T;
   internalNote?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "order-audit-log_select".
+ */
+export interface OrderAuditLogSelect<T extends boolean = true> {
+  order?: T;
+  orderNumber?: T;
+  at?: T;
+  user?: T;
+  userEmail?: T;
+  field?: T;
+  lineId?: T;
+  oldValue?: T;
+  newValue?: T;
+  summary?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2227,11 +2413,19 @@ export interface Setting {
    * Text, který obchod zobrazí u každé odhadované ceny. Musí vysvětlit, že výsledná cena závisí na skutečné hmotnosti.
    */
   priceNotice: string;
-  orders?: {
+  orders: {
     /**
      * Interní e-mail s kompletními údaji objednávky (např. objednavky@…). Když je prázdné, použije se proměnná ORDER_NOTIFICATION_EMAIL, jinak kontaktní e-mail.
      */
     notificationEmail?: string | null;
+    /**
+     * Když se skutečná hmotnost liší od odhadu víc, řezník musí napsat důvod a objednávka se označí „ke kontrole“. Vážení to neblokuje.
+     */
+    weightTolerancePercent: number;
+    /**
+     * Termobox, chladicí vložky… Přičte se k masu u zásilky kurýrem.
+     */
+    packagingWeightGrams: number;
   };
   contact?: {
     email?: string | null;
@@ -2343,6 +2537,8 @@ export interface SettingsSelect<T extends boolean = true> {
     | T
     | {
         notificationEmail?: T;
+        weightTolerancePercent?: T;
+        packagingWeightGrams?: T;
       };
   contact?:
     | T

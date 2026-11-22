@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  computeFinalTotals,
   computeTotals,
   fromHalere,
+  lineFinalPrice,
+  VoucherCapError,
+  voucherAmountError,
   lineEstimate,
   lineWeightGrams,
   splitDelivery,
@@ -134,5 +138,129 @@ describe('computeTotals', () => {
       ),
     ).toThrow()
     expect(() => computeTotals([], 229.5)).toThrow()
+  })
+})
+
+// ------------------------------------------------------------------ stage 5: final price
+describe('lineFinalPrice (stage 5)', () => {
+  const base = { unitPrice: 990, priceUnit: 'kg' as const, quantity: 2, vatRate: '12' }
+
+  it('unit price × actual weight of the WHOLE line, rounded once to whole CZK', () => {
+    // 990 × 0.523 = 517.77 → 518 (quantity does not multiply again: the weight is the total)
+    expect(lineFinalPrice({ ...base, actualWeightGrams: 523, resolution: 'weighed' })).toBe(518)
+    // half up like the estimate: 990 × 0.25 = 247.5 → 248
+    expect(lineFinalPrice({ ...base, actualWeightGrams: 250, resolution: 'weighed' })).toBe(248)
+  })
+
+  it('per-100 g prices with haléře', () => {
+    // 89.90 × 1.37 = 123.163 → 123
+    expect(
+      lineFinalPrice({
+        unitPrice: 89.9,
+        priceUnit: '100g',
+        quantity: 1,
+        vatRate: '12',
+        actualWeightGrams: 137,
+        resolution: 'weighed',
+      }),
+    ).toBe(123)
+  })
+
+  it('substitution is priced with the original unit price; unavailable is 0', () => {
+    expect(lineFinalPrice({ ...base, actualWeightGrams: 500, resolution: 'substituted' })).toBe(495)
+    expect(lineFinalPrice({ ...base, actualWeightGrams: 500, resolution: 'unavailable' })).toBe(0)
+  })
+
+  it('piece-priced items need no weight', () => {
+    expect(
+      lineFinalPrice({
+        unitPrice: 149.5,
+        priceUnit: 'piece',
+        quantity: 2,
+        vatRate: '21',
+        actualWeightGrams: null,
+        resolution: null,
+      }),
+    ).toBe(299)
+  })
+
+  it('null while not weighed', () => {
+    expect(lineFinalPrice({ ...base, actualWeightGrams: null, resolution: null })).toBe(null)
+    expect(lineFinalPrice({ ...base, actualWeightGrams: 0, resolution: 'weighed' })).toBe(null)
+    expect(lineFinalPrice({ ...base, actualWeightGrams: 300, resolution: null })).toBe(null)
+  })
+})
+
+describe('computeFinalTotals (stage 5)', () => {
+  const steak = {
+    unitPrice: 990,
+    priceUnit: 'kg' as const,
+    quantity: 1,
+    vatRate: '12',
+    actualWeightGrams: 540,
+    resolution: 'weighed' as const,
+  }
+  const sauce = {
+    unitPrice: 149,
+    priceUnit: 'piece' as const,
+    quantity: 1,
+    vatRate: '21',
+    actualWeightGrams: null,
+    resolution: 'piece' as const,
+  }
+
+  it('sums whole-CZK lines + delivery, VAT per rate with delivery split by FINAL goods value', () => {
+    const t = computeFinalTotals([steak, sauce], 229)
+    // 990 × 0.54 = 534.6 → 535
+    expect(t.goodsFinal).toBe(535 + 149)
+    expect(t.totalFinal).toBe(684 + 229)
+    expect(t.amountDue).toBe(913)
+    expect(t.voucherTotal).toBe(0)
+    const gross = t.vat.reduce((sum, row) => sum + row.gross, 0)
+    expect(Math.round(gross * 100)).toBe(913 * 100)
+    for (const row of t.vat)
+      expect(Math.round((row.base + row.vat) * 100)).toBe(Math.round(row.gross * 100))
+    // the same VAT split rule as the estimate (computeTotals) for identical amounts
+    const sameAsEstimate = computeTotals(
+      [
+        { unitPrice: 990, priceUnit: 'kg', weightGrams: 540, quantity: 1, vatRate: '12' },
+        { unitPrice: 149, priceUnit: 'piece', weightGrams: null, quantity: 1, vatRate: '21' },
+      ],
+      229,
+    )
+    expect(t.vat).toEqual(sameAsEstimate.vat)
+  })
+
+  it('vouchers are a payment: prices and VAT stay, only the amount due drops', () => {
+    const without = computeFinalTotals([steak], 229)
+    const withVoucher = computeFinalTotals([steak], 229, [500, 100])
+    expect(withVoucher.totalFinal).toBe(without.totalFinal)
+    expect(withVoucher.vat).toEqual(without.vat)
+    expect(withVoucher.voucherTotal).toBe(600)
+    expect(withVoucher.amountDue).toBe(without.totalFinal - 600)
+  })
+
+  it('voucher cap: may equal the total, never exceed it', () => {
+    const total = computeFinalTotals([steak], 229).totalFinal
+    expect(computeFinalTotals([steak], 229, [total]).amountDue).toBe(0)
+    expect(() => computeFinalTotals([steak], 229, [total + 1])).toThrow(VoucherCapError)
+  })
+
+  it('rejects invalid voucher amounts and unresolved lines', () => {
+    expect(() => computeFinalTotals([steak], 229, [10.5])).toThrow()
+    expect(() => computeFinalTotals([steak], 229, [0])).toThrow()
+    expect(() => computeFinalTotals([{ ...steak, resolution: null }], 229)).toThrow()
+    expect(voucherAmountError(500)).toBe(null)
+    expect(voucherAmountError(-1)).toMatch(/větší než 0/)
+    expect(voucherAmountError(1.5)).toMatch(/celých/)
+  })
+
+  it('everything unavailable: goods 0, delivery still has a VAT row', () => {
+    const t = computeFinalTotals([{ ...steak, resolution: 'unavailable' }], 229)
+    expect(t.goodsFinal).toBe(0)
+    expect(t.totalFinal).toBe(229)
+    expect(t.vat).toHaveLength(1)
+    expect(t.vat[0].rate).toBe(12)
+    expect(t.vat[0].gross).toBe(229)
   })
 })

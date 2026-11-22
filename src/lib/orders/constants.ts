@@ -40,6 +40,45 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   cancelled: 'Zrušeno',
 }
 
+/** Final statuses: nothing more happens with the order. */
+export const FINAL_STATUSES: readonly OrderStatus[] = ['delivered', 'picked-up', 'cancelled']
+
+/**
+ * Stage 5: how a line was resolved at the cutting table.
+ * - `weighed`     – cut and weighed; the final price follows `actualWeightGrams`.
+ * - `substituted` – a replacement was weighed instead (note says what); priced with the ORIGINAL
+ *                   unit price × actual weight and flagged for staff.
+ * - `unavailable` – not delivered at all; final price 0.
+ * - `piece`       – piece-priced item (sauce…), needs no weighing; fixed price × quantity.
+ * Empty (null) = not resolved yet.
+ */
+export const LINE_RESOLUTIONS = ['weighed', 'substituted', 'unavailable', 'piece'] as const
+export type LineResolution = (typeof LINE_RESOLUTIONS)[number]
+export const LINE_RESOLUTION_LABELS: Record<LineResolution, string> = {
+  weighed: 'Zváženo',
+  substituted: 'Náhrada (zváženo)',
+  unavailable: 'Není k dispozici',
+  piece: 'Kusové zboží (neváží se)',
+}
+
+/** Stage 5: customer e-mails sent while fulfilling an order (each recorded on the order). */
+export const FULFILMENT_EMAIL_KINDS = [
+  'final-price',
+  'shipped',
+  'ready-for-pickup',
+  'cancelled',
+] as const
+export type FulfilmentEmailKind = (typeof FULFILMENT_EMAIL_KINDS)[number]
+export const FULFILMENT_EMAIL_LABELS: Record<FulfilmentEmailKind, string> = {
+  'final-price': 'Výsledná cena po zvážení',
+  shipped: 'Objednávka je na cestě',
+  'ready-for-pickup': 'Připraveno k vyzvednutí',
+  cancelled: 'Zrušení objednávky',
+}
+
+/** Default allowed deviation of the weighed amount from the estimate (settings override it). */
+export const DEFAULT_WEIGHT_TOLERANCE_PERCENT = 15
+
 /** What happened to an e-mail the order sent. */
 export const EMAIL_STATUSES = ['pending', 'sent', 'outbox', 'failed', 'skipped'] as const
 export type EmailStatus = (typeof EMAIL_STATUSES)[number]

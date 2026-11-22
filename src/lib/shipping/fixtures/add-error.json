@@ -1,0 +1,19 @@
+{
+  "_source": "Error structure documented in the Balíkobot API v2 docs (section ADD → Struktura chybové hlášky)",
+  "packages": [
+    {
+      "status": 400,
+      "eid": "100123",
+      "order_number": 1,
+      "errors": [
+        {
+          "type": 413,
+          "attribute": "rec_zip",
+          "message": "Špatný formát PSČ příjemce. PSČ má obsahovat 5 čísel."
+        },
+        { "type": 413, "attribute": "rec_zip", "message": "Nepovolené PSČ příjemce." }
+      ]
+    }
+  ],
+  "status": 400
+}

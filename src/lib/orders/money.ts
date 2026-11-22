@@ -148,25 +148,163 @@ export function computeTotals(lines: MoneyLineInput[], deliveryPrice: number): O
     goodsByRate.set(rate, (goodsByRate.get(rate) ?? 0) + toHalere(estimate))
   }
 
-  const deliveryByRate = splitDelivery(toHalere(deliveryPrice), goodsByRate)
-  const rates = [...new Set([...goodsByRate.keys(), ...deliveryByRate.keys()])].sort(
-    (a, b) => a - b,
-  )
-  const vat = rates.map((rate) => {
-    const gross = (goodsByRate.get(rate) ?? 0) + (deliveryByRate.get(rate) ?? 0)
-    const vatHalere = vatFromGross(gross, rate)
-    return {
-      rate,
-      gross: fromHalere(gross),
-      base: fromHalere(gross - vatHalere),
-      vat: fromHalere(vatHalere),
-    }
-  })
-
   return {
     goodsEstimate,
     deliveryPrice,
     totalEstimate: goodsEstimate + deliveryPrice,
-    vat,
+    vat: vatBreakdown(goodsByRate, deliveryPrice),
   }
+}
+
+/** VAT rows of goods (haléře per rate) + delivery (whole CZK, split by `splitDelivery`). */
+export function vatBreakdown(goodsByRate: Map<number, number>, deliveryPrice: number): VatRow[] {
+  const deliveryByRate = splitDelivery(toHalere(deliveryPrice), goodsByRate)
+  const rates = [...new Set([...goodsByRate.keys(), ...deliveryByRate.keys()])].sort(
+    (a, b) => a - b,
+  )
+  return rates
+    .map((rate) => {
+      const gross = (goodsByRate.get(rate) ?? 0) + (deliveryByRate.get(rate) ?? 0)
+      const vatHalere = vatFromGross(gross, rate)
+      return {
+        rate,
+        gross: fromHalere(gross),
+        base: fromHalere(gross - vatHalere),
+        vat: fromHalere(vatHalere),
+      }
+    })
+    .filter((row) => row.gross !== 0)
+}
+
+// ---------------------------------------------------------------------------------------------
+// Stage 5: final price after weighing
+// ---------------------------------------------------------------------------------------------
+//
+// RULES (same as the estimate, also in CLAUDE.md "Final price"):
+// 6. Final line price = unit price × ACTUAL weight of the whole line (all pieces together),
+//    rounded ONCE per line to whole CZK (half up) – the same rounding as the estimate.
+//    Piece-priced items: unit price × quantity (no weighing). Unavailable lines: 0.
+//    A substituted line is priced with the ORIGINAL unit price (the butcher cannot set prices).
+// 7. goodsFinal = sum of whole-CZK final lines; totalFinal = goodsFinal + delivery price (the
+//    delivery price never changes after the order – business rule 2). No further rounding.
+// 8. VAT breakdown recomputed from the final lines exactly like the estimate (haléře per rate,
+//    delivery split in proportion to the FINAL goods value).
+// 9. Gift vouchers are a MEANS OF PAYMENT, not a discount: they do not change any price or the
+//    VAT breakdown, they only reduce the amount the customer pays on delivery (doplatek).
+//    Each voucher amount is whole CZK > 0; their sum may not exceed totalFinal.
+
+export type FinalLineInput = {
+  unitPrice: number
+  priceUnit: PriceUnit
+  quantity: number
+  vatRate: string
+  /** Weight of the whole line in grams (all pieces), null when not weighed. */
+  actualWeightGrams: number | null | undefined
+  resolution: 'weighed' | 'substituted' | 'unavailable' | 'piece' | null | undefined
+}
+
+export type FinalTotals = {
+  goodsFinal: number
+  deliveryPrice: number
+  totalFinal: number
+  vat: VatRow[]
+  voucherTotal: number
+  /** What the customer pays on delivery/pickup (dobírka / doplatek): totalFinal − vouchers. */
+  amountDue: number
+}
+
+/** Final price of one line in whole CZK, or null when the line is not resolved yet. */
+export function lineFinalPrice(line: FinalLineInput): number | null {
+  if (line.resolution === 'unavailable') return 0
+  if (line.priceUnit === 'piece') {
+    return estimateVariantPrice(
+      { unitPrice: line.unitPrice, priceUnit: 'piece' },
+      {},
+      line.quantity,
+    )
+  }
+  if (line.resolution !== 'weighed' && line.resolution !== 'substituted') return null
+  const grams = line.actualWeightGrams
+  if (typeof grams !== 'number' || !Number.isFinite(grams) || grams <= 0) return null
+  // The whole line was weighed at once → quantity 1 with the total weight.
+  return estimateVariantPrice(
+    { unitPrice: line.unitPrice, priceUnit: line.priceUnit },
+    { weightGrams: grams },
+    1,
+  )
+}
+
+export class VoucherCapError extends Error {
+  constructor(
+    public voucherTotal: number,
+    public totalFinal: number,
+  ) {
+    super(`Vouchers (${voucherTotal}) exceed the final total (${totalFinal})`)
+  }
+}
+
+/** Validates voucher amounts (whole CZK > 0). Returns a Czech message or null. */
+export function voucherAmountError(amount: unknown): string | null {
+  if (typeof amount !== 'number' || !Number.isFinite(amount)) return 'Zadejte částku poukazu.'
+  if (!Number.isInteger(amount)) return 'Částka poukazu musí být v celých korunách.'
+  if (amount <= 0) return 'Částka poukazu musí být větší než 0 Kč.'
+  return null
+}
+
+/**
+ * Final totals of a weighed order. Throws when a line is not resolved, and `VoucherCapError`
+ * when the vouchers exceed the final total.
+ */
+export function computeFinalTotals(
+  lines: FinalLineInput[],
+  deliveryPrice: number,
+  voucherAmounts: number[] = [],
+): FinalTotals {
+  if (!Number.isInteger(deliveryPrice) || deliveryPrice < 0) {
+    throw new Error(`Invalid delivery price: ${deliveryPrice}`)
+  }
+  const goodsByRate = new Map<number, number>()
+  const allRates = new Set<number>()
+  let goodsFinal = 0
+  for (const line of lines) {
+    const price = lineFinalPrice(line)
+    if (price === null) throw new Error('Line is not resolved')
+    goodsFinal += price
+    const rate = vatRateToNumber(line.vatRate)
+    allRates.add(rate)
+    if (price > 0) goodsByRate.set(rate, (goodsByRate.get(rate) ?? 0) + toHalere(price))
+  }
+  // Nothing delivered at all (every line unavailable): the delivery still needs a VAT rate.
+  if (goodsByRate.size === 0) for (const rate of allRates) goodsByRate.set(rate, 0)
+  const totalFinal = goodsFinal + deliveryPrice
+  for (const amount of voucherAmounts) {
+    if (voucherAmountError(amount)) throw new Error(`Invalid voucher amount: ${amount}`)
+  }
+  const voucherTotal = voucherAmounts.reduce((sum, amount) => sum + amount, 0)
+  if (voucherTotal > totalFinal) throw new VoucherCapError(voucherTotal, totalFinal)
+  return {
+    goodsFinal,
+    deliveryPrice,
+    totalFinal,
+    vat: vatBreakdown(goodsByRate, deliveryPrice),
+    voucherTotal,
+    amountDue: totalFinal - voucherTotal,
+  }
+}
+
+/** Sum of the final prices of the resolved lines (live preview while weighing; null = none). */
+export function partialGoodsFinal(lines: FinalLineInput[]): {
+  total: number
+  resolved: number
+} {
+  let total = 0
+  let resolved = 0
+  for (const line of lines) {
+    const price = lineFinalPrice(line)
+    if (price !== null) {
+      total += price
+      resolved += 1
+    }
+  }
+  return { total, resolved }
 }

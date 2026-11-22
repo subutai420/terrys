@@ -10,7 +10,7 @@
  * yet, an administrator account is created with these credentials (handy for a fresh local
  * database). Otherwise create the first user in the browser at /admin.
  *
- * `--only=catalog,content,locations,settings,delivery` runs only some parts, e.g. on the database
+ * `--only=catalog,content,locations,settings,delivery,orders` runs only some parts, e.g. on the database
  * with the imported catalog: `pnpm seed --only=settings,locations,delivery`.
  * The database schema must exist (run `pnpm dev` once, or `pnpm payload migrate`).
  */
