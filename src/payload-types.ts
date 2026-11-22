@@ -89,6 +89,7 @@ export interface Config {
     postcodes: Postcode;
     locations: Location;
     users: User;
+    redirects: Redirect;
     'integration-jobs': IntegrationJob;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -130,6 +131,7 @@ export interface Config {
     postcodes: PostcodesSelect<false> | PostcodesSelect<true>;
     locations: LocationsSelect<false> | LocationsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     'integration-jobs': IntegrationJobsSelect<false> | IntegrationJobsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -1624,6 +1626,33 @@ export interface Postcode {
   createdAt: string;
 }
 /**
+ * Staré adresy, které mají vést jinam (trvalé přesměrování 308). Běžné staré adresy web přesměrovává sám – sem patří jen výjimky, např. skrytý produkt → jiná kategorie. Projeví se do minuty, bez nasazení nové verze.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redirects".
+ */
+export interface Redirect {
+  id: number;
+  /**
+   * Cesta na webu (část adresy za doménou), bez otazníku. Lze vložit i celou starou adresu https://www.terrys.cz/… – uloží se jen cesta, malými písmeny.
+   */
+  from: string;
+  /**
+   * Zveřejněná stránka tohoto webu, např. /produkty/wagyu-98 nebo /produkty?druh=hovezi. Parametry utm_… z původního odkazu se přenesou automaticky.
+   */
+  to: string;
+  /**
+   * Vypnuté přesměrování se neuplatní (zůstane pro pozdější použití).
+   */
+  active?: boolean | null;
+  /**
+   * Proč přesměrování existuje (jen pro vás, na webu se nezobrazí).
+   */
+  note?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Co obchod poslal do Meta, Heureky a Ecomailu a s jakým výsledkem. Chybná odeslání se opakují automaticky. Ručně opakovat: změňte stav na „Čeká“ a uložte.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1771,6 +1800,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'redirects';
+        value: number | Redirect;
       } | null)
     | ({
         relationTo: 'integration-jobs';
@@ -2640,6 +2673,18 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redirects_select".
+ */
+export interface RedirectsSelect<T extends boolean = true> {
+  from?: T;
+  to?: T;
+  active?: T;
+  note?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

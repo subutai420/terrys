@@ -7,6 +7,7 @@ import { filterQueryString, hasActiveFilters, parseFilterParams } from '@/lib/fi
 import { lexicalToPlainText } from '@/lib/text'
 import { getPublicPath, LEGACY_CATEGORY_HEADER } from '@/lib/urls'
 import type { Category } from '@/payload-types'
+import { findLegacyRedirect } from '@/redirects/legacyIndex'
 import { getCategoryByLegacyPath, getCategoryBySlug } from '@/storefront/data'
 import { buildMetadata } from '@/storefront/seo'
 
@@ -63,6 +64,13 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 export default async function CategoryRoute({ params, searchParams }: Props) {
   const [{ slug }, query] = await Promise.all([params, searchParams])
   const category = await loadCategory(slug)
-  if (!category) notFound()
+  if (!category) {
+    // Stage 8b fallback (normally answered by src/proxy.ts): an old alias of a category
+    // (`/produkty/rib-eye-106` → `/produkty/vysoky-rostenec-rib-eye-106`) or a retired one.
+    const legacyPath = (await headers()).get(LEGACY_CATEGORY_HEADER)
+    const target = legacyPath ? await findLegacyRedirect(legacyPath, query) : null
+    if (target) permanentRedirect(target)
+    notFound()
+  }
   return <CategoryPage category={category} state={parseFilterParams(query)} />
 }

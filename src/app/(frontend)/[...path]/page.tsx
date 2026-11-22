@@ -7,6 +7,7 @@ import { ProductView } from '@/components/storefront/views/ProductView'
 import { parseFilterParams } from '@/lib/filters'
 import { lexicalToPlainText } from '@/lib/text'
 import { getPublicPath, pathFromSegments } from '@/lib/urls'
+import { findLegacyRedirect } from '@/redirects/legacyIndex'
 import { getLocations } from '@/storefront/data'
 import { resolvePath } from '@/storefront/resolve'
 import { buildMetadata } from '@/storefront/seo'
@@ -18,7 +19,9 @@ import { buildMetadata } from '@/storefront/seo'
  *
  * Static generation: no paths are pre-rendered at build time; each page is rendered on its first
  * visit and then served from the cache until an edit in the admin revalidates it (ISR).
- * Unknown paths → notFound() → real 404 (not-found.tsx).
+ * Unknown paths → old-address redirect if one fits (stage 8b, `src/redirects/legacyIndex.ts`;
+ * normally `src/proxy.ts` answers those first, this is the fallback for a proxy without its
+ * table), otherwise notFound() → real 404 (not-found.tsx).
  */
 
 type Props = { params: Promise<{ path: string[] }> }
@@ -87,7 +90,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function DocumentPage({ params }: Props) {
   const { path } = await params
   const resolved = await resolvePath(pathFromSegments(path))
-  if (!resolved) notFound()
+  if (!resolved) {
+    // The page is statically cached (ISR), so the query string is not available here; the
+    // proxy keeps utm_* parameters on the redirects it issues.
+    const target = await findLegacyRedirect(pathFromSegments(path))
+    if (target) permanentRedirect(target)
+    notFound()
+  }
 
   switch (resolved.kind) {
     case 'redirect':

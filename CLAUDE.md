@@ -50,6 +50,8 @@ read it: the bundled Next.js docs in `node_modules/next/dist/docs/` match the in
   `src/lib/measurement`, `src/lib/feeds`, `src/lib/consent` – stage 6, see "Measurement…".
 - `src/vouchers` + `src/lib/vouchers` + `src/components/admin/vouchers` – stage 7 gift vouchers,
   see "Gift vouchers (stage 7)".
+- `src/redirects` + `src/lib/redirects` + collection `redirects` – stage 8b redirects of old
+  addresses (used by `src/proxy.ts`), see "Redirects from the old addresses".
 - `src/delivery` – Payload glue of the delivery module (loading rules, endpoints, CSV import);
   the pure logic is in `src/lib/delivery`. `src/components/admin` – custom admin components.
 - `tests/e2e` – Playwright tests (`*.e2e.spec.ts`).
@@ -83,6 +85,9 @@ below), Nastavení
 | `media`                                                  | Obsah     | Local disk. `alt` required. WebP sizes `thumbnail` 400², `card` 800², `detail` 1600w, `og` 1200×630; focal point on.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `locations`                                              | Nastavení | Shop Italská 17 + warehouse Slivínko: `kind`, `isPickupPoint`, `address` group, `openingHours` group (one text per weekday + `note`), `phone`, `email`, `mapUrl`, `parkingNote`. Admin-only writes.                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `users`                                                  | Nastavení | Auth. `role` select (`admin`/`staff`/`butcher`, saved to JWT).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+
+Stage 8b added `redirects` (Nastavení, editors read/write): redirects of old addresses entered by
+the owner, see "Redirects from the old addresses"; migration `20261122_222945_redirects`.
 
 Global `homepage` (stage 3, editors write, public read): editable homepage blocks, see
 "Storefront". Stage 3 also added `locations.page` (store page) and `origins.category` (where the
@@ -244,6 +249,8 @@ Never add carrier codes, zones, internal notes or anything per-user to this resp
 
 ## Migration from the old terrys.cz (stage 8, first half)
 
+Second half (redirects): see "Redirects from the old addresses (stage 8, second half)" below.
+
 Code in `src/migration`, outputs in `migration/` (committed: `url-inventory.csv`, `report.md`,
 `fixtures/`; git-ignored: `.cache/` with fetched pages, images and `crawl-state.json`).
 
@@ -296,17 +303,105 @@ Code in `src/migration`, outputs in `migration/` (committed: `url-inventory.csv`
 - Tests: `src/migration/*.test.ts` (extractors, rich text, URLs, CSV, brand check) and
   `tests/int/migration.int.test.ts` (import twice → no duplicates; admin edit kept; lock; force).
 
-### Still to do in the second half of stage 8
+## Redirects from the old addresses (stage 8, second half)
 
-- Redirect map: once the storefront routes exist (stage 3), build `old path → new URL` from
-  `legacyUrl` of every document plus `url-inventory.csv` (aliases, `?catId=`/`?page=`/`?list=hide`
-  variants, 301 aliases of categories, listing/pagination pages, `/magazin`, `/recepty`,
-  `/pojmy`, `/academy`, `/prodejny`, `/vyhledavani?ProductsSearch=` → new search, `/jidelni-listek`
-  PDF). Rows without `new_collection` need a manual target (listings, home, rubrics).
-- Checker: request every old URL from the inventory against the new site and assert
-  `301 → 200` (single hop) and that the target matches.
-- Before launch: delete `migration/.cache`, re-crawl, re-import (edited docs are kept), review
-  `migration/report.md` with the owner.
+Old URLs keep working: imported documents are served at their `legacyUrl` (200, stage 3); every
+other old address gets exactly ONE permanent redirect (308) to the final page, keeping tracking
+parameters. Measured on the imported catalog (`terrys_migration`, production build, 2026-11-22):
+of the 742 inventory URLs 363 answer 200 directly, 379 redirect in one hop to a 200, 0 fail; plus
+42 internal links in imported texts, 25 utm probes and 363 sitemap URLs (all 200). Report for the
+owner: `migration/redirects-report.md`; machine plan: `migration/redirect-plan.csv`.
+
+### Design (and why)
+
+| Where                                                                    | What                                                                                                                        |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/redirects/legacy.ts`                                            | THE rules, pure + unit-tested: normalising, resolving, `decideRedirect()`, admin validation helpers                         |
+| `src/redirects/legacyIndex.ts`                                           | redirect table from the DB (`buildLegacyIndexData`), cached `getLegacyIndexData()` (storefront tag), `findLegacyRedirect()` |
+| `src/redirects/endpoints.ts`                                             | `GET /api/legacy-redirects/index` (public JSON table for the proxy, `no-store`)                                             |
+| `src/lib/redirects/proxyIndex.ts`                                        | proxy-side copy of the table: in memory, fresh 60 s, stale-while-revalidate via `waitUntil`, first load waits ≤ 2.5 s       |
+| `src/proxy.ts`                                                           | GET/HEAD in the old address space → `decideRedirect()` → 308; then the stage 3 category rewrite                             |
+| `[...path]/page.tsx`, `produkty/kategorie/[slug]/page.tsx`               | not-found fallback: `findLegacyRedirect()` → `permanentRedirect` (for a cold proxy without the table)                       |
+| `src/collections/Redirects.ts`                                           | collection `redirects` (Nastavení → Přesměrování): exceptions entered by the owner, no deploy                               |
+| `src/migration/{redirectPlan,redirectCheck,redirects,checkRedirects}.ts` | plan/report generator and HTTP checker (`pnpm migrate:redirects`, `pnpm migrate:check-redirects`)                           |
+
+Decision order (`resolveLegacyPath` / `decideRedirect`): (1) normalise – lower case, no trailing
+or double slash, old host glued into a relative link removed (`/magazin/terrys.cz/magazin/…`),
+category page suffix `/N` dropped (old page sizes differ, page 1 is honest), old alias parameters
+dropped (`page`, `catId`, `Id`, `list`, `Lang`, `druh_masa`, case-insensitive; never on
+`/vyhledavani`, `/kosik`, `/objednavka`, `/odstoupeni-od-smlouvy`); every other parameter is kept
+(utm_*, gclid, fbclid, `varianta`, new filters). (2) A served page wins (public documents' public
+paths + `FIXED_ROUTES` listings) – nothing can hide a published page. (3) Owner redirect (chains
+followed, loops ignored). (4) Non-public product (draft/hidden) → its most specific public
+category (deepest, then fewest products). (5) Same old ID under another slug → that document (the
+old site resolved pages by ID; covers the old 301s and renamed categories). (6) Section fallbacks:
+rubric / unknown article, recipe, glossary term, store page → section listing; a product or
+category ID the database does not know → real 404 (no soft-404 mass redirect; every old product
+was imported, hidden ones go to their category); `/obchod/kosik` → `/kosik`; old account/login paths → `/` (the only
+homepage fallbacks); `/jidelni-listek` (PDF) → Prague store page. Otherwise 404. Only paths of
+the old shape are touched (`isOldSpace`); clean paths (`/produkty/detail/…`) never.
+
+Why: the answer needs fresh data (a product hidden or published a minute ago changes it); the
+proxy must not use Payload/DB (Next 16 docs: proxy is "not intended for slow data fetching", fetch
+caching does not work there, it may run apart from render code); the catch-all product route is
+ISR and cannot see the query string (utm would be lost if it redirected alone). Hence one pure
+resolver, one cached JSON table served by the app, a minute-old in-memory copy in the proxy, and
+the routes' not-found fallback using the same resolver with the server-side cache (correct
+immediately after an admin edit, but without utm on ISR paths). Generated static redirect lists
+were rejected: they go stale and would shadow a product published after the deploy. 308
+everywhere: Next's permanent status (`permanentRedirect`), treated by search engines like 301,
+one status keeps the checker simple. `next.config.ts` sets `skipTrailingSlashRedirect: true` so
+`/magazin/?Id=807` is one hop; the proxy strips trailing slashes itself (matcher: everything except
+`_next`, `api`, `admin`, `/img`, icons). Draft mode (`__prerender_bypass` cookie) and non-GET
+requests are never redirected.
+
+Owner redirects (`redirects`): `from` (unique, normalised to a lower-case path; a full old URL is
+accepted, a query string is refused), `to` (path on this site, may carry a query; a full URL of
+terrys.cz / `NEXT_PUBLIC_SERVER_URL` is shortened; other hosts refused), `active`, `note`. Access
+read/write editors (admin + staff). Validation (active ones only): `from` must not be a served page
+(it would never apply), `to` must be a served page (so no chain/loop at save time; the message
+names the final address when `to` is itself an alias), not `/`, not admin/API paths. If a target
+later disappears, the resolver follows it (still one hop). Storefront revalidation hooks rebuild
+the table. Media accepts only images, so the menu PDF cannot be uploaded and linked today.
+
+Known limitation: a redirect issued by the ISR catch-all on its FIRST render (not-found fallback,
+and the stage 3 clean-path → legacy redirect) carries the `Location` header twice (identical
+values; Next 16 behaviour, cached responses have one). Browsers accept identical duplicates; the
+proxy path (normal case) is not affected. Measured with a deliberately cold proxy
+(`INTERNAL_SERVER_URL` pointing nowhere): no 404s, alias-parameter URLs answer 200 with the
+canonical tag instead of 308, catch-all fallbacks show the duplicate header.
+
+Not redirected (documented in the report): old EasyWeb images `/ew/ew_images/image_of_object?…`
+and system files (404; images were re-uploaded, mapping them is not worth it); `www`/non-`www`,
+`http` → `https` (domain config, stage 9). 410 is not used: every old URL has a sensible target.
+
+Crawler gap found and fixed in code (not re-run: no HTTP to the old site in this stage): detail
+pages linked only with `?list=hide` parameters were never fetched (`aliasBaseUrl()` in
+`src/migration/urls.ts`, enqueued by `crawl.ts`). Five old pages exist but were not imported:
+article `/magazin/chuck-roll-krk-detail-1060`, recipes `anglicky-roastbeef-detail-868`,
+`kanci-kyta-se-sipkovou-omackou-detail-1039`, `tatarak-podle-terrys-steak-detail-1321`,
+`trhane-hovezi-…-detail-28813`; they redirect to the listing until the re-crawl + re-import.
+
+Tests: `src/lib/redirects/legacy.test.ts`, `src/migration/redirects.test.ts` (plan, CSV, checker
+with a fake site, safety), `tests/int/redirects.int.test.ts` (table from DB, validation, access,
+checker over a sample), `tests/e2e/redirects.e2e.spec.ts` (live hops, utm, checker sample, owner
+redirect without deploy).
+
+### Still to do (stage 9 / before launch)
+
+- Delete `migration/.cache`, re-crawl (now also fetches the five missed pages), re-import (edited
+  docs are kept), then `pnpm migrate:redirects` + `pnpm migrate:check-redirects` against a
+  production build on the final data, and against the Vercel deployment before the DNS switch
+  (`--base=…`; terrys.cz itself only with `--allow-live-host` after the switch).
+- Review `migration/redirects-report.md` with the owner ("K rozhodnutí majitele"); exceptions go
+  into Nastavení → Přesměrování.
+- Domain level (Cloudflare / Vercel, not the app): `terrys.cz` → `https://www.terrys.cz` (or the
+  reverse – one canonical host = `NEXT_PUBLIC_SERVER_URL`), `http` → `https`, each a single
+  301/308 that keeps path + query (otherwise old non-www links get two hops). Do not let a CDN
+  cache the proxy's 308s across hosts. Vercel previews with Deployment Protection block the
+  proxy's table request (it fails open – pages work, the not-found fallback redirects).
+- Optional `INTERNAL_SERVER_URL` if the app's public origin is not reachable from the server.
+- After launch: Search Console → "Not found (404)" → add exceptions in the admin.
 
 ## Notes for the next stages
 
@@ -314,9 +409,9 @@ Code in `src/migration`, outputs in `migration/` (committed: `url-inventory.csv`
   `PROVIZORNÍ` in `internalNote`): cut-off 12:00, lead 1 day, Tue–Fri for all four methods, own
   van zone = Prague `1*` only, PPL = fallback. The seed inserts only a 20-postcode SAMPLE; the
   official Česká pošta list must be imported before launch.
-- Stage 3 (storefront) is done, see "Storefront (stage 3)". Stage 8 redirect map: the storefront
-  serves `legacyUrl` paths directly, so only aliases need redirects; use `getPublicPath()` for the
-  targets. Add them in `src/proxy.ts` (extend its matcher) or as `next.config` redirects.
+- Stage 3 (storefront) is done, see "Storefront (stage 3)".
+- Stage 8 (migration + redirects) is done, see "Migration…" and "Redirects from the old
+  addresses"; its stage 9 to-dos are listed there.
 - Stage 4 (cart/orders) is done, see "Orders (stage 4)" below (notes for stages 5–7 there).
 - Stage 5 (fulfilment, Balíkobot) is done, see "Fulfilment (stage 5)" below.
 - Stage 6 (measurement, consent, feeds, Meta CAPI, Heureka, Ecomail) is done, see

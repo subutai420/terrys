@@ -70,24 +70,26 @@ angličtiny), anglicky pro anglický prohlížeč. Jazyk lze přepnout v adminis
 
 ## Příkazy (scripts)
 
-| Příkaz                    | Co dělá                                                                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                | Spustí vývojový server na <http://localhost:3000>.                                                                                                        |
-| `pnpm build`              | Vytvoří produkční sestavení aplikace.                                                                                                                     |
-| `pnpm start`              | Spustí produkční sestavení (po `pnpm build`).                                                                                                             |
-| `pnpm lint`               | Zkontroluje kód nástrojem ESLint.                                                                                                                         |
-| `pnpm typecheck`          | Zkontroluje typy TypeScriptu.                                                                                                                             |
-| `pnpm test`               | Spustí všechny testy (Vitest): jednotkové + integrační. Databáze musí běžet.                                                                              |
-| `pnpm test:unit`          | Jen rychlé jednotkové testy (bez databáze).                                                                                                               |
-| `pnpm test:int`           | Jen integrační testy (Payload + dočasná testovací databáze).                                                                                              |
-| `pnpm seed`               | Naplní databázi výchozími a ukázkovými daty vč. ukázkových objednávek (lze spouštět opakovaně). `--only=settings,locations,delivery` = jen některé části. |
-| `pnpm migrate:crawl`      | Projde starý terrys.cz a uloží ho (viz Přenos dat ze starého webu).                                                                                       |
-| `pnpm migrate:import`     | Nahraje uložený starý web do administrace (viz Přenos dat ze starého webu).                                                                               |
-| `pnpm test:e2e`           | Spustí testy v prohlížeči (Playwright). Databáze musí běžet.                                                                                              |
-| `pnpm format`             | Naformátuje kód nástrojem Prettier.                                                                                                                       |
-| `pnpm generate:types`     | Přegeneruje TypeScript typy z nastavení Payloadu (`src/payload-types.ts`).                                                                                |
-| `pnpm generate:importmap` | Přegeneruje mapu komponent administrace (po přidání vlastních komponent).                                                                                 |
-| `pnpm payload …`          | Příkazy Payload CLI, např. `pnpm payload migrate:create nazev`.                                                                                           |
+| Příkaz                         | Co dělá                                                                                                                                                   |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                     | Spustí vývojový server na <http://localhost:3000>.                                                                                                        |
+| `pnpm build`                   | Vytvoří produkční sestavení aplikace.                                                                                                                     |
+| `pnpm start`                   | Spustí produkční sestavení (po `pnpm build`).                                                                                                             |
+| `pnpm lint`                    | Zkontroluje kód nástrojem ESLint.                                                                                                                         |
+| `pnpm typecheck`               | Zkontroluje typy TypeScriptu.                                                                                                                             |
+| `pnpm test`                    | Spustí všechny testy (Vitest): jednotkové + integrační. Databáze musí běžet.                                                                              |
+| `pnpm test:unit`               | Jen rychlé jednotkové testy (bez databáze).                                                                                                               |
+| `pnpm test:int`                | Jen integrační testy (Payload + dočasná testovací databáze).                                                                                              |
+| `pnpm seed`                    | Naplní databázi výchozími a ukázkovými daty vč. ukázkových objednávek (lze spouštět opakovaně). `--only=settings,locations,delivery` = jen některé části. |
+| `pnpm migrate:crawl`           | Projde starý terrys.cz a uloží ho (viz Přenos dat ze starého webu).                                                                                       |
+| `pnpm migrate:import`          | Nahraje uložený starý web do administrace (viz Přenos dat ze starého webu).                                                                               |
+| `pnpm migrate:redirects`       | Sestaví plán přesměrování starých adres a report (viz Přesměrování starých adres).                                                                        |
+| `pnpm migrate:check-redirects` | Ověří přesměrování na běžícím novém webu (viz Přesměrování starých adres).                                                                                |
+| `pnpm test:e2e`                | Spustí testy v prohlížeči (Playwright). Databáze musí běžet.                                                                                              |
+| `pnpm format`                  | Naformátuje kód nástrojem Prettier.                                                                                                                       |
+| `pnpm generate:types`          | Přegeneruje TypeScript typy z nastavení Payloadu (`src/payload-types.ts`).                                                                                |
+| `pnpm generate:importmap`      | Přegeneruje mapu komponent administrace (po přidání vlastních komponent).                                                                                 |
+| `pnpm payload …`               | Příkazy Payload CLI, např. `pnpm payload migrate:create nazev`.                                                                                           |
 
 Před prvním spuštěním `pnpm test:e2e` je potřeba jednou stáhnout prohlížeč:
 `pnpm exec playwright install chromium`. Testy obchodu počítají s daty z `pnpm seed`: spouštějte je
@@ -136,16 +138,16 @@ nad prázdnou databází, do které jste pustili `pnpm payload migrate` a `pnpm 
 
 ## Administrace: co kde najdete
 
-| Skupina v menu | Co obsahuje                                                                             |
-| -------------- | --------------------------------------------------------------------------------------- |
-| **Objednávky** | Expedice (vážení, vyúčtování, štítky), Objednávky, Odstoupení od smlouvy, Historie změn |
-| **Poukazy**    | Poukazy – platby (párování plateb, hledání kódu, staré poukazy), Dárkové poukazy, Šarže |
-| **Katalog**    | Produkty (cena, varianty, fotky, vlastnosti) a Kategorie (strom kategorií, menu)        |
-| **Číselníky**  | Řezy, Země původu, Druhy masa, Hodí se na, Trvanlivost a skladování                     |
-| **Obsah**      | Články (Magazín, Terrys Academy), Recepty, Stránky, Obrázky                             |
-| **Doručování** | Způsoby dopravy, Rozvozové oblasti, Výjimky v kalendáři, PSČ                            |
-| **Přehledy**   | Kalendář doručování (které dny se pro dané PSČ doručuje)                                |
-| **Nastavení**  | Provozovny a odběrná místa, Uživatelé, Fronta marketingu, Nastavení obchodu, Marketing  |
+| Skupina v menu | Co obsahuje                                                                                          |
+| -------------- | ---------------------------------------------------------------------------------------------------- |
+| **Objednávky** | Expedice (vážení, vyúčtování, štítky), Objednávky, Odstoupení od smlouvy, Historie změn              |
+| **Poukazy**    | Poukazy – platby (párování plateb, hledání kódu, staré poukazy), Dárkové poukazy, Šarže              |
+| **Katalog**    | Produkty (cena, varianty, fotky, vlastnosti) a Kategorie (strom kategorií, menu)                     |
+| **Číselníky**  | Řezy, Země původu, Druhy masa, Hodí se na, Trvanlivost a skladování                                  |
+| **Obsah**      | Články (Magazín, Terrys Academy), Recepty, Stránky, Obrázky                                          |
+| **Doručování** | Způsoby dopravy, Rozvozové oblasti, Výjimky v kalendáři, PSČ                                         |
+| **Přehledy**   | Kalendář doručování (které dny se pro dané PSČ doručuje)                                             |
+| **Nastavení**  | Provozovny a odběrná místa, Uživatelé, Přesměrování, Fronta marketingu, Nastavení obchodu, Marketing |
 
 - **Koncepty a publikování:** produkty, články, recepty a stránky se na webu ukážou až po kliknutí
   na „Publikovat“. Do té doby jsou to koncepty; předchozí verze lze obnovit v záložce „Verze“.
@@ -244,7 +246,8 @@ dlaždice zemí ze zemí původu, ke kterým máme produkty (kam dlaždice vede,
 ### Adresy stránek (URL) – důležité pro vyhledávače
 
 - Vše, co se přeneslo ze starého webu, má **stejnou adresu jako na starém webu** (pole „Původní
-  URL“), např. `/produkty/argentinsky-hovezi-rib-eye-detail-406`. Nic se nepřesměrovává.
+  URL“), např. `/produkty/argentinsky-hovezi-rib-eye-detail-406`. Ostatní staré adresy web
+  přesměruje sám – viz „Přesměrování starých adres“.
 - Nové položky založené v administraci dostanou adresu ze slugu: produkt
   `/produkty/detail/slug`, kategorie `/produkty/kategorie/slug`, článek `/magazin/clanek/slug`
   (Terrys Academy `/academy-magazin/clanek/slug`), recept `/recepty/recept/slug`, stránka
@@ -950,6 +953,76 @@ Import upravenou položku **nepřepíše**: pozná, že byla po posledním impor
 a vypíše ji v reportu. Natrvalo ji ochráníte zaškrtnutím **„Nepřepisovat importem“** v bočním
 panelu (rámeček „Import ze starého webu“). Položky beze změny import nechá být, položky, které se
 změnily na starém webu, aktualizuje. Adresa (slug) se při opakovaném importu nikdy nemění.
+
+## Přesměrování starých adres (etapa 8, druhá část)
+
+Staré odkazy z Googlu, reklam, e-mailů a sociálních sítí dál fungují:
+
+- Produkty, kategorie, články, recepty a stránky přenesené ze starého webu mají **stejnou adresu**
+  jako dřív – nic se nepřesměrovává, stránka se rovnou ukáže.
+- Ostatní staré adresy web **sám přesměruje jedním krokem** (trvalé přesměrování 308, pro Google
+  totéž co 301) na správnou stránku: staré varianty s parametry (`?page=4&list=hide`, `?catId=`,
+  `?Id=807`, `/produkty?Page=3`), stránkování kategorií (`/produkty/wagyu-98/2`), velká písmena,
+  lomítko na konci, staré názvy téže kategorie či produktu (`/produkty/rib-eye-106` →
+  `/produkty/vysoky-rostenec-rib-eye-106`), rubriky magazínu a receptů (→ výpis), starý košík
+  (→ košík). Parametry `utm_…`, `gclid` a `fbclid` se zachovají, takže měření kampaní funguje.
+- **Skrytý produkt nebo koncept:** jeho stará adresa vede do jeho kategorie. Jakmile produkt
+  zveřejníte, adresa zase ukáže produkt – nic nemusíte měnit.
+- Zveřejněnou stránku žádné přesměrování nikdy nepřebije.
+
+Přehled všech rozhodnutí (co kam vede a proč, co má posoudit majitel) je v
+`migration/redirects-report.md`.
+
+### Jak přidat přesměrování (bez programátora, bez nasazení)
+
+Typicky: produkt jste skryli a chcete, aby jeho stará adresa vedla jinam než do jeho kategorie;
+nebo Google Search Console hlásí starou adresu „Nenalezeno (404)“.
+
+1. Administrace → **Nastavení → Přesměrování** → „Vytvořit nový“.
+2. **Stará adresa:** cesta za doménou, např. `/produkty/stary-produkt-detail-123` (můžete vložit i
+   celou adresu `https://www.terrys.cz/…`, uloží se jen cesta). Bez otazníku a parametrů.
+3. **Nová adresa (cíl):** zveřejněná stránka tohoto webu, např. `/produkty/wagyu-98` nebo
+   `/produkty?druh=hovezi`. Nejjednodušší je otevřít cílovou stránku na webu a zkopírovat adresu.
+4. Uložit. Na webu se projeví **do minuty**.
+
+Administrace nedovolí uložit přesměrování, které by nefungovalo: ze stránky, která na webu je (ta
+má vždy přednost – nejdřív ji skryjte), na adresu, kde nic není, nebo na adresu, která se sama
+přesměrovává (napíše vám, jakou adresu zadat místo ní). Přesměrování můžete dočasně vypnout
+zaškrtávátkem „Aktivní“.
+
+### Kontrola před spuštěním webu
+
+Dva příkazy (oba jen čtou, na starý web nic neposílají):
+
+| Příkaz                         | Co dělá                                                                                                                                       |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm migrate:redirects`       | Z inventury starých adres a z databáze sestaví plán (`migration/redirect-plan.csv`) a přehled `migration/redirects-report.md`.                |
+| `pnpm migrate:check-redirects` | Zeptá se **běžícího nového webu** na každou starou adresu z plánu a ověří: 200, nebo jedno přesměrování na správnou stránku, která vrací 200. |
+
+Postup (PowerShell, databáze z importu):
+
+```bash
+$env:MIGRATION_DATABASE_URL='postgres://terrys:terrys@127.0.0.1:5433/terrys_migration'
+pnpm migrate:redirects
+$env:DATABASE_URL=$env:MIGRATION_DATABASE_URL
+pnpm build; pnpm start          # v druhém okně nechte běžet
+pnpm migrate:check-redirects    # proti http://localhost:3000
+```
+
+Proti jinému běžícímu webu (např. nasazené verzi na Vercelu před přepnutím domény):
+`pnpm migrate:check-redirects --base=https://adresa-nasazeni.vercel.app`. Kontrola se odmítne
+spustit proti `terrys.cz`, dokud tam běží starý web; po spuštění nového webu přidejte
+`--allow-live-host`. Výsledek: souhrn v okně, chyby v `migration/redirect-check-failures.csv`;
+při chybě skončí s kódem 1. Kontroluje i to, že žádná adresa z mapy webu (`/sitemap.xml`) nepřesměrovává.
+
+Těsně před spuštěním: smazat `migration/.cache`, znovu `pnpm migrate:crawl` a `pnpm migrate:import`
+(úpravy z administrace zůstanou), pak oba příkazy výše a projít „K rozhodnutí majitele“ v reportu.
+
+### Co patří do nastavení domény, ne do webu (etapa 9)
+
+Přesměrování `terrys.cz` → `www.terrys.cz` (nebo obráceně) a `http` → `https` se nastavuje
+v Cloudflare / Vercelu (jedno přesměrování, které zachová cestu i parametry). Staré obrázky
+(`/ew/ew_images/…`) se nepřesměrovávají – na webu jsou nahrané znovu.
 
 ## Databáze a migrace (stručně)
 

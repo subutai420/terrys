@@ -21,6 +21,7 @@ import { Pages } from './collections/Pages'
 import { Postcodes } from './collections/Postcodes'
 import { Products } from './collections/Products'
 import { Recipes } from './collections/Recipes'
+import { Redirects } from './collections/Redirects'
 import { ShippingMethods } from './collections/ShippingMethods'
 import { Users } from './collections/Users'
 import { VoucherBatches } from './collections/VoucherBatches'
@@ -35,6 +36,7 @@ import { Settings } from './globals/Settings'
 import { integrationEndpoints } from './integrations/endpoints'
 import { migrations } from './migrations'
 import { checkoutEndpoints } from './orders/endpoints'
+import { legacyRedirectIndexEndpoint } from './redirects/endpoints'
 import { voucherEndpoints } from './vouchers/endpoints'
 
 const filename = fileURLToPath(import.meta.url)
@@ -125,6 +127,8 @@ export default buildConfig({
     // Nastavení
     Locations,
     Users,
+    // Stage 8b: redirects of old addresses added by hand (the automatic ones need no records).
+    Redirects,
     // Stage 6: outbox of Meta CAPI / Heureka / Ecomail calls.
     IntegrationJobs,
   ],
@@ -142,6 +146,8 @@ export default buildConfig({
     ...integrationEndpoints,
     // Stage 7: /api/gift-vouchers/* (payments, redemption lookups, PDFs, overdue cron).
     ...voucherEndpoints,
+    // Stage 8b: GET /api/legacy-redirects/index – redirect table for src/proxy.ts.
+    legacyRedirectIndexEndpoint,
   ],
   // Stage 4: Resend when RESEND_API_KEY is set, otherwise e-mails are only saved to .emails/.
   email: createEmailAdapter(),

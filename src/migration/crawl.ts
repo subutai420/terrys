@@ -22,7 +22,7 @@ import { extractInternalLinks, extractPageMeta, loadHtml } from './html'
 import { buildInventoryRows } from './inventoryRows'
 import { readInventory, writeInventory } from './inventory'
 import { parseArgs } from './args'
-import { classifyUrl, crawlDecision, normalizeUrl, toAbsolute } from './urls'
+import { aliasBaseUrl, classifyUrl, crawlDecision, normalizeUrl, toAbsolute } from './urls'
 
 const args = parseArgs(process.argv.slice(2))
 const maxPages = args.number('max-pages') ?? Infinity
@@ -55,6 +55,8 @@ function enqueue(url: string | null, foundOn?: string, fromSitemap = false) {
     skipReason: decision.crawl ? undefined : decision.reason,
   }
   if (decision.crawl) queue.push(url)
+  // Stage 8b: also fetch the plain address of a detail page seen only with list parameters.
+  else if (decision.reason === 'query') enqueue(aliasBaseUrl(url), foundOn, false)
 }
 
 // ------------------------------------------------------------------ 1. robots.txt + sitemap

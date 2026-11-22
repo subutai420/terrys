@@ -22,7 +22,9 @@
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
     "seed": "cross-env NODE_OPTIONS=--no-deprecation payload run src/seed/index.ts --",
     "migrate:crawl": "cross-env NODE_OPTIONS=--no-deprecation payload run src/migration/crawl.ts --",
-    "migrate:import": "cross-env NODE_OPTIONS=--no-deprecation payload run src/migration/import.ts --"
+    "migrate:import": "cross-env NODE_OPTIONS=--no-deprecation payload run src/migration/import.ts --",
+    "migrate:redirects": "cross-env NODE_OPTIONS=--no-deprecation payload run src/migration/redirects.ts --",
+    "migrate:check-redirects": "cross-env NODE_OPTIONS=--no-deprecation payload run src/migration/checkRedirects.ts --"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.94.1",

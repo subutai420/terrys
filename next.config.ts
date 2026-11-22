@@ -23,6 +23,10 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/**': ['./src/vouchers/fonts/*.ttf', './public/img/logo-red.svg'],
   },
+  // Stage 8b: old addresses with a trailing slash (`/magazin/?Id=807`) are redirected by
+  // src/proxy.ts in ONE hop to the final page; Next's own trailing-slash redirect would run first
+  // and make it two hops. The proxy strips trailing slashes of every page it handles.
+  skipTrailingSlashRedirect: true,
   images: {
     localPatterns: [
       {

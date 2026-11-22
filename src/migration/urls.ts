@@ -130,6 +130,20 @@ export function crawlDecision(url: string): CrawlDecision {
   return { crawl: true }
 }
 
+/**
+ * Stage 8b: a detail page (`…-detail-<id>`) linked only with side-list parameters
+ * (`?page=4&list=hide`) is skipped by `crawlDecision` (reason "query"), and its plain address was
+ * never fetched when no other page linked it – five articles/recipes were missed that way. The
+ * crawler enqueues the address returned here as well (the same page without the query).
+ * Null for anything else.
+ */
+export function aliasBaseUrl(url: string): string | null {
+  const u = new URL(url)
+  if (!u.search || !/-detail-\d+\/?$/i.test(u.pathname)) return null
+  u.search = ''
+  return u.toString()
+}
+
 const DETAIL_RE = /^\/([a-z0-9-]+)\/(.+)-detail-(\d+)\/?$/i
 const LISTING_RE = /^\/([a-z0-9-]+)\/(.+)-(\d+)(?:\/(\d+))?\/?$/i
 

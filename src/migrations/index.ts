@@ -7,6 +7,7 @@ import * as migration_20261122_184945_orders from './20261122_184945_orders';
 import * as migration_20261122_194425_fulfilment from './20261122_194425_fulfilment';
 import * as migration_20261122_204404_measurement from './20261122_204404_measurement';
 import * as migration_20261122_214659_vouchers from './20261122_214659_vouchers';
+import * as migration_20261122_222945_redirects from './20261122_222945_redirects';
 
 export const migrations = [
   {
@@ -52,6 +53,11 @@ export const migrations = [
   {
     up: migration_20261122_214659_vouchers.up,
     down: migration_20261122_214659_vouchers.down,
-    name: '20261122_214659_vouchers'
+    name: '20261122_214659_vouchers',
+  },
+  {
+    up: migration_20261122_222945_redirects.up,
+    down: migration_20261122_222945_redirects.down,
+    name: '20261122_222945_redirects'
   },
 ];
