@@ -67,17 +67,43 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    users: User;
+    products: Product;
+    categories: Category;
+    cuts: Cut;
+    origins: Origin;
+    'meat-types': MeatType;
+    usages: Usage;
+    'shelf-lives': ShelfLive;
+    articles: Article;
+    recipes: Recipe;
+    pages: Page;
     media: Media;
+    locations: Location;
+    users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    categories: {
+      products: 'products';
+    };
+  };
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>;
+    products: ProductsSelect<false> | ProductsSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    cuts: CutsSelect<false> | CutsSelect<true>;
+    origins: OriginsSelect<false> | OriginsSelect<true>;
+    'meat-types': MeatTypesSelect<false> | MeatTypesSelect<true>;
+    usages: UsagesSelect<false> | UsagesSelect<true>;
+    'shelf-lives': ShelfLivesSelect<false> | ShelfLivesSelect<true>;
+    articles: ArticlesSelect<false> | ArticlesSelect<true>;
+    recipes: RecipesSelect<false> | RecipesSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    locations: LocationsSelect<false> | LocationsSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -87,8 +113,12 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    settings: Setting;
+  };
+  globalsSelect: {
+    settings: SettingsSelect<false> | SettingsSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -118,12 +148,715 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Nabídka e-shopu. Nový produkt se v obchodě ukáže až po kliknutí na „Publikovat“. Slevy ani akční ceny se nezadávají – Terrys slevy nedělá.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: number;
+  title: string;
+  /**
+   * Pár vět do karty produktu a pod název v detailu.
+   */
+  shortDescription?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Celý popis produktu v detailu: původ, chuť, tipy k přípravě.
+   */
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Zobrazuje se v kartě produktu a jako první v galerii.
+   */
+  mainImage: number | Media;
+  /**
+   * Nepovinné. Pořadí lze měnit přetažením.
+   */
+  gallery?: (number | Media)[] | null;
+  /**
+   * Cena za zvolenou jednotku. Každou objednávku řezník váží a výsledná cena se počítá podle skutečné hmotnosti (obvykle ±15 % od odhadu). Zákazník proto u variant vidí jen ODHAD ceny.
+   */
+  price: number;
+  /**
+   * Maso za 1 kg (nebo za 100 g). „Za kus“ jen u zboží s pevnou cenou, např. omáčky.
+   */
+  priceUnit: 'kg' | '100g' | 'piece';
+  /**
+   * Potraviny 12 %. Jinou sazbu jen po dohodě s účetní.
+   */
+  vatRate: '12' | '21' | '0';
+  /**
+   * Z čeho zákazník vybírá, např. 250 g, 500 g, 1 kg nebo celý kus. Odhad ceny varianty = cena × hmotnost (zaokrouhleno na celé Kč). U zboží „za kus“ se varianty nezadávají. Pořadí lze měnit přetažením.
+   */
+  variants?:
+    | {
+        /**
+         * Co uvidí zákazník, např. „500 g“, „Celý kus“, „Půlka“.
+         */
+        label: string;
+        kind: 'weight' | 'piece';
+        /**
+         * Porce: cílová hmotnost (např. 500). Kus: průměrná hmotnost kusu (např. 2500).
+         */
+        weightGrams?: number | null;
+        /**
+         * Nepovinné. Prázdné = stejná jako u produktu.
+         */
+        availability?: ('in-stock' | 'in-transit' | 'sold-out' | 'hidden') | null;
+        /**
+         * Nepovinné. Prázdné = pořadí v seznamu.
+         */
+        sortOrder?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  meatType?: (number | null) | MeatType;
+  cut?: (number | null) | Cut;
+  origin?: (number | null) | Origin;
+  usages?: (number | Usage)[] | null;
+  shelfLife?: (number | null) | ShelfLive;
+  /**
+   * Nepovinné. Např. „BMS 6“, „BMS 8/9“ nebo japonské „A5“.
+   */
+  marbling?: string | null;
+  /**
+   * Nepovinné.
+   */
+  feeding?: ('grain' | 'grass') | null;
+  /**
+   * Nepovinné. Např. jméno farmy nebo značky.
+   */
+  brand?: string | null;
+  /**
+   * Doporučené produkty v detailu („Mohlo by vás zajímat“).
+   */
+  relatedProducts?: (number | Product)[] | null;
+  relatedRecipes?: (number | Recipe)[] | null;
+  /**
+   * Nepovinné. Když pole necháte prázdná, použije se název a úvodní text stránky.
+   */
+  seo?: {
+    /**
+     * Titulek ve výsledcích vyhledávání, ideálně 50–60 znaků.
+     */
+    title?: string | null;
+    /**
+     * Krátký popis ve výsledcích vyhledávání, ideálně 120–160 znaků.
+     */
+    description?: string | null;
+    /**
+     * Obrázek při sdílení na Facebooku apod. Když chybí, použije se hlavní obrázek.
+     */
+    image?: (number | null) | Media;
+  };
+  /**
+   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
+   */
+  slug?: string | null;
+  /**
+   * „Skryto“ = produkt zůstane v adminu, ale v obchodě se neukáže.
+   */
+  availability: 'in-stock' | 'in-transit' | 'sold-out' | 'hidden';
+  /**
+   * Produkt může být ve více kategoriích.
+   */
+  categories?: (number | Category)[] | null;
+  /**
+   * Nepovinné. Interní kód (např. z pokladny nebo od dodavatele).
+   */
+  sku?: string | null;
+  /**
+   * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
+   */
+  legacyUrl?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Fotky produktů, kategorií a článků. Nahrávejte co největší kvalitní fotky (ideálně alespoň 1600 px na šířku), menší velikosti se vytvoří automaticky.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  /**
+   * Povinné. Krátký popis toho, co je na obrázku, pro nevidomé a vyhledávače, např. „Hovězí steak Rib Eye na prkénku“.
+   */
+  alt: string;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+  sizes?: {
+    thumbnail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    card?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    detail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    og?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
+}
+/**
+ * Např. hovězí, wagyu, telecí, zvěřina, drůbež, jehněčí, uzeniny.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "meat-types".
+ */
+export interface MeatType {
+  id: number;
+  name: string;
+  /**
+   * Nepovinné. Krátký text, který se může zobrazit u filtru nebo na stránce.
+   */
+  description?: string | null;
+  image?: (number | null) | Media;
+  /**
+   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
+   */
+  slug?: string | null;
+  /**
+   * Nižší číslo = zobrazí se dříve. Položky se stejným číslem se řadí podle názvu.
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Části masa, např. Rib Eye, Svíčková, Striploin, Flank, Picanha.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cuts".
+ */
+export interface Cut {
+  id: number;
+  name: string;
+  /**
+   * Nepovinné. Český nebo anglický ekvivalent, např. u „Rib Eye“ je to „Vysoký roštěnec“.
+   */
+  alternativeName?: string | null;
+  /**
+   * Nepovinné. Krátký text, který se může zobrazit u filtru nebo na stránce.
+   */
+  description?: string | null;
+  image?: (number | null) | Media;
+  /**
+   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
+   */
+  slug?: string | null;
+  /**
+   * Nižší číslo = zobrazí se dříve. Položky se stejným číslem se řadí podle názvu.
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Odkud maso pochází, např. Argentina, Uruguay, Austrálie, Japonsko.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "origins".
+ */
+export interface Origin {
+  id: number;
+  name: string;
+  /**
+   * Nepovinné. Např. „Argentinské hovězí“ – pro nadpisy a menu.
+   */
+  adjective?: string | null;
+  /**
+   * Nepovinné. Krátký text, který se může zobrazit u filtru nebo na stránce.
+   */
+  description?: string | null;
+  image?: (number | null) | Media;
+  /**
+   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
+   */
+  slug?: string | null;
+  /**
+   * Nižší číslo = zobrazí se dříve. Položky se stejným číslem se řadí podle názvu.
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Způsob přípravy, ke kterému se produkt hodí, např. grilování, pečení, na pánev.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "usages".
+ */
+export interface Usage {
+  id: number;
+  name: string;
+  /**
+   * Nepovinné. Krátký text, který se může zobrazit u filtru nebo na stránce.
+   */
+  description?: string | null;
+  /**
+   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
+   */
+  slug?: string | null;
+  /**
+   * Nižší číslo = zobrazí se dříve. Položky se stejným číslem se řadí podle názvu.
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Jak produkt skladovat a jak dlouho vydrží, např. „Chlazené, vakuově balené“ nebo „Mražené“. Konkrétní údaje o trvanlivosti uvádějte jen ověřené.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shelf-lives".
+ */
+export interface ShelfLive {
+  id: number;
+  name: string;
+  /**
+   * Nepovinné. Krátký text, který se může zobrazit u filtru nebo na stránce.
+   */
+  description?: string | null;
+  /**
+   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
+   */
+  slug?: string | null;
+  /**
+   * Nižší číslo = zobrazí se dříve. Položky se stejným číslem se řadí podle názvu.
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Recepty. Postupy a teploty uvádějte jen ověřené (od majitele nebo řezníků). Na webu se ukážou až po publikování.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "recipes".
+ */
+export interface Recipe {
+  id: number;
+  title: string;
+  /**
+   * Krátký úvod k receptu, zobrazí se i ve výpisu.
+   */
+  perex?: string | null;
+  coverImage?: (number | null) | Media;
+  prepTimeMinutes?: number | null;
+  cookTimeMinutes?: number | null;
+  servings?: number | null;
+  difficulty?: ('easy' | 'medium' | 'hard') | null;
+  /**
+   * Nepovinné. Doporučená teplota uvnitř masa, např. „54 °C pro medium rare“. Jen ověřené údaje.
+   */
+  coreTemperatureNote?: string | null;
+  ingredients?:
+    | {
+        /**
+         * Např. „2“, „1–2“, „špetka“.
+         */
+        amount?: string | null;
+        /**
+         * Např. g, ks, lžíce.
+         */
+        unit?: string | null;
+        name: string;
+        id?: string | null;
+      }[]
+    | null;
+  steps?:
+    | {
+        text: string;
+        image?: (number | null) | Media;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Produkty z e-shopu, které se v receptu používají.
+   */
+  relatedProducts?: (number | Product)[] | null;
+  /**
+   * Nepovinné. Když pole necháte prázdná, použije se název a úvodní text stránky.
+   */
+  seo?: {
+    /**
+     * Titulek ve výsledcích vyhledávání, ideálně 50–60 znaků.
+     */
+    title?: string | null;
+    /**
+     * Krátký popis ve výsledcích vyhledávání, ideálně 120–160 znaků.
+     */
+    description?: string | null;
+    /**
+     * Obrázek při sdílení na Facebooku apod. Když chybí, použije se hlavní obrázek.
+     */
+    image?: (number | null) | Media;
+  };
+  /**
+   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
+   */
+  slug?: string | null;
+  /**
+   * Prázdné = vyplní se při prvním publikování.
+   */
+  publishedAt?: string | null;
+  /**
+   * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
+   */
+  legacyUrl?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Kategorie v menu obchodu. Kategorie může mít nadřazenou kategorii a produkt může být ve více kategoriích najednou.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  title: string;
+  /**
+   * Obrázek kategorie v menu a na dlaždicích.
+   */
+  image?: (number | null) | Media;
+  /**
+   * Krátký text nad seznamem produktů.
+   */
+  intro?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Delší text pod seznamem produktů (pro vyhledávače i zvídavé zákazníky).
+   */
+  bottomText?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Jen pro přehled. Produkt do kategorie zařadíte v detailu produktu (pole Kategorie).
+   */
+  products?: {
+    docs?: (number | Product)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Nepovinné. Když pole necháte prázdná, použije se název a úvodní text stránky.
+   */
+  seo?: {
+    /**
+     * Titulek ve výsledcích vyhledávání, ideálně 50–60 znaků.
+     */
+    title?: string | null;
+    /**
+     * Krátký popis ve výsledcích vyhledávání, ideálně 120–160 znaků.
+     */
+    description?: string | null;
+    /**
+     * Obrázek při sdílení na Facebooku apod. Když chybí, použije se hlavní obrázek.
+     */
+    image?: (number | null) | Media;
+  };
+  /**
+   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
+   */
+  slug?: string | null;
+  /**
+   * Nechte prázdné u hlavních kategorií.
+   */
+  parent?: (number | null) | Category;
+  /**
+   * Ve kterém sloupci rozbalovacího menu se kategorie ukáže. Prázdné = není v menu.
+   */
+  menuColumn?: ('meat-type' | 'cut' | 'origin' | 'standalone') | null;
+  /**
+   * Nižší číslo = výše v menu.
+   */
+  menuOrder?: number | null;
+  /**
+   * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
+   */
+  legacyUrl?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Články do Magazínu a Terrys Academy. Na webu se ukážou až po publikování.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "articles".
+ */
+export interface Article {
+  id: number;
+  title: string;
+  /**
+   * Úvodní odstavec, zobrazí se i ve výpisu článků (2–3 věty).
+   */
+  perex?: string | null;
+  coverImage?: (number | null) | Media;
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Produkty, které se zobrazí u článku.
+   */
+  relatedProducts?: (number | Product)[] | null;
+  /**
+   * Nepovinné. Když pole necháte prázdná, použije se název a úvodní text stránky.
+   */
+  seo?: {
+    /**
+     * Titulek ve výsledcích vyhledávání, ideálně 50–60 znaků.
+     */
+    title?: string | null;
+    /**
+     * Krátký popis ve výsledcích vyhledávání, ideálně 120–160 znaků.
+     */
+    description?: string | null;
+    /**
+     * Obrázek při sdílení na Facebooku apod. Když chybí, použije se hlavní obrázek.
+     */
+    image?: (number | null) | Media;
+  };
+  /**
+   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
+   */
+  slug?: string | null;
+  section: 'magazine' | 'academy';
+  /**
+   * Např. „Řezníci z Terrysu“.
+   */
+  authorName?: string | null;
+  /**
+   * Datum zobrazené u článku. Prázdné = vyplní se při prvním publikování.
+   */
+  publishedAt?: string | null;
+  /**
+   * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
+   */
+  legacyUrl?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Stálé stránky webu (Doprava a platba, Obchodní podmínky, O nás…). Změny se na webu projeví po publikování.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  title: string;
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Nepovinné. Když pole necháte prázdná, použije se název a úvodní text stránky.
+   */
+  seo?: {
+    /**
+     * Titulek ve výsledcích vyhledávání, ideálně 50–60 znaků.
+     */
+    title?: string | null;
+    /**
+     * Krátký popis ve výsledcích vyhledávání, ideálně 120–160 znaků.
+     */
+    description?: string | null;
+    /**
+     * Obrázek při sdílení na Facebooku apod. Když chybí, použije se hlavní obrázek.
+     */
+    image?: (number | null) | Media;
+  };
+  /**
+   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
+   */
+  slug?: string | null;
+  /**
+   * Adresa této položky na starém webu terrys.cz, např. „/produkty/wagyu-98“. Slouží k automatickému přesměrování (301) ze starých odkazů. Nepovinné.
+   */
+  legacyUrl?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Prodejna a odběrná místa: adresa, otevírací doba, mapa. Upravuje administrátor.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "locations".
+ */
+export interface Location {
+  id: number;
+  /**
+   * Např. „Prodejna Praha 2 – Vinohrady“.
+   */
+  name: string;
+  kind: 'shop' | 'warehouse';
+  isPickupPoint?: boolean | null;
+  address?: {
+    street?: string | null;
+    city?: string | null;
+    zip?: string | null;
+  };
+  /**
+   * Pro každý den, např. „9:30–17:30“. Prázdné pole = zavřeno.
+   */
+  openingHours?: {
+    monday?: string | null;
+    tuesday?: string | null;
+    wednesday?: string | null;
+    thursday?: string | null;
+    friday?: string | null;
+    saturday?: string | null;
+    sunday?: string | null;
+    /**
+     * Např. „Ve svátky zavřeno“ nebo „Výdej jen po domluvě“.
+     */
+    note?: string | null;
+  };
+  phone?: string | null;
+  email?: string | null;
+  /**
+   * Odkaz na Mapy.cz nebo Google Maps.
+   */
+  mapUrl?: string | null;
+  parkingNote?: string | null;
+  image?: (number | null) | Media;
+  /**
+   * Část webové adresy, např. „svickova“. Když pole necháte prázdné, vytvoří se samo z názvu (bez diakritiky). Po zveřejnění ho už neměňte – změnou by přestaly fungovat staré odkazy.
+   */
+  slug?: string | null;
+  /**
+   * Nižší číslo = zobrazí se dříve. Položky se stejným číslem se řadí podle názvu.
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Lidé, kteří se mohou přihlásit do administrace. Spravuje jen administrátor.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number;
   name?: string | null;
+  /**
+   * Administrátor: vše včetně uživatelů a nastavení. Obsluha: produkty, kategorie, číselníky, obsah a obrázky. Řezník: zatím jen prohlížení (později vážení objednávek). Roli může měnit jen administrátor. První vytvořený uživatel je vždy administrátor.
+   */
+  role: 'admin' | 'staff' | 'butcher';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -143,28 +876,6 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: number;
-  /**
-   * Krátký popis obrázku pro nevidomé a vyhledávače, např. „Hovězí steak Rib Eye na prkénku“.
-   */
-  alt: string;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -191,12 +902,56 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'users';
-        value: number | User;
+        relationTo: 'products';
+        value: number | Product;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'cuts';
+        value: number | Cut;
+      } | null)
+    | ({
+        relationTo: 'origins';
+        value: number | Origin;
+      } | null)
+    | ({
+        relationTo: 'meat-types';
+        value: number | MeatType;
+      } | null)
+    | ({
+        relationTo: 'usages';
+        value: number | Usage;
+      } | null)
+    | ({
+        relationTo: 'shelf-lives';
+        value: number | ShelfLive;
+      } | null)
+    | ({
+        relationTo: 'articles';
+        value: number | Article;
+      } | null)
+    | ({
+        relationTo: 'recipes';
+        value: number | Recipe;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: number | Page;
       } | null)
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'locations';
+        value: number | Location;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -242,27 +997,231 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
+ * via the `definition` "products_select".
  */
-export interface UsersSelect<T extends boolean = true> {
-  name?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  resetPasswordRequestedAt?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
-  sessions?:
+export interface ProductsSelect<T extends boolean = true> {
+  title?: T;
+  shortDescription?: T;
+  description?: T;
+  mainImage?: T;
+  gallery?: T;
+  price?: T;
+  priceUnit?: T;
+  vatRate?: T;
+  variants?:
     | T
     | {
+        label?: T;
+        kind?: T;
+        weightGrams?: T;
+        availability?: T;
+        sortOrder?: T;
         id?: T;
-        createdAt?: T;
-        expiresAt?: T;
       };
+  meatType?: T;
+  cut?: T;
+  origin?: T;
+  usages?: T;
+  shelfLife?: T;
+  marbling?: T;
+  feeding?: T;
+  brand?: T;
+  relatedProducts?: T;
+  relatedRecipes?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  slug?: T;
+  availability?: T;
+  categories?: T;
+  sku?: T;
+  legacyUrl?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  title?: T;
+  image?: T;
+  intro?: T;
+  bottomText?: T;
+  products?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  slug?: T;
+  parent?: T;
+  menuColumn?: T;
+  menuOrder?: T;
+  legacyUrl?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cuts_select".
+ */
+export interface CutsSelect<T extends boolean = true> {
+  name?: T;
+  alternativeName?: T;
+  description?: T;
+  image?: T;
+  slug?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "origins_select".
+ */
+export interface OriginsSelect<T extends boolean = true> {
+  name?: T;
+  adjective?: T;
+  description?: T;
+  image?: T;
+  slug?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "meat-types_select".
+ */
+export interface MeatTypesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  image?: T;
+  slug?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "usages_select".
+ */
+export interface UsagesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  slug?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shelf-lives_select".
+ */
+export interface ShelfLivesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  slug?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "articles_select".
+ */
+export interface ArticlesSelect<T extends boolean = true> {
+  title?: T;
+  perex?: T;
+  coverImage?: T;
+  content?: T;
+  relatedProducts?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  slug?: T;
+  section?: T;
+  authorName?: T;
+  publishedAt?: T;
+  legacyUrl?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "recipes_select".
+ */
+export interface RecipesSelect<T extends boolean = true> {
+  title?: T;
+  perex?: T;
+  coverImage?: T;
+  prepTimeMinutes?: T;
+  cookTimeMinutes?: T;
+  servings?: T;
+  difficulty?: T;
+  coreTemperatureNote?: T;
+  ingredients?:
+    | T
+    | {
+        amount?: T;
+        unit?: T;
+        name?: T;
+        id?: T;
+      };
+  steps?:
+    | T
+    | {
+        text?: T;
+        image?: T;
+        id?: T;
+      };
+  relatedProducts?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  slug?: T;
+  publishedAt?: T;
+  legacyUrl?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  content?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  slug?: T;
+  legacyUrl?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -281,6 +1240,112 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+  sizes?:
+    | T
+    | {
+        thumbnail?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        card?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        detail?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        og?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "locations_select".
+ */
+export interface LocationsSelect<T extends boolean = true> {
+  name?: T;
+  kind?: T;
+  isPickupPoint?: T;
+  address?:
+    | T
+    | {
+        street?: T;
+        city?: T;
+        zip?: T;
+      };
+  openingHours?:
+    | T
+    | {
+        monday?: T;
+        tuesday?: T;
+        wednesday?: T;
+        thursday?: T;
+        friday?: T;
+        saturday?: T;
+        sunday?: T;
+        note?: T;
+      };
+  phone?: T;
+  email?: T;
+  mapUrl?: T;
+  parkingNote?: T;
+  image?: T;
+  slug?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  resetPasswordRequestedAt?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -321,6 +1386,87 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * Základní údaje obchodu. Upravuje jen administrátor.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "settings".
+ */
+export interface Setting {
+  id: number;
+  /**
+   * Jednotná cena rozvozu bez ohledu na hodnotu objednávky. Doprava zdarma neexistuje. Osobní odběr je vždy zdarma.
+   */
+  deliveryPrice: number;
+  /**
+   * Text, který obchod zobrazí u každé odhadované ceny. Musí vysvětlit, že výsledná cena závisí na skutečné hmotnosti.
+   */
+  priceNotice: string;
+  contact?: {
+    email?: string | null;
+    phone?: string | null;
+    /**
+     * Číslo v mezinárodním tvaru, např. +420 …
+     */
+    whatsapp?: string | null;
+  };
+  /**
+   * Údaje do patičky, obchodních podmínek a na doklady.
+   */
+  company?: {
+    name?: string | null;
+    ico?: string | null;
+    dic?: string | null;
+    address?: string | null;
+    /**
+     * Např. „C 12345 vedená u Městského soudu v Praze“.
+     */
+    registration?: string | null;
+  };
+  social?: {
+    facebook?: string | null;
+    instagram?: string | null;
+    youtube?: string | null;
+    tiktok?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "settings_select".
+ */
+export interface SettingsSelect<T extends boolean = true> {
+  deliveryPrice?: T;
+  priceNotice?: T;
+  contact?:
+    | T
+    | {
+        email?: T;
+        phone?: T;
+        whatsapp?: T;
+      };
+  company?:
+    | T
+    | {
+        name?: T;
+        ico?: T;
+        dic?: T;
+        address?: T;
+        registration?: T;
+      };
+  social?:
+    | T
+    | {
+        facebook?: T;
+        instagram?: T;
+        youtube?: T;
+        tiktok?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

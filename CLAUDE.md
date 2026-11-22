@@ -51,6 +51,77 @@ read it: the bundled Next.js docs in `node_modules/next/dist/docs/` match the in
 - Media uploads are stored on local disk in `/media` (git-ignored). `alt` text is required.
 - Money: amounts in whole CZK for display via `formatCzk` in `src/lib/format.ts`.
 
+## Data model (stage 1)
+
+Collections (slug → purpose). Admin groups: Katalog, Číselníky, Obsah, Nastavení
+(`src/collections/adminGroups.ts`; sidebar order = order in `payload.config.ts`).
+
+| Slug                                                     | Group     | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| -------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `products`                                               | Katalog   | Drafts. `price` (CZK incl. VAT) per `priceUnit` (`kg` / `100g` / `piece`), `vatRate` select (`'12'` default, `'21'`, `'0'` – strings, use `vatRateToNumber`), `availability` (`in-stock`, `in-transit`, `sold-out`, `hidden`), `variants[]` {`label`, `kind` `weight`/`piece`, `weightGrams` (target or average weight), optional `availability`, optional `sortOrder`}, `mainImage` + `gallery`, relations `cut`, `origin`, `meatType`, `usages[]`, `shelfLife`, `categories[]` (M:N lives here), `relatedProducts[]`, `relatedRecipes[]`, `marbling` (text, e.g. "BMS 6", "A5"), `feeding` (`grain`/`grass`), `brand`, `sku`, `seo`, `legacyUrl`. |
+| `categories`                                             | Katalog   | No drafts. `parent` (self relation), `menuColumn` (`meat-type`/`cut`/`origin`/`standalone`, empty = not in menu), `menuOrder`, `image`, `intro` + `bottomText` (rich text), `seo`, `legacyUrl`, `products` = read-only join on `products.categories`.                                                                                                                                                                                                                                                                                                                                                                                               |
+| `cuts`, `origins`, `meat-types`, `usages`, `shelf-lives` | Číselníky | Built by `codeListCollection()` in `src/collections/codeLists.ts`: `name`, `slug`, `description`, `image` (not on usages/shelf-lives), `sortOrder`; cuts have `alternativeName`, origins `adjective`.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `articles`                                               | Obsah     | Drafts. `section` (`magazine`/`academy`), `perex`, `coverImage`, `content`, `authorName`, `publishedAt` (auto-filled on first publish), `relatedProducts[]`, `seo`, `legacyUrl`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `recipes`                                                | Obsah     | Drafts. `ingredients[]` {`amount` text, `unit`, `name`}, `steps[]` {`text`, `image`}, `prepTimeMinutes`, `cookTimeMinutes`, `servings`, `difficulty`, `coreTemperatureNote`, `relatedProducts[]` ("V tomto receptu jsme použili"), `seo`, `legacyUrl`.                                                                                                                                                                                                                                                                                                                                                                                              |
+| `pages`                                                  | Obsah     | Drafts. Static pages: `title`, `content`, `seo`, `legacyUrl`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `media`                                                  | Obsah     | Local disk. `alt` required. WebP sizes `thumbnail` 400², `card` 800², `detail` 1600w, `og` 1200×630; focal point on.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `locations`                                              | Nastavení | Shop Italská 17 + warehouse Slivínko: `kind`, `isPickupPoint`, `address` group, `openingHours` group (one text per weekday + `note`), `phone`, `email`, `mapUrl`, `parkingNote`. Admin-only writes.                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `users`                                                  | Nastavení | Auth. `role` select (`admin`/`staff`/`butcher`, saved to JWT).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+
+Global `settings` (admin-only writes, public read): `deliveryPrice` (default 229), `priceNotice`
+(text shown next to every estimated price), `contact` {email, phone, whatsapp}, `company` {name,
+ico, dic, address, registration}, `social` {facebook, instagram, youtube, tiktok}.
+
+There are intentionally **no** discount/sale/original-price/coupon fields and no stock quantity
+in kg. Do not add them (business rule 1).
+
+### Access control (`src/access/index.ts`, tests in `access.test.ts`)
+
+- Roles: `admin` (everything), `staff` (catalog, code lists, content, media; not users, locations,
+  settings), `butcher` (read-only admin for now; will weigh orders later).
+- Use the helpers (`anyone`, `loggedIn`, `adminOnly`, `editors`, `publishedOrLoggedIn`,
+  `publicProductsOrLoggedIn`, `adminOrSelf`, `adminOnlyField`) instead of ad-hoc checks.
+- Anonymous (storefront) reads: drafts never; products additionally never with
+  `availability: 'hidden'`. Code lists, categories, locations, settings, media are public.
+- First user ever created is forced to `admin` (hook in `Users.ts`); only admins change roles.
+- Storefront code that uses the local API with `overrideAccess: true` (the default!) bypasses all
+  of this – pass `overrideAccess: false` or filter `_status`/`availability` yourself.
+
+### Conventions established in stage 1
+
+- Slugs: `slugField()` from `src/fields/slug.ts` (unique, sidebar, auto-generated from
+  `title`/`name` via `slugify()` in `src/lib/slugify.ts`, `-2` suffix on collision, never changed
+  automatically after creation). Payload's experimental built-in `slugField` is not used.
+- Shared fields in `src/fields/common.ts`: `legacyUrlField`, `seoGroup`, `sortOrderField()`,
+  `nameField`. `legacyUrl` exists on products, categories, articles, recipes, pages (for 301s).
+- Catalog constants (price units, VAT rates, availability, variant kinds) live in
+  `src/lib/catalog.ts`; never duplicate option values elsewhere.
+- Price estimate: `estimateVariantPrice()` in `src/lib/price.ts` (unit price × weight, rounded to
+  whole CZK; `piece` products return the fixed price). Always display with `settings.priceNotice`.
+- Labels, descriptions and validation messages are Czech plain strings (admin in English shows
+  the same Czech labels).
+- Seed: `pnpm seed` (`src/seed/`, images in `src/seed/assets/`). Create-only and idempotent
+  (looks up by slug, media by alt + file name); never overwrites admin edits. Refuses
+  `NODE_ENV=production` unless `SEED_FORCE=1`. Unknown facts stay empty or marked `DOPLNIT`.
+- Tests: `pnpm test` = unit (`src/**/*.test.ts`) + integration (`tests/int/*.int.test.ts`,
+  Payload local API against a throwaway database created and dropped by
+  `tests/int/globalSetup.ts` on the DATABASE_URL server). Use `overrideAccess: false` + `user`
+  to test access rules.
+- Migration `20261122_161606_catalog` contains one hand-added line that makes pre-existing users
+  admins. Local dev DBs that were schema-pushed before stage 1 get `role = staff` for existing
+  users; fix in SQL (`UPDATE users SET role = 'admin'`) or recreate the DB.
+
+### Notes for the next stages
+
+- Stage 2 (delivery): flat price is `settings.deliveryPrice` (229); pickup points are
+  `locations` with `isPickupPoint` (pickup is free). Postcode rules, cut-off times and holiday
+  calendar are not modelled yet.
+- Stage 3 (storefront): menu = categories grouped by `menuColumn`, sorted by `menuOrder`;
+  product cards use `mainImage.sizes.card`; variant order = `sortOrder` if set, else array order;
+  show `estimateVariantPrice()` + `settings.priceNotice`; build 301s from `legacyUrl`.
+- Stage 4 (cart/orders): store the variant snapshot (label, weightGrams, unit price, VAT rate)
+  on the order line, not a reference only – products change.
+
 ## Business rules – never violate these
 
 1. **No discounts and no discount codes.** No coupon fields, no "sale" prices, no percentage-off

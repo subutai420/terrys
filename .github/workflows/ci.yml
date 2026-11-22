@@ -1,5 +1,5 @@
 # Continuous integration: checks every push and pull request.
-# Steps: install -> lint -> typecheck -> unit tests -> build -> Playwright smoke test.
+# Steps: install -> lint -> typecheck -> unit + integration tests -> build -> Playwright smoke test.
 name: CI
 
 on:
@@ -59,7 +59,9 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Unit tests
+      # Unit tests + integration tests (Payload local API against a throwaway database that the
+      # tests create in the Postgres service and drop afterwards; see vitest.config.mts).
+      - name: Unit and integration tests
         run: pnpm test
 
       - name: Build

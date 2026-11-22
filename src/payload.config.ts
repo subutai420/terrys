@@ -7,8 +7,16 @@ import { buildConfig } from 'payload'
 import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
+import { Articles } from './collections/Articles'
+import { Categories } from './collections/Categories'
+import { Cuts, MeatTypes, Origins, ShelfLives, Usages } from './collections/codeLists'
+import { Locations } from './collections/Locations'
 import { Media } from './collections/Media'
+import { Pages } from './collections/Pages'
+import { Products } from './collections/Products'
+import { Recipes } from './collections/Recipes'
 import { Users } from './collections/Users'
+import { Settings } from './globals/Settings'
 import { migrations } from './migrations'
 
 const filename = fileURLToPath(import.meta.url)
@@ -32,7 +40,28 @@ export default buildConfig({
     supportedLanguages: { cs, en },
     fallbackLanguage: 'cs',
   },
-  collections: [Users, Media],
+  // The order here is also the order in the admin sidebar (groups: Katalog, Číselníky, Obsah,
+  // Nastavení).
+  collections: [
+    // Katalog
+    Products,
+    Categories,
+    // Číselníky
+    Cuts,
+    Origins,
+    MeatTypes,
+    Usages,
+    ShelfLives,
+    // Obsah
+    Articles,
+    Recipes,
+    Pages,
+    Media,
+    // Nastavení
+    Locations,
+    Users,
+  ],
+  globals: [Settings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
