@@ -1,0 +1,123 @@
+﻿Short Id;Název (export);Pole;Hodnota v exportu;Hodnota v novém e-shopu;Poznámka
+199;Vysočina prémium;aktivní / viditelnost;Checked;draft / in-stock;v exportu aktivní, v novém e-shopu skrytý nebo koncept
+961;Namibijské hovězí hrudí - BRISKET POINT END;aktivní / viditelnost;Checked;draft / sold-out;v exportu aktivní, v novém e-shopu skrytý nebo koncept
+1010;Kuřecí křídla;aktivní / viditelnost;Checked;draft / in-stock;v exportu aktivní, v novém e-shopu skrytý nebo koncept
+1070;Treska;aktivní / viditelnost;Checked;draft / sold-out;v exportu aktivní, v novém e-shopu skrytý nebo koncept
+1131;113g Vega burger;aktivní / viditelnost;Checked;draft / in-stock;v exportu aktivní, v novém e-shopu skrytý nebo koncept
+1185;Niva;aktivní / viditelnost;Checked;draft / in-stock;v exportu aktivní, v novém e-shopu skrytý nebo koncept
+1234;Wagyu Tenderloin JAPONSKO A3;aktivní / viditelnost;Checked;draft / sold-out;v exportu aktivní, v novém e-shopu skrytý nebo koncept
+1291;Wagyu Flank CHILE_BMS 5-7;aktivní / viditelnost;Checked;draft / sold-out;v exportu aktivní, v novém e-shopu skrytý nebo koncept
+1294;Wagyu Rib Eye CHILE BMS 5-7;aktivní / viditelnost;Checked;draft / sold-out;v exportu aktivní, v novém e-shopu skrytý nebo koncept
+1295;Wagyu Striploin CHILE_BMS 5-7;aktivní / viditelnost;Checked;draft / sold-out;v exportu aktivní, v novém e-shopu skrytý nebo koncept
+1296;Wagyu Tenderloin CHILE_BMS 5-7;aktivní / viditelnost;Checked;draft / sold-out;v exportu aktivní, v novém e-shopu skrytý nebo koncept
+28771;Wagyu Picanha AUS. BMS 8+;aktivní / viditelnost;Checked;draft / in-stock;v exportu aktivní, v novém e-shopu skrytý nebo koncept
+28773;Wagyu Chuck roll AUS BMS 8/9;aktivní / viditelnost;Checked;draft / sold-out;v exportu aktivní, v novém e-shopu skrytý nebo koncept
+28776;Wagyu Top Blade AUS. BMS 8+;aktivní / viditelnost;Checked;draft / sold-out;v exportu aktivní, v novém e-shopu skrytý nebo koncept
+29390;Australský hovězí skirt Steak;aktivní / viditelnost;Checked;draft / in-stock;v exportu aktivní, v novém e-shopu skrytý nebo koncept
+28803;VALENTÝN promo Wagyu burger POUZE 9.2. - 13.2.2026;cena;135;;nový e-shop nemá cenu (koncept)
+147;Farmářská hovězí svíčková;dostupnost;Na dotaz;sold-out;pro tento text nemá nový e-shop stav
+149;Farmářský hovězí nízký roštěnec;dostupnost;Na dotaz;sold-out;pro tento text nemá nový e-shop stav
+193;Hovězí Pastrami;dostupnost;ve výrobě;in-stock;pro tento text nemá nový e-shop stav
+246;Farmářská hovězí kýta - ořech;dostupnost;Na dotaz;sold-out;pro tento text nemá nový e-shop stav
+248;Farmářský hovězí vysoký roštěnec;dostupnost;Na dotaz;sold-out;pro tento text nemá nový e-shop stav
+439;Farmářské hovězí přední bez kosti;dostupnost;Na dotaz;sold-out;pro tento text nemá nový e-shop stav
+909;Brazilský hovězí Rumpsteak;dostupnost;Na dotaz;sold-out;pro tento text nemá nový e-shop stav
+957;Irský hovězí Rib Eye;dostupnost;Na dotaz;sold-out;pro tento text nemá nový e-shop stav
+959;Irský hovězí Striploin;dostupnost;Na dotaz;sold-out;pro tento text nemá nový e-shop stav
+1031;Wagyu Tenderloin AUS BMS 8-9;dostupnost;Na cestě do ČR;in-stock;
+1068;Jarní kuřátko;dostupnost;Na dotaz;sold-out;pro tento text nemá nový e-shop stav
+1090;120g Jelení burger sůl;dostupnost;Na dotaz;sold-out;pro tento text nemá nový e-shop stav
+1162;Jehněčí bok rolovaný;dostupnost;Na dotaz;sold-out;pro tento text nemá nový e-shop stav
+1243;Wagyu Tenderloin AUS BMS 6-7;dostupnost;Na cestě do ČR;in-stock;
+1035;Wagyu Top Blade URUG BMS 5-7;druh / výsek (cut);plecloupana;Plec loupaná;
+1255;Dršťková polévka;druh / výsek (cut);Hovová jídla;Hotová jídla;
+1257;Gulášová polévka;druh / výsek (cut);Hovová jídla;Hotová jídla;
+1259;Trhané hovězí maso v BBQ;druh / výsek (cut);Hovová jídla;Hotová jídla;
+1261;Selský hovězí guláš;druh / výsek (cut);Hovová jídla;Hotová jídla;
+1263;Segedínský guláš;druh / výsek (cut);Hovová jídla;Hotová jídla;
+1265;Vepřové ve vlastní šťávě;druh / výsek (cut);Hovová jídla;Hotová jídla;
+1267;Sádlo škvařené;druh / výsek (cut);Hovová jídla;Hotová jídla;
+28803;VALENTÝN promo Wagyu burger POUZE 9.2. - 13.2.2026;druh / výsek (cut);mlete;;v novém e-shopu prázdné
+28850;Uruguayský hovězí Brisket - hrudí bez kosti začištěný;druh / výsek (cut);Hovová jídla;Hotová jídla;
+183;Métský jemný;druh masa;ostatni;;v novém e-shopu prázdné
+193;Hovězí Pastrami;druh masa;ostatni;Hovězí;export „ostatni“ – v novém číselníku nic takového není
+199;Vysočina prémium;druh masa;ostatni;;v novém e-shopu prázdné
+201;Prosciutto;druh masa;ostatni;;v novém e-shopu prázdné
+205;Métský hrubý;druh masa;ostatni;;v novém e-shopu prázdné
+207;Lovecký salám;druh masa;ostatni;;v novém e-shopu prázdné
+215;Anglická slanina;druh masa;ostatni;;v novém e-shopu prázdné
+219;Debracínské párky;druh masa;ostatni;;v novém e-shopu prázdné
+221;Špekáčky;druh masa;ostatni;;v novém e-shopu prázdné
+228;Losos - filet;druh masa;ostatni;;v novém e-shopu prázdné
+286;Tlačenka;druh masa;ostatni;;v novém e-shopu prázdné
+288;Pečená sekaná;druh masa;ostatni;;v novém e-shopu prázdné
+292;Gyulai klobása;druh masa;ostatni;;v novém e-shopu prázdné
+294;Chorizo klobása;druh masa;ostatni;;v novém e-shopu prázdné
+296;Zámecká klobása;druh masa;ostatni;;v novém e-shopu prázdné
+298;Vídeňské párky;druh masa;ostatni;;v novém e-shopu prázdné
+358;Telecí svíčková;druh masa;ostatni;Telecí;export „ostatni“ – v novém číselníku nic takového není
+540;Jehněčí plec bez kosti;druh masa;ostatni;Jehněčí;export „ostatni“ – v novém číselníku nic takového není
+542;Jehněčí kýta BEZ kosti;druh masa;ostatni;Jehněčí;export „ostatni“ – v novém číselníku nic takového není
+544;Jehněčí hřebínky s kostí - French Rack;druh masa;ostatni;Jehněčí;export „ostatni“ – v novém číselníku nic takového není
+548;Hovězí mleté maso solené;druh masa;ostatni;Hovězí;export „ostatni“ – v novém číselníku nic takového není
+552;Telecí mleté maso solené;druh masa;ostatni;Telecí;export „ostatni“ – v novém číselníku nic takového není
+593;Rozmarýn řezaný 180g;druh masa;hovezi;;v novém e-shopu prázdné
+639;Uherský salám Pick;druh masa;ostatni;;v novém e-shopu prázdné
+645;Šunka od kosti;druh masa;ostatni;;v novém e-shopu prázdné
+647;Moravské uzené;druh masa;ostatni;;v novém e-shopu prázdné
+663;Špek Mangalica;druh masa;ostatni;Vepřové;export „ostatni“ – v novém číselníku nic takového není
+801;Uzená krkovice bez kosti;druh masa;veprove;;v novém e-shopu prázdné
+949;Australský hovězí Striploin;druh masa;drubezi;Hovězí;
+954;Irský hovězí Flap Steak;druh masa;ostatni;Hovězí;export „ostatni“ – v novém číselníku nic takového není
+1008;Vepřové mleté maso solené;druh masa;ostatni;Vepřové;export „ostatni“ – v novém číselníku nic takového není
+1012;Bulka čerstvá se sezamem 90g (cca 13cm);druh masa;ostatni;Hovězí;export „ostatni“ – v novém číselníku nic takového není
+1037;Wagyu Chuck roll URUG_BMS 5-7;druh masa;ostatni;Wagyu;export „ostatni“ – v novém číselníku nic takového není
+1070;Treska;druh masa;ostatni;;v novém e-shopu prázdné
+1082;Hovězí burger chilli&čokoláda;druh masa;ostatni;Hovězí;export „ostatni“ – v novém číselníku nic takového není
+1084;Hovězí burger sůl;druh masa;ostatni;Hovězí;export „ostatni“ – v novém číselníku nic takového není
+1086;Telecí burger sůl;druh masa;ostatni;Telecí;export „ostatni“ – v novém číselníku nic takového není
+1088;Vepřový burger sůl;druh masa;ostatni;Vepřové;export „ostatni“ – v novém číselníku nic takového není
+1090;120g Jelení burger sůl;druh masa;ostatni;Zvěřina;export „ostatni“ – v novém číselníku nic takového není
+1105;Hovězí burger švestka&skořice;druh masa;ostatni;Hovězí;export „ostatni“ – v novém číselníku nic takového není
+1109;Hovězí burger Jalapeños;druh masa;ostatni;Hovězí;export „ostatni“ – v novém číselníku nic takového není
+1127;Wagyu Flap CHILE_BMS 5-7;druh masa;ostatni;Wagyu;export „ostatni“ – v novém číselníku nic takového není
+1162;Jehněčí bok rolovaný;druh masa;ostatni;Jehněčí;export „ostatni“ – v novém číselníku nic takového není
+1176;Cheddar cheese;druh masa;ostatni;;v novém e-shopu prázdné
+1179;Emmentál;druh masa;ostatni;;v novém e-shopu prázdné
+1182;Gouda;druh masa;ostatni;;v novém e-shopu prázdné
+1185;Niva;druh masa;ostatni;;v novém e-shopu prázdné
+1187;Wagyu burger JAPAN;druh masa;ostatni;Wagyu;export „ostatni“ – v novém číselníku nic takového není
+1189;Hovězí burger Rum&ořechy;druh masa;ostatni;Hovězí;export „ostatni“ – v novém číselníku nic takového není
+1206;Papriková klobása;druh masa;ostatni;;v novém e-shopu prázdné
+1210;Hovězí burger jahoda a mandle;druh masa;ostatni;Hovězí;export „ostatni“ – v novém číselníku nic takového není
+1214;Bulka velká, balená se sezamem 4x 75g;druh masa;ostatni;Hovězí;export „ostatni“ – v novém číselníku nic takového není
+1220;Jitrnice;druh masa;ostatni;;v novém e-shopu prázdné
+1222;Jelito;druh masa;ostatni;;v novém e-shopu prázdné
+1224;Brdská jemná klobása;druh masa;ostatni;;v novém e-shopu prázdné
+1226;Brdská pálivá klobása;druh masa;ostatni;;v novém e-shopu prázdné
+1249;Demi Glace 160g;druh masa;hovezi;;v novém e-shopu prázdné
+1251;Pepřová omáčka 160g;druh masa;hovezi;;v novém e-shopu prázdné
+1259;Trhané hovězí maso v BBQ;druh masa;;Hovězí;v exportu prázdné
+1261;Selský hovězí guláš;druh masa;;Hovězí;v exportu prázdné
+1265;Vepřové ve vlastní šťávě;druh masa;;Vepřové;v exportu prázdné
+1271;BBQ omáčka originál;druh masa;hovezi;;v novém e-shopu prázdné
+1273;BBQ omáčka Honey Chipotle;druh masa;hovezi;;v novém e-shopu prázdné
+1275;Vločková sůl cornisch 100g;druh masa;hovezi;;v novém e-shopu prázdné
+1279;Koření na bylinkové máslo 40g;druh masa;hovezi;;v novém e-shopu prázdné
+1281;Koření na grilovanou zeleninu 100g;druh masa;hovezi;;v novém e-shopu prázdné
+1291;Wagyu Flank CHILE_BMS 5-7;druh masa;ostatni;Wagyu;export „ostatni“ – v novém číselníku nic takového není
+1292;Wagyu Flap URUG_BMS 5-7;druh masa;ostatni;Wagyu;export „ostatni“ – v novém číselníku nic takového není
+1303;Wagyu Flank URUG_BMS 6-7;druh masa;ostatni;Wagyu;export „ostatni“ – v novém číselníku nic takového není
+28803;VALENTÝN promo Wagyu burger POUZE 9.2. - 13.2.2026;druh masa;ostatni;Wagyu;export „ostatni“ – v novém číselníku nic takového není
+28803;VALENTÝN promo Wagyu burger POUZE 9.2. - 13.2.2026;jednotka ceny (Cena za / priceUnit);1_kus;kg;
+589;Koriandr řezaný 180g;kategorie;Koření a bylinky;Ostatní;taková kategorie v novém e-shopu není
+591;Máta řezaná 180g;kategorie;Koření a bylinky;Ostatní;taková kategorie v novém e-shopu není
+593;Rozmarýn řezaný 180g;kategorie;Koření a bylinky;Ostatní;taková kategorie v novém e-shopu není
+542;Jehněčí kýta BEZ kosti;původ;NovyZeland;Nový Zéland;
+544;Jehněčí hřebínky s kostí - French Rack;původ;NovyZeland;Nový Zéland;
+1068;Jarní kuřátko;původ;Franice;Francie;
+28803;VALENTÝN promo Wagyu burger POUZE 9.2. - 13.2.2026;původ;Japonsko;;v novém e-shopu prázdné
+28803;VALENTÝN promo Wagyu burger POUZE 9.2. - 13.2.2026;skladování;0-4°C;;
+28803;VALENTÝN promo Wagyu burger POUZE 9.2. - 13.2.2026;trvanlivost (dny);4;;e-shop: název položky číselníku Trvanlivost
+28803;VALENTÝN promo Wagyu burger POUZE 9.2. - 13.2.2026;typ (chlazené/mražené);Chlazene;;
+28803;VALENTÝN promo Wagyu burger POUZE 9.2. - 13.2.2026;vhodné pro;burgery, grilovani;;
