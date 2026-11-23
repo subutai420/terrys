@@ -431,7 +431,13 @@ describe('feeds from the catalog', () => {
     ]) {
       expect(feed.xml).not.toContain(hidden)
     }
-    expect(feed.excluded.map((e) => e.title).sort()).toEqual(['Měření broušení', 'Měření vyřazený'])
+    // Only this file's products ("Měření …"): the test database is shared with the other
+    // integration test files, which leave their own products behind (e.g. access.int.test.ts).
+    const excludedHere = feed.excluded
+      .map((e) => e.title)
+      .filter((title) => title.startsWith('Měření '))
+      .sort()
+    expect(excludedHere).toEqual(['Měření broušení', 'Měření vyřazený'])
   })
 
   it('heureka: mapped category inherited from the parent, sold-out variant left out', async () => {

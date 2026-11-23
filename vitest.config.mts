@@ -44,6 +44,8 @@ export default defineConfig({
           environment: 'node',
           include: ['tests/int/**/*.int.test.ts'],
           globalSetup: ['tests/int/globalSetup.ts'],
+          // Points DATABASE_URL at the throwaway database before any test file is imported.
+          setupFiles: ['tests/int/setupEnv.ts'],
           // Starting Payload and creating the schema takes a while on the first test.
           testTimeout: 60_000,
           hookTimeout: 180_000,
